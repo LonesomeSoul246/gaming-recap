@@ -396,8 +396,8 @@ const CLOUD = !LOCAL;
 /* ================= Konstanten ================= */
 const PLAT_COLORS = {"Steam":"#66c0f4","Epic Games":"#e9e9e9","Ubisoft":"#ff8a3d","EA":"#ff4f6d","GOG":"#b26bff",
   "Xbox PC":"#9be15d","Battle.net":"#00b4ff","Amazon":"#ffb36b","itch.io":"#fa5c5c","Humble":"#d94848","Rockstar":"#fcaf17",
-  "PlayStation":"#3d7bff","Xbox":"#2ecc40","Andere":"#8a93a6"};
-const DEV_COLORS = {"PC":"#c8f135","PlayStation":"#3d7bff","Xbox":"#2ecc40"};
+  "PlayStation":"#3d7bff","Xbox":"#2ecc40","Nintendo":"#ff3b3b","Andere":"#8a93a6"};
+const DEV_COLORS = {"PC":"#c8f135","PlayStation":"#3d7bff","Xbox":"#2ecc40","Nintendo":"#ff3b3b"};
 const pcolor = p => PLAT_COLORS[p] || PLAT_COLORS.Andere;
 const STATUS = [
   {k:"als_naechstes", l:"Als Nächstes", e:"🎯", c:"#c8f135", g:"open"},
@@ -578,7 +578,7 @@ function autoStatus(g){
   return g.pcMinutes > 0 ? "angefangen" : "ungespielt";
 }
 function coverOrder(urls, extra){
-  // Playnite-Cover (nur am PC erreichbar) > Steam > HowLongToBeat > Plattform-Bild
+  // Playnite-Cover (nur am PC erreichbar) > Steam > IGDB > Plattform-Bild
   const pn=[], st=[], nat=[];
   for (const u of urls){ if (u.startsWith("/api/img")) { if (LOCAL) pn.push(u); } else if (u.includes("steamstatic")) st.push(u); else nat.push(u); }
   return [...new Set([...pn, ...st, ...(extra||[]), ...nat])];
@@ -598,10 +598,12 @@ function buildGroups(){
     g.devs[r.device] = (g.devs[r.device]||0) + pmins;
     if (r.device === "PC"){
       g.pc = true; g.pcMinutes += mins;
+      if (!r.family) g.owned = true;
       if (!r.hidden) g.hidden = false;
       (r.genres||[]).forEach(x=>g.genres.add(x)); (r.features||[]).forEach(x=>g.features.add(x));
       (r.developers||[]).forEach(x=>g.devsList.add(x));
-      if (r.release_year && (!g.year || r.release_year < g.year)) g.year = r.release_year;
+      const ry = Number(r.release_year);
+      if (ry >= 1970 && ry <= new Date().getFullYear()+1 && (!g.year || ry < g.year)) g.year = ry;
       const a = pdate(r.added); if (a && (!g.added || a < g.added)) g.added = a;
       if (r.installed) g.installed = true;
       if (r.completion && !g.completion) g.completion = r.completion;
@@ -792,7 +794,7 @@ function renderOverview(){
     <div><b style="font-size:20px">${hrs(val(t))}</b> · ${num(val(t)/total*100)} % deiner Zeit</div>
     <div class="tagrow" style="margin-top:10px">${platTags(t.plats)}</div></div></section>`;
 
-  const devs = ["PC","PlayStation","Xbox"].filter(k=>devT[k]);
+  const devs = ["PC","PlayStation","Xbox","Nintendo"].filter(k=>devT[k]);
   const pcShare = (devT.PC||0)/total*100;
   h += `<section class="card lime s5 reveal"><h3>PC vs. Konsole</h3>
     <div class="big"><span data-count="${Math.round(pcShare)}">0</span>%</div>
@@ -860,7 +862,7 @@ function facts(played,total,plats){
   const c100 = played.filter(g=>val(g)>=6000).length;
   f.push(["100-Stunden-Club", `${c100} ${c100===1?"Spiel":"Spiele"}`, c100 ? "Echte Langzeitbeziehungen" : "Noch kein Mitglied"]);
   const tempo = tempoStats();
-  if (tempo) f.push(["Tempo", `${num(Math.abs(tempo.pct))} % ${tempo.pct<0?"schneller":"langsamer"}`, `als der HowLongToBeat-Schnitt (${tempo.n} Spiele)`]);
+  if (tempo) f.push(["Tempo", `${num(Math.abs(tempo.pct))} % ${tempo.pct<0?"schneller":"langsamer"}`, `als der Durchschnitt laut IGDB (${tempo.n} Spiele)`]);
   const sniff = played.filter(g=>val(g)<60).length;
   if (sniff) f.push(["Schnupperer", `${sniff} ${sniff===1?"Spiel":"Spiele"}`, "unter einer Stunde angespielt"]);
   const multi = played.filter(g=>Object.values(g.plats).filter(Boolean).length>1);
@@ -922,10 +924,10 @@ function renderLib(){
   const L = S.lib, devCounts = {};
   S.groups.forEach(g=>Object.keys(g.devs).forEach(d=>devCounts[d]=(devCounts[d]||0)+1));
   $("#view").innerHTML = `<div class="eyebrow" style="margin-top:6px">Deine Bibliothek</div><div class="h1">${num(S.groups.length)} Spiele</div>${libSeg()}
-    <div class="chips">${[["","Alle"],["PC","PC"],["PlayStation","PlayStation"],["Xbox","Xbox"]].filter(([k])=>!k||devCounts[k])
+    <div class="chips">${[["","Alle"],["PC","PC"],["PlayStation","PlayStation"],["Xbox","Xbox"],["Nintendo","Nintendo"]].filter(([k])=>!k||devCounts[k])
       .map(([k,l])=>`<button class="chip ${L.dev===k?"on":""}" onclick="S.lib.dev='${k}';S.lib.limit=60;route()">${l}<small>${k?devCounts[k]:S.groups.length}</small></button>`).join("")}</div>
     <div class="toolbar"><input id="q" type="search" placeholder="Spiel suchen …" value="${esc(L.q)}">
-      <select id="sort">${[["min","Meiste Spielzeit"],["last","Zuletzt gespielt"],["name","Name A–Z"],["year","Neueste zuerst"],["added","Neu in der Bibliothek"],["hltb","Kürzeste (HLTB)"]]
+      <select id="sort">${[["min","Meiste Spielzeit"],["last","Zuletzt gespielt"],["name","Name A–Z"],["year","Neueste zuerst"],["added","Neu in der Bibliothek"],["hltb","Kürzeste zuerst"]]
         .map(([k,l])=>`<option value="${k}" ${L.sort===k?"selected":""}>${l}</option>`).join("")}</select>
       <label class="check" style="margin:0"><input type="checkbox" id="played" ${L.played?"checked":""}> nur gespielte</label></div>
     <div class="grid" id="grid"></div><div id="moreWrap"></div>`;
@@ -947,7 +949,7 @@ function libGrid(){
 }
 
 /* ================= Backlog ================= */
-const blGames = () => S.groups.filter(g=>g.pc && !g.hidden);
+const blGames = () => S.groups.filter(g=>g.pc && !g.hidden && g.owned);
 function backlogStats(){
   const b = blGames(); let open=0, done=0, unplayed=0, rest=0, known=0;
   for (const g of b){ const gr = SMAP[g.status].g; if (gr==="open"){ open++; if (g.remaining!=null){ rest+=g.remaining; known++; } } if (gr==="done") done++; if (g.status==="ungespielt") unplayed++; }
@@ -975,15 +977,15 @@ function renderBacklog(){
       <div class="ring" style="--p:${st.pct}"><div><div><b>${num(st.pct)}%</b><br><span>geschafft</span></div></div></div>
       <div class="bhero nums"><div><b>${st.done}</b><span>durch</span></div><div><b>${st.unplayed}</b><span>nie gestartet</span></div>
         ${st.rest?`<div><b>${num(st.rest/60)}</b><span>Std Story offen</span></div>`:""}</div></div>
-      <div style="opacity:.9;margin:14px 0 16px;font-size:14px">${forecast(st)}${st.rest&&st.known<st.open?` <span style="opacity:.75">(HowLongToBeat-Zeit für ${st.known} von ${st.open} Spielen bekannt)</span>`:""}</div>
+      <div style="opacity:.9;margin:14px 0 16px;font-size:14px">${forecast(st)}${st.rest&&st.known<st.open?` <span style="opacity:.75">(Spieldauer für ${st.known} von ${st.open} Spielen bekannt)</span>`:""}</div>
       <button class="btn" onclick="openPicker()">🎲 Was spiele ich als Nächstes?</button></section>
     ${goalsCard()}
     <div class="bl-filters">${filters.map(([k,l,c])=>`<button class="chip ${B.f===k?"on":""}" onclick="S.bl.f='${k}';S.bl.limit=80;route()">${l}<small>${c}</small></button>`).join("")}</div>
   </aside><div>
-    <div class="toolbar"><select id="bsort">${[["added","Am längsten im Regal"],["short","Kürzeste zuerst (HLTB)"],["last","Zuletzt gespielt"],["min","Meiste Spielzeit"],["name","Name A–Z"],["rating","Beste Bewertung"]]
+    <div class="toolbar"><select id="bsort">${[["added","Am längsten im Regal"],["short","Kürzeste zuerst"],["last","Zuletzt gespielt"],["min","Meiste Spielzeit"],["name","Name A–Z"],["rating","Beste Bewertung"]]
       .map(([k,l])=>`<option value="${k}" ${B.sort===k?"selected":""}>${l}</option>`).join("")}</select>
       <span class="help" style="margin:0">Gestrichelt = automatisch erkannt</span></div>
-    <div class="bhead"><span></span><span>Spiel</span><span>Status</span><span>Gespielt</span><span>HLTB</span><span>Im Regal</span></div>
+    <div class="bhead"><span></span><span>Spiel</span><span>Status</span><span>Gespielt</span><span>Dauer</span><span>Im Regal</span></div>
     <div id="blist"></div><div style="margin-top:18px">${historyCard()}</div></div></div>`;
   $("#bsort").onchange = e => { B.sort = e.target.value; blist(); };
   blist();
@@ -996,7 +998,7 @@ function blist(){
     short:(a,b)=>(a.remaining??Infinity)-(b.remaining??Infinity)}[B.sort]);
   $("#blist").innerHTML = (list.slice(0,B.limit).map(g=>`<div class="brow" onclick="openGame('${esc(g.key)}')">
     <div class="poster">${img(g.covers,g.title)}</div>
-    <div class="mid2"><b>${esc(g.title)}</b><span>${[g.pcMinutes?hrs(g.pcMinutes):"nie gestartet", g.hltb&&g.hltb.main?`HLTB ${hrs(g.hltb.main)}`:"", g.genres.slice(0,2).join(", ")].filter(Boolean).join(" · ")}</span></div>
+    <div class="mid2"><b>${esc(g.title)}</b><span>${[g.pcMinutes?hrs(g.pcMinutes):"nie gestartet", g.hltb&&g.hltb.main?`Dauer ${hrs(g.hltb.main)}`:"", g.genres.slice(0,2).join(", ")].filter(Boolean).join(" · ")}</span></div>
     ${pill(g)}<span class="cd">${g.pcMinutes?hrs(g.pcMinutes):"–"}</span><span class="cd">${g.hltb&&g.hltb.main?hrs(g.hltb.main):"–"}</span><span class="cd">${g.added?g.added.getFullYear():"–"}</span></div>`).join("")
     || `<p class="help">Hier ist gerade nichts.</p>`)
     + (list.length > B.limit ? `<button class="btn ghost more" onclick="S.bl.limit+=150;blist()">Mehr anzeigen (${list.length-B.limit})</button>` : "");
@@ -1357,7 +1359,7 @@ function wrapSlides(D){
   const pc = (D.dev.PC||0)/D.total*100;
   L.push({bg:"#c8f135", fg:"#111", html:`<div class="k w-in">PC vs. Konsole</div><div class="xl w-in d1">${num(pc)}%</div>
     <div class="h w-in d2">${pc>=70?"PC-Masterrace.":pc>=50?"Am liebsten am PC.":"Team Couch."}</div>
-    ${["PC","PlayStation","Xbox"].filter(k=>D.dev[k]).map((k,i)=>`<div class="devrow w-in d${i+2}" style="font-size:17px"><span class="lbl">${k}</span><span class="trk"><div style="width:${D.dev[k]/D.total*100}%"></div></span><span class="v">${hrs(D.dev[k])}</span></div>`).join("")}`});
+    ${["PC","PlayStation","Xbox","Nintendo"].filter(k=>D.dev[k]).map((k,i)=>`<div class="devrow w-in d${i+2}" style="font-size:17px"><span class="lbl">${k}</span><span class="trk"><div style="width:${D.dev[k]/D.total*100}%"></div></span><span class="v">${hrs(D.dev[k])}</span></div>`).join("")}`});
   if (D.gen.length) L.push({bg:"linear-gradient(160deg,#2ee6d6,#3d7bff)", fg:"#04201d", html:`<div class="k w-in">Deine Gamer-DNA</div><div class="h w-in d1" style="font-size:clamp(40px,13cqw,72px)">${esc(D.gen[0][0])}</div>
     <p class="w-in d2">Dein Lieblingsgenre mit ${hrs(D.gen[0][1])}.</p><div class="wlist w-in d3">${D.gen.slice(1,5).map(([n,v],i)=>`<div><i>${i+2}</i>${esc(n)}<span>${hrs(v)}</span></div>`).join("")}</div>`});
   if (D.rows.length > 1) L.push({bg:"linear-gradient(170deg,#15141c,#2a0f3a)", html:`<div class="k w-in">Deine Top 5</div><div class="h w-in d1">Fast ganz oben …</div>
@@ -1478,9 +1480,9 @@ window.openGame = key => {
     const p = (g.pcMinutes/ref - 1)*100;
     tempo = `<p class="help">Du hast ${hrs(g.pcMinutes)} gebraucht – ${num(Math.abs(p))} % ${p<0?"schneller":"langsamer"} als der Schnitt für ${g.status==="komplett"&&H.comp?"100 %":"die Story"}.</p>`;
   } else if (g.remaining) tempo = `<p class="help">Noch etwa <b>${hrs(g.remaining)}</b> bis zum Abspann.</p>`;
-  const hltbBlock = `<div class="secttl">HowLongToBeat ${H&&H.manual?"(selbst eingetragen)":""}</div>
+  const hltbBlock = `<div class="secttl">Spieldauer ${H&&H.manual?"(selbst eingetragen)":"(IGDB)"}</div>
     ${H && (H.main||H.plus||H.comp) ? `<div class="hl"><div><small>Story</small><b>${H.main?hrs(H.main):"–"}</b></div><div><small>+ Extras</small><b>${H.plus?hrs(H.plus):"–"}</b></div><div><small>100 %</small><b>${H.comp?hrs(H.comp):"–"}</b></div></div>${tempo}` : `<p class="help">Noch keine Zeit bekannt.</p>`}
-    <div class="inl" style="flex-wrap:wrap">${H&&H.id?`<a class="btn ghost small" href="https://howlongtobeat.com/game/${H.id}" target="_blank" rel="noopener">Auf HLTB ansehen ↗</a>`:`<a class="btn ghost small" href="https://howlongtobeat.com/?q=${encodeURIComponent(g.title)}" target="_blank" rel="noopener">Auf HLTB suchen ↗</a>`}
+    <div class="inl" style="flex-wrap:wrap"><a class="btn ghost small" href="https://howlongtobeat.com/?q=${encodeURIComponent(g.title)}" target="_blank" rel="noopener">Auf HowLongToBeat ansehen ↗</a>
       ${S.data.can_edit?`<input type="number" id="hlMain" min="0" step="0.5" placeholder="Story-Std" value="${H&&H.manual&&H.main?H.main/60:""}"><button class="btn ghost small" onclick="saveHltb('${esc(g.key)}')">Eintragen</button>`:""}</div>`;
   const left = `<div class="kv">
       <div><small>Spielzeit</small><b>${g.minutes?hrs(g.minutes):"nie gestartet"}</b></div>
@@ -1497,10 +1499,10 @@ window.openGame = key => {
       ${g.ach.r?`<p class="help">Seltenster: <b>${esc(g.ach.r[0])}</b> – nur ${num(g.ach.r[1],1)} % haben ihn.</p>`:""}</div>` : ""}
     ${g.price && g.price.orig ? `<div class="secttl">Preis</div><p style="margin:4px 0">${euro(g.price.orig)} im Steam-Store${g.price.discount?` (gerade -${g.price.discount} %)`:""}${g.minutes>=60?` · <b>${euro(g.price.orig/(g.minutes/60))} pro Stunde</b>`:""}</p>` : ""}
     ${g.appid ? `<a class="btn ghost small" style="margin-top:10px" href="https://store.steampowered.com/app/${esc(g.appid)}/" target="_blank" rel="noopener">Im Steam-Store ↗</a>` : ""}`;
-  const right = `${g.pc && !g.hidden ? `<div class="secttl">Backlog-Status ${g.isAuto?"<span style='text-transform:none;letter-spacing:0'>(automatisch erkannt)</span>":""}</div>
+  const right = `${g.pc && !g.hidden && g.owned ? `<div class="secttl">Backlog-Status ${g.isAuto?"<span style='text-transform:none;letter-spacing:0'>(automatisch erkannt)</span>":""}</div>
       <div class="sgrid">${STATUS.map(s=>`<button style="color:${s.c}" class="${g.status===s.k?"on":""}" onclick="setStatus('${esc(g.key)}','${s.k}')"><span style="color:var(--ink)">${s.e} ${s.l}</span></button>`).join("")}
       ${g.isAuto?"":`<button onclick="setStatus('${esc(g.key)}',null)" style="color:var(--muted)">↺ Automatisch</button>`}</div>`
-      : `<p class="help">${g.pc?"In Playnite ausgeblendet, daher nicht im Backlog.":"Konsolenspiele zählen in die Statistik, aber nicht in den Backlog."}</p>`}
+      : `<p class="help">${!g.pc?"Konsolenspiele zählen in die Statistik, aber nicht in den Backlog.":!g.owned?"Über Steam Family Sharing geliehen, daher nicht im Backlog.":"In Playnite ausgeblendet, daher nicht im Backlog."}</p>`}
     <div class="secttl">Tier-Liste</div>
     <div class="tpick">${TIERS.map(([t,c])=>`<button style="background:${c}" class="${g.tier===t?"on":""}" onclick="setTier('${esc(g.key)}', ${g.tier===t?"null":`'${t}'`})">${t}</button>`).join("")}</div>
     <div class="secttl">Deine Bewertung</div>
@@ -1675,11 +1677,16 @@ window.openSettings = async () => {
       <div class="help">Danach Playnite einmal neu starten. In Playnite unter <i>Bibliothek › Bibliotheken konfigurieren</i> Steam, Epic, Ubisoft, EA, GOG und Xbox verbinden.</div>
       <label>Pfad zum Export</label><input type="text" id="playnite_export" value="${esc(c.playnite_export)}">
     </fieldset>
-    <fieldset><legend>⏱️ Session-Tracker & HowLongToBeat</legend>
+    <fieldset><legend>⏱️ Session-Tracker & Spieldauern</legend>
       <label class="check"><input type="checkbox" id="tracker" ${c.tracker?"checked":""}> Laufende PC-Spiele erkennen und Sessions speichern</label>
       <div class="help">${c.tracker_supported?"Funktioniert, solange Gaming Recap läuft. Tipp: Autostart einrichten (siehe Anleitung).":"Nur unter Windows verfügbar."} Änderung wirkt nach einem Neustart.</div>
-      <label class="check" style="margin-top:12px"><input type="checkbox" id="hltb" ${c.hltb?"checked":""}> Spieldauern von HowLongToBeat laden</label>
-      <div class="help">Inoffiziell: Falls HLTB seine Seite ändert, kannst du Zeiten pro Spiel selbst eintragen.</div>
+      <label class="check" style="margin-top:12px"><input type="checkbox" id="hltb" ${c.hltb?"checked":""}> Spieldauern („Time to Beat“) und Cover von IGDB laden</label>
+      <label>IGDB Client-ID</label><input type="text" id="igdb_client_id" value="${esc(c.igdb_client_id||"")}" autocomplete="off">
+      <label>IGDB Client-Secret</label><input type="password" id="igdb_client_secret" placeholder="${ph2(c.igdb_client_secret_set)}" autocomplete="off">
+      <div class="help"><ol><li>Auf <a href="https://dev.twitch.tv/console" target="_blank" rel="noopener">dev.twitch.tv/console</a> mit deinem Twitch-Konto anmelden (Zwei-Faktor-Schutz muss an sein).</li>
+        <li>„Register Your Application“: Name z. B. <code>Gaming Recap Marvin</code>, OAuth Redirect URL <code>http://localhost</code>, Kategorie „Application Integration“, Client-Typ „Confidential“.</li>
+        <li>Client-ID kopieren, „New Secret“ klicken, Secret kopieren, beides hier eintragen.</li></ol>
+        Offizielle, kostenlose Schnittstelle. Ohne Zugang kannst du Spieldauern pro Spiel selbst eintragen.</div>
     </fieldset>
     <fieldset><legend>Steam</legend>
       <label>Steam Web-API-Key</label><input type="password" id="steam_api_key" placeholder="${ph2(c.steam_api_key_set)}" autocomplete="off">
@@ -1722,7 +1729,7 @@ window.openSettings = async () => {
     try {
       const v = id => $("#"+id).value, ch = id => $("#"+id).checked;
       await post("/api/config", {steam_api_key:v("steam_api_key"), steam_id:v("steam_id"), psn_npsso:v("psn_npsso"), xbox_api_key:v("xbox_api_key"),
-        playnite_export:v("playnite_export"), gh_repo:v("gh_repo"), gh_token:v("gh_token"), cloud_pass:v("cloud_pass"),
+        playnite_export:v("playnite_export"), gh_repo:v("gh_repo"), igdb_client_id:v("igdb_client_id"), igdb_client_secret:v("igdb_client_secret"), gh_token:v("gh_token"), cloud_pass:v("cloud_pass"),
         cloud_enabled:ch("cloud_enabled"), tracker:ch("tracker"), hltb:ch("hltb"), lan:ch("lan"), sync_hours:Number(v("sync_hours"))||6,
         steam_extras:ch("steam_extras"), notify_sales:ch("notify_sales"), notify_weekly:ch("notify_weekly"),
         pause_hours:Number(v("pause_hours"))||0, watts:Number(v("watts"))||350, kwh_price:Number(v("kwh_price"))||0.35});
