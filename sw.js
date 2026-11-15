@@ -1,5 +1,5 @@
 // Gaming Recap – Service Worker (nur in der Handy-App auf GitHub Pages aktiv)
-const CACHE = "gaming-recap-ebca9c884301";
+const CACHE = "gaming-recap-d61cbd659990";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
@@ -13,7 +13,8 @@ self.addEventListener("fetch", e => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET" || url.origin !== location.origin) return;
   // Netz zuerst, bei Funkloch aus dem Speicher
-  e.respondWith(fetch(e.request).then(r => {
+  // no-cache: immer beim Server nachfragen, damit Updates sofort ankommen
+  e.respondWith(fetch(e.request, {cache: "no-cache"}).then(r => {
     if (r.ok && !url.pathname.endsWith("data.enc")) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
     return r;
   }).catch(() => caches.match(e.request, {ignoreSearch: true}).then(r => r || caches.match("./index.html"))));

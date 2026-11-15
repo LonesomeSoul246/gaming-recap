@@ -111,8 +111,9 @@ main{max-width:1240px;margin:0 auto;padding:4px 16px 120px}
 
 .rail{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:6px 0 4px;scroll-snap-type:x mandatory}
 .rail::-webkit-scrollbar{display:none}
-.rk{flex:none;display:flex;align-items:flex-end;scroll-snap-align:start;cursor:pointer;padding-bottom:46px}
-.rk .n{font-size:120px;font-weight:900;line-height:.8;color:#08080c;-webkit-text-stroke:2.5px #ffffffcc;letter-spacing:-10px;margin-right:-12px;position:relative;z-index:0;padding-bottom:2px}
+.rk{flex:none;display:flex;align-items:flex-end;scroll-snap-align:start;cursor:pointer;padding:0 0 46px 26px;position:relative}
+.rk .n{position:absolute;left:0;bottom:40px;z-index:2;font-size:78px;font-weight:900;line-height:.8;color:#0b0a10;-webkit-text-stroke:2px #fff;letter-spacing:-5px;text-shadow:0 6px 18px #000c;pointer-events:none}
+@media(min-width:1000px){.rk .n{font-size:96px}.rk{padding-left:32px}}
 .rk .p{width:130px;position:relative;z-index:1}
 @media(min-width:1000px){.rk .p{width:150px}}
 .poster{aspect-ratio:2/3;border-radius:16px;overflow:hidden;background:#1d1c26;position:relative;box-shadow:0 10px 30px #0008}
@@ -255,6 +256,7 @@ details.adv{border:1px solid #ffffff1a;border-radius:16px;padding:12px 14px;marg
 details.adv>summary{cursor:pointer;font-weight:800;list-style:none}
 details.adv>summary::before{content:"▸ ";color:var(--muted)}details.adv[open]>summary::before{content:"▾ "}
 details.adv[open]>summary{margin-bottom:6px}
+.updbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom));z-index:200;border:0;border-radius:999px;padding:12px 18px;font-weight:800;background:var(--lime);color:#111;box-shadow:0 10px 30px #000a}
 .pc-chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:#ffffff10;margin:4px 4px 0 0;color:var(--ink)}
 .pc-chip i{width:7px;height:7px;border-radius:50%;display:inline-block}
 .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;font-size:12.5px;font-weight:800;white-space:nowrap;justify-self:start}
@@ -675,7 +677,10 @@ async function loadCloud(force){
     // Bereits vom PC übernommene Änderungen aus der Warteschlange entfernen
     const meta = S.snap.meta || {};
     store.set("gr_edits", edits().filter(e => {
-      if (e.kind === "kv") return e.key === "goals" ? !(S.snap.goals_updated && Date.parse(S.snap.goals_updated) >= e.ts) : Date.now() - e.ts < 3*864e5;
+      if (e.kind === "kv"){
+        if (e.key === "wrapped") return false;
+        const u = e.key === "goals" ? S.snap.goals_updated : (S.snap.kv_updated||{})[e.key];
+        return !(u && Date.parse(u) >= e.ts) && Date.now() - e.ts < 7*864e5; }
       const m = meta[norm(e.key)]; return !(m && m.updated && Date.parse(m.updated) >= e.ts) && Date.now()-e.ts < 30*86400e3; }));
   }
   const snap = S.snap, meta = {...(snap.meta||{})};
@@ -853,7 +858,7 @@ function buildGroups(){
     g.banners = coverOrder(recs.flatMap(r=>r.banners||[]), hImg).concat(g.covers.filter(c=>!c.includes("library_600x900")));
     g.genres = [...g.genres]; g.features = [...g.features]; g.devsList = [...g.devsList];
     g.meta = d.meta[g.key] || {};
-    g.tier = g.meta.tier || null;
+    g.tier = g.minutes >= 300 ? (g.meta.tier || null) : null; // Tier-Liste erst ab 5 Std
     const sr = recs.find(r=>r.steam_appid); g.appid = sr ? sr.steam_appid : null;
     const sx = d.steam || {};
     g.ach = g.appid && sx.ach ? sx.ach[g.appid] || null : null;
@@ -886,8 +891,9 @@ const val = g => g.pmin;
 function header(){
   const d = S.data;
   if (CLOUD){
-    const pend = edits().length;
-    $("#sync").innerHTML = d.last_sync ? `Stand vom PC<br>${new Date(d.last_sync).toLocaleString("de-DE",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}` : "";
+    const pend = edits().filter(e=>!e.sent).length, t = x => new Date(x).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+    const up = (S.snap||{}).pushed || d.last_sync, same = up && new Date(up).toDateString() === new Date().toDateString();
+    $("#sync").innerHTML = up ? `Vom PC ${same ? "um " + t(up) : new Date(up).toLocaleString("de-DE",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}<br><span style="opacity:.7">Abgleich ${d.last_sync ? t(d.last_sync) : "–"}</span>` : "";
     $("#setBtn").innerHTML = $("#setBtn").innerHTML.replace(/<span class="badge">.*?<\/span>/,"") + (pend?`<span class="badge">${pend}</span>`:"");
     $("#setBtn").onclick = cloudMenu; $("#syncBtn").onclick = () => { S.snap=null; loadCloud(true); toast("Aktualisiert"); };
     return;
@@ -1466,9 +1472,10 @@ function renderActivity(){
 
 
 /* ================= Tier-Liste ================= */
+const TIER_MIN = 300; // erst ab 5 Stunden kann man ein Spiel einordnen
 function renderTier(){
   const q = norm(S.lib.tq||"");
-  const played = S.groups.filter(g=>g.minutes>0 || g.tier).sort((a,b)=>b.minutes-a.minutes);
+  const played = S.groups.filter(g=>g.minutes >= TIER_MIN).sort((a,b)=>b.minutes-a.minutes);
   const pool = played.filter(g=>!g.tier && (!q || g.key.includes(q)));
   const item = g => `<div class="titem" data-k="${esc(g.key)}" title="${esc(g.title)}"><div class="poster">${img(g.covers,g.title)}</div></div>`;
   $("#view").innerHTML = `<div class="eyebrow" style="margin-top:6px">Deine Bibliothek</div><div class="h1">Tier-Liste</div>${libSeg()}
@@ -1834,6 +1841,7 @@ function wrapModes(){
 const monLabel = k => new Date(Number(k.slice(0,4)), Number(k.slice(5,7))-1, 1).toLocaleDateString("de-DE",{month:"long", year:"numeric"});
 // Laufendes Jahr und laufenden Monat fürs Archiv sichern (höchstens einmal pro Tag). Ab dem 1.1. bleibt es eingefroren.
 async function saveYearArchive(){
+  if (CLOUD) return; // das Archiv führt der PC
   const n = new Date(), y = String(n.getFullYear()), m = `${y}-${String(n.getMonth()+1).padStart(2,"0")}`, today = n.toISOString().slice(0,10);
   const arch = S.data.wrapped_archive || {};
   if (arch[y] && String(arch[y].saved||"").slice(0,10) === today && arch[m] && String(arch[m].saved||"").slice(0,10) === today) return;
@@ -2205,7 +2213,7 @@ window.openGame = key => {
       ${g.isAuto?"":`<button onclick="setStatus('${esc(g.key)}',null)" style="color:var(--muted)">↺ Automatisch</button>`}</div>`
       : `<p class="help">${!g.pc?"Konsolenspiele zählen in die Statistik, aber nicht in den Backlog.":notPc(g)?"Von dir als „nicht am PC“ markiert, daher nicht im Backlog.":consoleOnly(g)?"Nur auf der Konsole gespielt, daher nicht im Backlog.":!g.owned?"Nicht im Backlog: Der Store ist dort ausgeschlossen (Einstellungen) oder das Spiel ist geliehen.":"In Playnite ausgeblendet, daher nicht im Backlog."}</p>`}
     <div class="secttl">Tier-Liste</div>
-    <div class="tpick">${TIERS.map(([t,c])=>`<button style="background:${c}" class="${g.tier===t?"on":""}" onclick="setTier('${esc(g.key)}', ${g.tier===t?"null":`'${t}'`})">${t}</button>`).join("")}</div>
+    ${g.minutes < 300 ? `<p class="help">Einordnen geht ab 5 Stunden Spielzeit.</p>` : `<div class="tpick">${TIERS.map(([t,c])=>`<button style="background:${c}" class="${g.tier===t?"on":""}" onclick="setTier('${esc(g.key)}', ${g.tier===t?"null":`'${t}'`})">${t}</button>`).join("")}</div>`}
     <div class="secttl">Wertungen</div>
     <div class="scores">
       <div>${g.critic ? mcBadge(g.critic) : `<span class="mc" style="background:#ffffff14;color:var(--muted)">–</span>`}<div><small>${g.criticSrc==="Metacritic"?"Metacritic":"Fachpresse"}</small><b>${g.critic ? (g.critic>=90?"Meisterwerk":g.critic>=75?"Sehr gut":g.critic>=50?"Gemischt":"Schwach") : "keine Wertung"}</b></div></div>
@@ -2278,6 +2286,12 @@ async function flushEdits(){
   finally { flushing = false; header(); }
 }
 window.addEventListener("online", flushEdits);
+window.sendNow = async () => {
+  await flushEdits();
+  const left = edits().filter(e=>!e.sent).length;
+  toast(left ? "Kein Netz – wird später gesendet" : "Gesendet – der PC übernimmt sie in ~2 Minuten");
+  cloudMenu();
+};
 
 /* ================= Zufalls-Picker ================= */
 const PK = {pool:"open", genre:"", inst:false, len:"", mood:"", pick:null};
@@ -2339,13 +2353,14 @@ function cloudMenu(){
   const q = edits(), waiting = q.filter(e=>!e.sent).length, sent = q.length - waiting;
   $("#settingsBody").innerHTML = `<button class="ibtn dclose" onclick="$('#settings').close()">✕</button>
     <div class="h1" style="font-size:32px">Handy-App</div>
-    <div class="kv"><div><small>Stand vom PC</small><b>${S.data.last_sync?new Date(S.data.last_sync).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"}):"–"}</b></div>
-      <div><small>Deine Änderungen</small><b>${q.length ? `${sent} unterwegs, ${waiting} wartend` : "alle übernommen"}</b></div></div>
-    <p class="help">Änderungen am Backlog, an Sternen und Notizen gehen verschlüsselt an GitHub und werden übernommen, sobald dein PC an ist. Bis dahin siehst du sie hier schon.</p>
+    <div class="kv"><div><small>Vom PC hochgeladen</small><b>${(S.snap||{}).pushed?new Date(S.snap.pushed).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"}):"–"}</b></div>
+      <div><small>Letzter Abgleich am PC</small><b>${S.data.last_sync?new Date(S.data.last_sync).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"}):"–"}</b></div>
+      <div><small>Deine Änderungen</small><b>${!q.length ? "✓ alle beim PC angekommen" : `${waiting ? waiting + " noch nicht gesendet · " : ""}${sent ? sent + " beim PC ausstehend" : ""}`}</b></div></div>
+    <p class="help">Deine Änderungen gehen sofort verschlüsselt an GitHub. Ist dein PC an, holt er sie innerhalb von 2 Minuten ab und lädt den neuen Stand hoch. Bis dahin siehst du sie hier schon. Ist der PC aus, warten sie dort sicher.</p>
     ${sourcesBlock()}
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
       <button class="btn limeb" onclick="S.snap=null;$('#settings').close();loadCloud(true)">Neu laden</button>
-      ${waiting?`<button class="btn ghost" onclick="flushEdits().then(()=>cloudMenu())">Jetzt senden</button>`:""}
+      <button class="btn ghost" onclick="sendNow()">⇪ Jetzt senden</button>
       <button class="btn ghost" onclick="if(confirm('Abmelden? Das Passwort wird von diesem Gerät gelöscht.')){store.del('gr_pass');store.del('gr_blob');location.reload()}">Abmelden</button></div>`;
   if (!$("#settings").open) $("#settings").showModal();
 }
@@ -2475,7 +2490,19 @@ window.openSettings = async () => {
 };
 
 /* ================= Start ================= */
-if (CLOUD && "serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+if (CLOUD && "serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js", {updateViaCache: "none"}).then(reg => {
+    reg.update().catch(()=>{});
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) reg.update().catch(()=>{}); });
+  }).catch(()=>{});
+  // Neue Version installiert -> Hinweis zum Neuladen
+  let hadCtrl = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadCtrl){ hadCtrl = true; return; }
+    const b = document.createElement("button"); b.className = "updbar"; b.textContent = "✨ Neue Version verfügbar – tippen zum Laden";
+    b.onclick = () => location.reload(); document.body.appendChild(b);
+  });
+}
 nav();
 load();
 if (LOCAL) setInterval(()=>{ if (!document.hidden && cur()!=="wrapped") fetch("/api/data?period="+S.period).then(r=>r.json()).then(d=>{
