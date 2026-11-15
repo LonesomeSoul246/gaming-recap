@@ -1653,9 +1653,9 @@ function valueCard(){
     <div class="valtop">
       <div style="--c:#33C3FF"><small>Normalpreis</small><b>${eur(V.r)}</b><span>wenn du alles zum vollen Preis kaufst</span></div>
       <div style="--c:#14F0C8"><small>Heute</small><b>${eur(V.c)}</b><span>${V.r>V.c?`${num((1-V.c/V.r)*100)} % unter Normalpreis`:"gerade keine Rabatte"}</span></div>
-      <div style="--c:#A97BFF"><small>Zum Bestpreis</small><b>${V.itad?eur(V.l):"–"}</b><span>${V.itad?"jeweils der tiefste Preis aller Zeiten":"IsThereAnyDeal-Key fehlt (Einstellungen)"}</span></div>
+      <div style="--c:#A97BFF"><small>Zum Bestpreis</small><b>${V.itad?eur(V.l):"–"}</b><span>${V.itad?"jeweils der tiefste Steam-Preis aller Zeiten":"IsThereAnyDeal-Key fehlt (Einstellungen)"}</span></div>
     </div>
-    ${V.con.length ? `<div class="valall"><div class="vah"><b>🎮 Alle Plattformen</b><span>PC + ${V.con.length} Konsolenspiele · Konsole geschätzt mit dem PC-Preis</span></div>
+    ${V.con.length ? `<div class="valall"><div class="vah"><b>🎮 Alle Plattformen</b><span>PC + ${V.con.length} Konsolenspiele · Konsole geschätzt mit dem Steam-Preis</span></div>
       <div class="valtop sm">
         <div style="--c:#33C3FF"><small>Normalpreis</small><b>${eur(V.r+V.conR)}</b><span>davon Konsole ~${euro(V.conR)}</span></div>
         <div style="--c:#14F0C8"><small>Heute</small><b>${eur(V.c+V.conC)}</b><span>davon Konsole ~${euro(V.conC)}</span></div>
@@ -1686,11 +1686,11 @@ window.openValue = (sort) => {
   const V = libValue(); sort = sort || "r";
   if (sort === "con" || sort === "paid"){
     const P = (S.data||{}).paid || {};
-    const rows = sort === "con" ? [...V.con].sort((a,b)=>b.r-a.r).map(x=>gRow(x.g, `~${euro(x.r)}`, `${esc(x.store)} · PC-Preis heute ${euro(x.c)} · Bestpreis ${euro(x.l)}`))
+    const rows = sort === "con" ? [...V.con].sort((a,b)=>b.r-a.r).map(x=>gRow(x.g, `~${euro(x.r)}`, `${esc(x.store)} · Steam heute ${euro(x.c)} · Bestpreis ${euro(x.l)}`))
       : [...V.paid].sort((a,b)=>b.p-a.p).map(x=>gRow(x.g, x.p===-1?"geschenkt":x.p===-2?"Abo":euro(x.p), x.p>0 && x.g.minutes>=60 ? `${euro(x.p/(x.g.minutes/60))} pro Stunde · ${hrs(x.g.minutes)}` : hrs(x.g.minutes||0)));
     $("#infoBody").innerHTML = `<button class="ibtn dclose" onclick="$('#info').close()">✕</button>
       <div class="eyebrow">Bibliothekswert</div><div class="h1" style="font-size:clamp(30px,6vw,44px);margin:6px 0 4px">${sort==="con"?`~${euro(V.conR)}`:euro(V.paidSum)}</div>
-      <p class="help" style="margin-top:0">${sort==="con"?"Konsolenspiele, geschätzt mit dem PC-Preis desselben Spiels (IsThereAnyDeal). Abo- und Gratis-Titel zählen hier mit ihrem normalen Preis.":"Deine selbst eingetragenen Kaufpreise (im Spiel-Detail)."}</p>
+      <p class="help" style="margin-top:0">${sort==="con"?"Konsolenspiele, geschätzt mit dem Steam-Preis desselben Spiels. Abo- und Gratis-Titel zählen hier mit ihrem normalen Preis.":"Deine selbst eingetragenen Kaufpreise (im Spiel-Detail)."}</p>
       <div class="seg" style="margin-top:6px">${[["r","Normalpreis"],["c","Heute"],["l","Bestpreis"],["cut","Größte Ersparnis"],["con","Konsole"],["paid","Bezahlt"]].map(([k,l])=>`<button class="${sort===k?"on":""}" onclick="openValue('${k}')">${l}</button>`).join("")}</div>
       ${rows.join("") || `<p class="help">Noch nichts da.</p>`}`;
     if (!$("#info").open) $("#info").showModal();
@@ -1699,7 +1699,7 @@ window.openValue = (sort) => {
   const list = [...V.list].sort((a,b)=> sort==="h" ? (b.g.minutes ? b.r/b.g.minutes : 0) - (a.g.minutes ? a.r/a.g.minutes : 0) : sort==="cut" ? (b.r-b.l)-(a.r-a.l) : b[sort]-a[sort]);
   $("#infoBody").innerHTML = `<button class="ibtn dclose" onclick="$('#info').close()">✕</button>
     <div class="eyebrow">Bibliothekswert</div><div class="h1" style="font-size:clamp(30px,6vw,44px);margin:6px 0 4px">${euro(V.r)}</div>
-    <p class="help" style="margin-top:0">${V.itad?"Preise von IsThereAnyDeal (Deutschland, alle offiziellen Stores)":"Preise aus dem Steam-Store – für alle Stores und Tiefstpreise den IsThereAnyDeal-Key eintragen"}${V.at?`, Stand ${fdate(new Date(V.at*1000))}`:""}. Was du wirklich bezahlt hast, weiß kein Store.</p>
+    <p class="help" style="margin-top:0">${V.itad?"Steam-Preise (Deutschland) über IsThereAnyDeal":"Preise aus dem Steam-Store – für alle Stores und Tiefstpreise den IsThereAnyDeal-Key eintragen"}${V.at?`, Stand ${fdate(new Date(V.at*1000))}`:""}. Was du wirklich bezahlt hast, weiß kein Store.</p>
     <div class="seg" style="margin-top:6px">${[["r","Normalpreis"],["c","Heute"],["l","Bestpreis"],["cut","Größte Ersparnis"],["con","Konsole"],["paid","Bezahlt"]].map(([k,l])=>`<button class="${sort===k?"on":""}" onclick="openValue('${k}')">${l}</button>`).join("")}</div>
     ${list.slice(0,150).map(x=>gRow(x.g, euro(sort==="cut"?x.r-x.l:x[sort==="cut"?"r":sort]), `${esc(x.store)} · normal ${euro(x.r)} · heute ${euro(x.c)}${x.src==="itad"?` · Bestpreis ${euro(x.l)}`:""}`)).join("")}`;
   if (!$("#info").open) $("#info").showModal();
@@ -2321,7 +2321,7 @@ function renderWish(){
   if (sale.length) h += `<section class="card" style="margin-bottom:14px"><h3>🔥 Im Angebot & Tiefstpreise</h3>${sale.map(row).join("")}</section>`;
   if (soon.length) h += `<button class="banner" onclick="S.lib.view='rel';route()"><span class="bdot"></span><b>${soon.length} Releases angekündigt</b><span>${esc(soon[0].name)}${soon[0].release?" · "+fdate(new Date(soon[0].release*1000)):""}</span><em>→</em></button>`;
   if (rest.length) h += `<section class="card"><h3>Weitere Wünsche</h3>${rest.map(row).join("")}</section>`;
-  h += `<p class="help">Preise aus dem deutschen Steam-Store${sx.at?`, Stand ${fdate(new Date(sx.at*1000))}`:""}. ${Object.keys(S.data.wl_deals||{}).length?"Kaufberater: Bestpreis aller offiziellen Stores und Tiefstpreis aller Zeiten von IsThereAnyDeal (täglich). Erreicht ein Wunsch seinen Tiefstpreis, bekommst du einen Hinweis.":"Für den Kaufberater (Tiefstpreise aller Stores) den IsThereAnyDeal-Key in den Einstellungen eintragen."}</p>`;
+  h += `<p class="help">Preise aus dem deutschen Steam-Store${sx.at?`, Stand ${fdate(new Date(sx.at*1000))}`:""}. ${Object.keys(S.data.wl_deals||{}).length?"Kaufberater: heutiger Steam-Preis gegen den tiefsten Steam-Preis aller Zeiten (über IsThereAnyDeal, täglich). Erreicht ein Wunsch seinen Tiefstpreis, bekommst du einen Hinweis.":"Für den Kaufberater (Steam-Tiefstpreise) den IsThereAnyDeal-Key in den Einstellungen eintragen."}</p>`;
   setView(h);
 }
 const euro = c => c==null ? "–" : (c/100).toLocaleString("de-DE",{style:"currency",currency:"EUR"});
