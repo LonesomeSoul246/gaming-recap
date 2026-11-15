@@ -338,6 +338,55 @@ textarea{width:100%;min-height:80px;resize:vertical}
 .wlist span{margin-left:auto;font-size:15px;opacity:.8;font-weight:700}
 .wbtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;position:relative;z-index:7}
 
+/* ---------- Wrapped: Effekte ---------- */
+.wstage::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:4;opacity:.09;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.wslide{transition:opacity .55s ease, transform .7s cubic-bezier(.2,.7,.2,1), filter .55s ease}
+.wslide.enter{opacity:0;transform:scale(1.06);filter:blur(10px)}
+.wslide.leave{opacity:0;transform:scale(.94);filter:blur(6px)}
+.wblob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;z-index:0;animation:wfloat 14s ease-in-out infinite alternate;pointer-events:none}
+@keyframes wfloat{0%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,-40px) scale(1.15)}100%{transform:translate(-30px,30px) scale(.9)}}
+.wslide>*:not(.wblob):not(.wmosaic){position:relative;z-index:2}
+.wmosaic{position:absolute;inset:-30%;display:grid;grid-template-columns:repeat(5,1fr);gap:14px;transform:rotate(-14deg);opacity:.32;z-index:0;animation:wscroll 40s linear infinite;pointer-events:none}
+.wmosaic .poster{border-radius:14px;box-shadow:none}
+@keyframes wscroll{from{transform:rotate(-14deg) translateY(0)}to{transform:rotate(-14deg) translateY(-30%)}}
+.wslide .wd{display:inline-block;opacity:0;transform:translateY(.4em) rotate(2deg);animation:wword .6s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes wword{to{opacity:1;transform:none}}
+.wflip{animation:wflip 1.1s cubic-bezier(.2,.8,.2,1) both;animation-delay:.9s}
+@keyframes wflip{from{opacity:0;transform:perspective(900px) rotateY(80deg) scale(.7)}to{opacity:1;transform:none}}
+.wdonut{width:min(62cqw,260px);aspect-ratio:1;border-radius:50%;margin:18px auto 14px;display:grid;place-items:center;animation:wspin 1.4s cubic-bezier(.2,.8,.2,1) both}
+.wdonut>div{width:62%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;text-align:center;font-weight:900;font-size:clamp(28px,9cqw,44px)}
+@keyframes wspin{from{transform:rotate(-120deg) scale(.6);opacity:0}to{transform:none;opacity:1}}
+.wlegend{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:center;font-weight:800;font-size:15px}
+.wlegend i{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:6px;vertical-align:-1px}
+.wrow{display:grid;grid-template-columns:34px 46px 1fr auto;gap:12px;align-items:center;padding:7px 0}
+.wrow .r{font-size:30px;font-weight:900;opacity:.55}
+.wrow .poster{border-radius:8px;box-shadow:none}
+.wrow b{font-size:17px;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.wrow span{font-weight:800;opacity:.85;white-space:nowrap}
+#wconf{position:absolute;inset:0;z-index:8;pointer-events:none}
+.wbars i b{transition:none}
+
+/* ---------- Allgemeiner Feinschliff ---------- */
+body::before{content:"";position:fixed;inset:-20% -10% auto;height:70vh;z-index:-1;pointer-events:none;opacity:.35;filter:blur(80px);
+  background:radial-gradient(40% 50% at 20% 30%,#7a5cff55,transparent 70%),radial-gradient(35% 45% at 80% 20%,#ff4fa344,transparent 70%),radial-gradient(30% 40% at 60% 60%,#2ee6d633,transparent 70%);
+  animation:aurora 22s ease-in-out infinite alternate}
+@keyframes aurora{from{transform:translate(-3%,-2%) scale(1)}to{transform:translate(3%,4%) scale(1.1)}}
+@media(hover:hover){
+  .card{transition:transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .35s}
+  .card:hover{transform:translateY(-3px);box-shadow:0 18px 50px #0007}
+  .poster::before{content:"";position:absolute;inset:0;z-index:2;background:linear-gradient(115deg,transparent 35%,#ffffff40 50%,transparent 65%);transform:translateX(-120%);transition:transform .8s;pointer-events:none}
+  .gcard:hover .poster::before,.rk:hover .poster::before{transform:translateX(120%)}
+}
+.topg .bgimg img{transition:transform 6s ease}
+.topg:hover .bgimg img{transform:scale(1.06)}
+.btn{transition:transform .15s, filter .2s}
+.btn:active{transform:scale(.96)}
+.btn:hover{filter:brightness(1.08)}
+.hero .num{text-shadow:0 10px 60px #0004}
+.fact{transition:transform .3s}
+.fact:hover{transform:rotate(-1deg) scale(1.02)}
+
 /* Picker */
 #picker{max-width:520px}
 .pk{padding:26px;text-align:center;background:radial-gradient(80% 60% at 50% 0%,#7a5cff55,transparent),#121119}
@@ -431,7 +480,9 @@ const num = (n,d=0) => Number(n).toLocaleString("de-DE",{maximumFractionDigits:d
 function hrs(min){ if (min < 60) return `${Math.round(min)} Min`; const h=min/60; return `${num(h, h<10?1:0)} Std`; }
 function pdate(s){ if(!s) return null; const d=new Date(String(s).replace(" ","T")); return isNaN(d)||d.getFullYear()<1990?null:d; }
 const fdate = d => d ? d.toLocaleDateString("de-DE",{day:"numeric",month:"short",year:"numeric"}) : "–";
-const norm = t => String(t||"").toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g,"").replace(/[™®©]/g,"").replace(/[^a-z0-9]+/g," ").trim();
+// Muss identisch zu norm_title()/PLATFORM_SUFFIX in common.py bleiben
+const PLATFORM_SUFFIX = /\((?:playstation ?[45]|ps[45]|xbox one|xbox series x ?\| ?s|windows|pc)\)|\b(?:for )?xbox series x ?\| ?s\b|\bxbox one edition\b|-\s*windows(?: 10)?(?: edition)?\b|\bpc edition\b|\bfor windows 10\b|\bstandard edition\b/g;
+const norm = t => String(t||"").replace(/[™®©℠]/g," ").replace(/[‘’‛′´`]/g,"'").normalize("NFKD").replace(/[^\x00-\x7f]/g,"").toLowerCase().replace(PLATFORM_SUFFIX," ").replace(/[^a-z0-9]+/g," ").trim();
 function hash(s){ let h=0; for (const c of String(s)) h=(h*31+c.charCodeAt(0))|0; return Math.abs(h); }
 const PH_GRADS = [["#ff4fa3","#7a5cff"],["#c8f135","#2ee6d6"],["#ff8a3d","#ff4fa3"],["#3d7bff","#2ee6d6"],["#7a5cff","#3d7bff"],["#ffd23f","#ff8a3d"]];
 function ph(title){ const [a,b]=PH_GRADS[hash(title)%PH_GRADS.length]; return `<div class="ph" style="background:linear-gradient(140deg,${a},${b})">${esc(title)}</div>`; }
@@ -445,6 +496,9 @@ window.imgFail = el => {
   if (fb.length){ el.dataset.fb = fb.slice(1).join("|"); el.src = fb[0]; }
   else el.outerHTML = ph(el.dataset.t||"");
 };
+const cleanTitle = t => String(t||"").replace(/\s*\((?:PlayStation\s?®?\s?[45]|PS[45]|Xbox One|Xbox Series X\s?\|\s?S|Windows|PC)\)/gi,"")
+  .replace(/\s+(?:for\s+)?Xbox Series X\s?\|\s?S\b/gi,"").replace(/\s*-\s*Windows(?: 10)?(?: Edition)?$/i,"").replace(/\s*-\s*PC Edition$/i,"")
+  .replace(/[™®](?=\w)/g," ").replace(/[™®]/g,"").replace(/\s{2,}/g," ").trim();
 const platLabel = r => r.device === "PC" ? r.store : r.device;
 const dayKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 function toast(msg){ const t=document.createElement("div"); t.textContent=msg;
@@ -506,7 +560,7 @@ async function load(){
   S.yearPM = undefined;
   try { S.data = await (await fetch(`/api/data?period=${S.period}`)).json(); }
   catch(e){ $("#view").innerHTML = `<div class="empty"><div class="big">📡</div><h2>Keine Verbindung</h2><p class="help">Läuft Gaming Recap noch auf deinem PC?</p></div>`; return; }
-  buildGroups(); header(); route();
+  applyEstimate(); buildGroups(); header(); route();
   if (S.data.syncing) setTimeout(load, 2500);
 }
 
@@ -529,14 +583,15 @@ async function loadCloud(force){
   let goals = snap.goals || {};
   for (const e of edits()){
     if (e.kind === "kv"){ if (e.key === "goals") goals = e.value; continue; }
-    const k = norm(e.key); meta[k] = {...(meta[k]||{}), ...pick(e,["status","rating","note","tier"]), updated:new Date(e.ts).toISOString()};
+    const k = norm(e.key); meta[k] = {...(meta[k]||{}), ...pick(e,["status","rating","note","tier","hide"]), updated:new Date(e.ts).toISOString()};
   }
   const p = S.period === "all" ? null : (snap.periods||{})[S.period];
   S.data = {last_sync:snap.last_sync, sources:snap.sources||{}, games:snap.games||[], meta, hltb:snap.hltb||{},
     sessions:snap.sessions||[], status_log:snap.status_log||[], goals, steam:snap.steam||{}, prefs:snap.prefs||{},
     playing:[], can_edit:false, period: p ? p.info : {period:"all"}, period_minutes: p ? p.pm : null};
-  S.yearPM = (snap.periods||{}).year ? snap.periods.year.pm : null; S.yearInfo = (snap.periods||{}).year ? snap.periods.year.info : null;
-  buildGroups(); header(); route(); flushEdits();
+  S.yearPM = (snap.periods||{}).year ? snap.periods.year.pm : null; S.yearInfo = (snap.periods||{}).year ? {...snap.periods.year.info} : null;
+  if (S.yearInfo && !S.yearInfo.complete){ S.yearPM = estimateYear(new Date().getFullYear(), S.yearPM); S.yearInfo.estimated = true; }
+  applyEstimate(); buildGroups(); header(); route(); flushEdits();
 }
 const pick = (o, ks) => Object.fromEntries(ks.filter(k=>k in o).map(k=>[k,o[k]]));
 
@@ -558,6 +613,30 @@ function lockScreen(err){
   };
   $("#unlock").onclick = go; $("#pw").onkeydown = e => { if (e.key==="Enter") go(); };
   $("#pw").focus();
+}
+
+/* ================= Schätzung fürs laufende Jahr =================
+   Die Plattformen liefern nur Gesamtzeiten. Solange der Verlauf das Jahr noch nicht
+   abdeckt, verteilen wir die Spielzeit gleichmäßig zwischen erstem und letztem Spieltag
+   und nehmen den Anteil, der in dieses Jahr fällt. */
+function estimateYear(year, base){
+  const ys = new Date(year,0,1), now = new Date(), out = {...(base||{})};
+  for (const r of S.data.games){
+    const mins = r.minutes||0, last = pdate(r.last_played);
+    if (!mins || !last || last < ys) continue;
+    let first = pdate(r.first_played);
+    const ry = Number(r.release_year), rel = ry >= 1970 && ry <= year ? new Date(ry,0,1) : null;
+    if (!first) first = rel && rel > new Date(last - 3*365*864e5) ? rel : new Date(last - 2*365*864e5);
+    const end = last > now ? now : last;
+    const share = first >= ys ? 1 : Math.max(0, Math.min(1, (end - ys) / Math.max(1, end - first)));
+    const v = Math.round(mins * share);
+    if (v > (out[r.id]||0)) out[r.id] = v;
+  }
+  return out;
+}
+function applyEstimate(){
+  const p = S.data.period || {};
+  if (p.period === "year" && !p.complete){ S.data.period_minutes = estimateYear(new Date().getFullYear(), S.data.period_minutes); p.estimated = true; }
 }
 
 /* ================= Gruppen bauen ================= */
@@ -583,6 +662,8 @@ function coverOrder(urls, extra){
   for (const u of urls){ if (u.startsWith("/api/img")) { if (LOCAL) pn.push(u); } else if (u.includes("steamstatic")) st.push(u); else nat.push(u); }
   return [...new Set([...pn, ...st, ...(extra||[]), ...nat])];
 }
+const DEFAULT_BL_STORES = ["Steam","Ubisoft","EA","GOG","Epic Games"];
+const backlogStores = () => ((S.data && S.data.prefs && S.data.prefs.backlog_stores) || DEFAULT_BL_STORES);
 function buildGroups(){
   const d = S.data, pm = d.period_minutes, m = new Map();
   for (const r of d.games){
@@ -598,7 +679,7 @@ function buildGroups(){
     g.devs[r.device] = (g.devs[r.device]||0) + pmins;
     if (r.device === "PC"){
       g.pc = true; g.pcMinutes += mins;
-      if (!r.family) g.owned = true;
+      if (!r.family && backlogStores().includes(r.store)) g.owned = true;
       if (!r.hidden) g.hidden = false;
       (r.genres||[]).forEach(x=>g.genres.add(x)); (r.features||[]).forEach(x=>g.features.add(x));
       (r.developers||[]).forEach(x=>g.devsList.add(x));
@@ -613,7 +694,7 @@ function buildGroups(){
   }
   for (const g of m.values()){
     const recs = [...g.recs].sort((a,b)=>(b.minutes||0)-(a.minutes||0));
-    const pcRec = recs.find(r=>r.device==="PC"); if (pcRec) g.title = pcRec.title; else g.title = recs[0].title;
+    const pcRec = recs.find(r=>r.device==="PC"); g.title = cleanTitle(pcRec ? pcRec.title : recs[0].title) || recs[0].title;
     g.hltb = (d.hltb||{})[g.key] || null;
     const hImg = g.hltb && g.hltb.image ? [g.hltb.image] : [];
     g.covers = coverOrder(recs.flatMap(r=>r.covers||[]), hImg);
@@ -630,8 +711,10 @@ function buildGroups(){
     g.isAuto = !g.meta.status;
     g.remaining = remaining(g);
   }
-  S.groups = [...m.values()];
-  for (const g of S.groups) for (const r of g.recs){ const k = norm(r.title); if (k && !m.has(k)) m.set(k, g); }
+  S.allGroups = [...m.values()];
+  for (const g of S.allGroups) g.hide = !!g.meta.hide;
+  S.groups = S.allGroups.filter(g=>!g.hide);
+  for (const g of S.allGroups) for (const r of g.recs){ const k = norm(r.title); if (k && !m.has(k)) m.set(k, g); }
   S.gmap = m;
 }
 function remaining(g){
@@ -735,6 +818,7 @@ function periodNotice(){
   const p = S.data.period||{};
   if (!p.period || p.period === "all") return "";
   if (!p.tracking_since) return `<div class="notice">📈 Der Verlauf startet mit dem ersten Abgleich.</div>`;
+  if (p.estimated) return `<div class="notice">📊 <b>${new Date().getFullYear()} ist geschätzt:</b> Die Plattformen liefern nur Gesamtzeiten. Wir verteilen jede Spielzeit zwischen erstem und letztem Spieltag und zählen den Teil, der in dieses Jahr fällt. Ab ${p.tracking_since?fdate(new Date(p.tracking_since)):"heute"} misst Gaming Recap genau mit.</div>`;
   if (!p.complete) return `<div class="notice">📈 Aufgezeichnet wird seit ${fdate(new Date(p.tracking_since))}. Die Plattformen liefern nur Gesamtzeiten, deshalb zählt dieser Zeitraum ab dann.</div>`;
   return "";
 }
@@ -881,6 +965,27 @@ function facts(played,total,plats){
       f.push(["Kritiker-Check", diff<0?"Strenger":"Milder", `als die Community, im Schnitt ${num(Math.abs(diff))} von 100 Punkten`]); }
     const ach = Object.values((S.data.steam||{}).ach||{});
     if (ach.length) f.push(["Steam-Erfolge", num(ach.reduce((s,a)=>s+a.d,0)), `freigeschaltet in ${ach.filter(a=>a.d).length} Spielen`]);
+    const devT2 = {}; for (const g of played) for (const [k,v] of Object.entries(g.devs)) devT2[k]=(devT2[k]||0)+v;
+    const cons = played.filter(g=>(g.devs.PlayStation||0)+(g.devs.Xbox||0)>0).sort((a,b)=>((b.devs.PlayStation||0)+(b.devs.Xbox||0))-((a.devs.PlayStation||0)+(a.devs.Xbox||0)))[0];
+    if (cons) f.push(["Konsolen-Krone", cons.title, `${hrs((cons.devs.PlayStation||0)+(cons.devs.Xbox||0))} auf der Konsole`]);
+    if (devT2.PlayStation && devT2.Xbox) f.push(["PlayStation vs. Xbox", devT2.PlayStation >= devT2.Xbox ? "Team Blau" : "Team Grün",
+      `${num(Math.max(devT2.PlayStation,devT2.Xbox)/Math.min(devT2.PlayStation,devT2.Xbox),1)}× mehr ${devT2.PlayStation >= devT2.Xbox ? "PlayStation" : "Xbox"}`]);
+    const fr = franchises(played, val)[0];
+    if (fr) f.push(["Lieblingsreihe", fr.name, `${fr.games.length} Spiele, ${hrs(fr.minutes)}`]);
+    f.push(["In Arbeitstagen", `${num(total/60/8)} Tage`, "à 8 Stunden – ganz schön viel Urlaub"]);
+    f.push(["Lebenszeit", `${num(total/60/8760*100,1)} %`, "eines ganzen Jahres, rund um die Uhr"]);
+    const tenPlus = played.filter(g=>val(g)>=600).length;
+    f.push(["Ernsthaft gespielt", `${tenPlus} Spiele`, `mit über 10 Stunden – von ${played.length}`]);
+    const newest = played.filter(g=>g.year).sort((a,b)=>b.year-a.year)[0];
+    if (newest) f.push(["Frischfleisch", newest.title, `erschienen ${newest.year}`]);
+    const twin = played.filter(g=>Object.values(g.devs).filter(v=>v>0).length>1).sort((a,b)=>val(b)-val(a))[0];
+    if (twin) f.push(["Plattform-Zwilling", twin.title, Object.entries(twin.devs).filter(x=>x[1]>0).map(([k,v])=>`${k} ${hrs(v)}`).join(" · ")]);
+    const stA = sessionStats(0);
+    if (stA.ss.length >= 5){
+      const wd = stA.wd.indexOf(Math.max(...stA.wd));
+      f.push(["Lieblingstag", ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"][wd], `${num(stA.wd[wd]/stA.total*100)} % deiner PC-Zeit`]);
+      f.push(["Ø Session", hrs(stA.avg), `bei ${stA.ss.length} Sessions am PC`]);
+    }
     const oldest = played.filter(g=>g.year).sort((a,b)=>a.year-b.year)[0];
     if (oldest) f.push(["Ältester Schinken", oldest.title, `erschienen ${oldest.year}`]);
     const dv = {};
@@ -923,8 +1028,9 @@ function renderLib(){
   if (S.lib.view === "wish") return renderWish();
   const L = S.lib, devCounts = {};
   S.groups.forEach(g=>Object.keys(g.devs).forEach(d=>devCounts[d]=(devCounts[d]||0)+1));
+  devCounts.hidden = S.allGroups.filter(g=>g.hide).length;
   $("#view").innerHTML = `<div class="eyebrow" style="margin-top:6px">Deine Bibliothek</div><div class="h1">${num(S.groups.length)} Spiele</div>${libSeg()}
-    <div class="chips">${[["","Alle"],["PC","PC"],["PlayStation","PlayStation"],["Xbox","Xbox"],["Nintendo","Nintendo"]].filter(([k])=>!k||devCounts[k])
+    <div class="chips">${[["","Alle"],["PC","PC"],["PlayStation","PlayStation"],["Xbox","Xbox"],["Nintendo","Nintendo"],["hidden","🙈 Ausgeblendet"]].filter(([k])=>!k||devCounts[k])
       .map(([k,l])=>`<button class="chip ${L.dev===k?"on":""}" onclick="S.lib.dev='${k}';S.lib.limit=60;route()">${l}<small>${k?devCounts[k]:S.groups.length}</small></button>`).join("")}</div>
     <div class="toolbar"><input id="q" type="search" placeholder="Spiel suchen …" value="${esc(L.q)}">
       <select id="sort">${[["min","Meiste Spielzeit"],["last","Zuletzt gespielt"],["name","Name A–Z"],["year","Neueste zuerst"],["added","Neu in der Bibliothek"],["hltb","Kürzeste zuerst"]]
@@ -939,7 +1045,8 @@ function renderLib(){
 const hl = g => g.hltb && g.hltb.main ? g.hltb.main : Infinity;
 function libGrid(){
   const L = S.lib, q = norm(L.q);
-  const list = S.groups.filter(g => (!L.dev || g.devs[L.dev]!==undefined) && (!q || g.key.includes(q)) && (!L.played || g.minutes>0));
+  const base = L.dev === "hidden" ? S.allGroups.filter(g=>g.hide) : S.groups;
+  const list = base.filter(g => (!L.dev || L.dev==="hidden" || g.devs[L.dev]!==undefined) && (!q || g.key.includes(q)) && (!L.played || g.minutes>0));
   list.sort({min:(a,b)=>b.minutes-a.minutes, last:(a,b)=>(b.last||0)-(a.last||0), name:(a,b)=>a.title.localeCompare(b.title,"de"),
     year:(a,b)=>(b.year||0)-(a.year||0), added:(a,b)=>(b.added||0)-(a.added||0), hltb:(a,b)=>hl(a)-hl(b)}[L.sort]);
   $("#grid").innerHTML = list.slice(0,L.limit).map(g=>`<div class="gcard" onclick="openGame('${esc(g.key)}')">
@@ -1157,6 +1264,27 @@ function renderWish(){
 }
 const euro = c => c==null ? "–" : (c/100).toLocaleString("de-DE",{style:"currency",currency:"EUR"});
 
+/* ================= Reihen (Franchises) ================= */
+const STOP = new Set(["the","of","a","an","and","s","der","die","das","edition","game","games","tom"]);
+function franchiseKey(g){
+  const t = g.key.split(" ").filter(w => w.length > 1 && !STOP.has(w));
+  if (!t.length) return null;
+  if (t.length === 1 || /^(\d+|[ivx]+)$/.test(t[1])) return t[0].length >= 4 ? t[0] : null;
+  return t[0] + " " + t[1];
+}
+function franchises(list, val){
+  const m = new Map();
+  for (const g of list){ const k = franchiseKey(g); if (!k) continue; const e = m.get(k) || {k, games:[], minutes:0}; e.games.push(g); e.minutes += val(g); m.set(k, e); }
+  const out = [...m.values()].filter(f => f.games.length >= 2);
+  for (const f of out){
+    // Anzeigename: gemeinsamer Wort-Anfang der Originaltitel
+    const words = f.games.map(g => g.title.replace(/[™®©]/g,"").split(/\s+/));
+    let n = 0; while (words.every(w => w[n] && w[n].toLowerCase().replace(/[:\-–]$/,"") === words[0][n].toLowerCase().replace(/[:\-–]$/,""))) n++;
+    f.name = n ? words[0].slice(0, n).join(" ").replace(/[:\-–]$/,"") : f.games[0].title;
+  }
+  return out.sort((a,b)=>b.minutes-a.minutes);
+}
+
 /* ================= Abzeichen ================= */
 function badgeCtx(){
   const st = sessionStats(0), y = String(new Date().getFullYear());
@@ -1168,7 +1296,22 @@ function badgeCtx(){
   const ach = Object.values((S.data.steam||{}).ach||{});
   const rare = ach.reduce((m,a)=>a.r && a.r[1]!=null ? Math.min(m,a.r[1]) : m, 101);
   const devs = new Set(played.flatMap(g=>Object.keys(g.devs)));
-  return {st, total, maxG, early, doneYear: doneInYear(y).length, comp: S.groups.filter(g=>g.pc&&g.status==="komplett").length,
+  const dev = {}; for (const g of played) for (const [k,v] of Object.entries(g.devs)) dev[k] = (dev[k]||0) + v;
+  const genAll = {}; for (const g of played) for (const x of g.genres) genAll[x.toLowerCase()] = (genAll[x.toLowerCase()]||0) + g.pcMinutes;
+  const gsum = k => Object.entries(genAll).filter(([n])=>n.includes(k)).reduce((s,[,v])=>s+v,0);
+  const pcTot = Object.values(genAll).length ? Math.max(...Object.values(genAll)) : 0;
+  const decades = new Set(played.filter(g=>g.year).map(g=>Math.floor(g.year/10)));
+  let midnight = 0; for (const [, s, sec] of st.ss){ const a = new Date(s*1000), b = new Date((s+sec)*1000); if (a.getDate() !== b.getDate()) midnight++; }
+  const fr = franchises(played, g=>g.minutes);
+  const multi = played.filter(g=>Object.values(g.devs).filter(v=>v>=600).length>=2).length;
+  const cnt = st2 => S.groups.filter(g=>g.status===st2 && g.pc).length;
+  const extra = {dev, shooter: gsum("shoot"), rpg: gsum("role") + gsum("rpg"), indie: gsum("indie"), strategy: gsum("strateg"),
+    sim: gsum("simul"), decades: decades.size, midnight, frMax: fr.length ? fr[0].games.length : 0, multi,
+    old: played.filter(g=>g.year && g.year < 2000).length, c100x5: played.filter(g=>g.minutes>=6000).length,
+    doneAll: S.groups.filter(g=>g.pc && DONE.has(g.status)).length, endlos: cnt("endlos"), next: cnt("als_naechstes"),
+    notes: S.groups.filter(g=>g.meta.note).length, sessions: st.ss.length, ten: played.filter(g=>g.minutes>=600).length,
+    genreTop: pcTot, pcAll: played.reduce((s2,g)=>s2+g.pcMinutes,0)};
+  return {...extra, st, total, maxG, early, doneYear: doneInYear(y).length, comp: S.groups.filter(g=>g.pc&&g.status==="komplett").length,
     devCount: devs.size, groups: S.groups.length, retro: played.filter(g=>g.year && g.year<2005).reduce((m,g)=>Math.max(m,g.minutes),0),
     genres5: Object.values(gen).filter(v=>v>=300).length, rated: S.groups.filter(g=>g.meta.rating).length,
     tiered: S.groups.filter(g=>g.tier).length, achTotal: ach.reduce((s,a)=>s+a.d,0), rare, topShare: total ? maxG/total : 0,
@@ -1197,6 +1340,27 @@ const BADGES = [
   ["rare","💎","Seltener Fund","Ein Erfolg, den unter 5 % haben",c=>[c.rare<5?1:0,1]],
   ["loyal","💍","Treue Seele","Ein Spiel macht ein Viertel deiner Zeit aus",c=>[c.topShare*100,25,"%"]],
   ["shame","📦","Ehrlich ist ehrlich","50 Spiele nie gestartet",c=>[c.unplayed,50]],
+  ["year","🗓️","Ein Jahr am Controller","8.760 Stunden insgesamt – ein ganzes Jahr",c=>[c.total/60,8760,"Std"]],
+  ["ps","🎮","PlayStation-Veteran","1.000 Stunden auf der PlayStation",c=>[(c.dev.PlayStation||0)/60,1000,"Std"]],
+  ["xb","🟢","Xbox-Stammgast","500 Stunden auf der Xbox",c=>[(c.dev.Xbox||0)/60,500,"Std"]],
+  ["pcm","🖥️","PC-Masterrace","1.000 Stunden am PC",c=>[(c.dev.PC||0)/60,1000,"Std"]],
+  ["trinity","🔺","Dreifaltigkeit","Je 100 Stunden auf PC, PlayStation und Xbox",c=>[["PC","PlayStation","Xbox"].filter(k=>(c.dev[k]||0)>=6000).length,3]],
+  ["c100x5","🏅","Fünffach-Hunderter","5 Spiele mit über 100 Stunden",c=>[c.c100x5,5]],
+  ["ten","🔟","Dranbleiber","50 Spiele mit über 10 Stunden",c=>[c.ten,50]],
+  ["shooter","🎯","Abzugsfinger","500 Stunden in Shootern",c=>[c.shooter/60,500,"Std"]],
+  ["rpg","🧙","Rollenspieler","300 Stunden in Rollenspielen",c=>[c.rpg/60,300,"Std"]],
+  ["indie","🌱","Indie-Herz","100 Stunden in Indie-Spielen",c=>[c.indie/60,100,"Std"]],
+  ["strat","♟️","Feldherr","200 Stunden in Strategiespielen",c=>[c.strategy/60,200,"Std"]],
+  ["sim","🏗️","Baumeister","200 Stunden in Simulationen",c=>[c.sim/60,200,"Std"]],
+  ["decades","⏪","Zeitreisender","Spiele aus 4 Jahrzehnten gespielt",c=>[c.decades,4]],
+  ["oldies","📼","Oldie-Sammler","5 Spiele von vor 2000 gespielt",c=>[c.old,5]],
+  ["franchise","🧬","Serienjunkie","6 Spiele aus derselben Reihe",c=>[c.frMax,6]],
+  ["twin","👯","Doppelgänger","3 Spiele auf zwei Systemen je 10+ Stunden",c=>[c.multi,3]],
+  ["midnight","🌙","Mitternachtsheld","10 Sessions über Mitternacht hinaus",c=>[c.midnight,10]],
+  ["s100","📈","Dauergast","100 Sessions am PC",c=>[c.sessions,100]],
+  ["done25","🎓","Abschlussprüfung","25 Spiele durchgespielt",c=>[c.doneAll,25]],
+  ["next","🎯","Planer","10 Spiele auf „Als Nächstes“",c=>[c.next,10]],
+  ["notes","📝","Tagebuchschreiber","10 Spiele mit Notiz",c=>[c.notes,10]],
 ];
 function badges(){
   const c = badgeCtx();
@@ -1291,11 +1455,12 @@ function friendsCard(){
 }
 
 /* ================= Wrapped ================= */
-const W = {mode:"year", slides:[], i:0, t0:0, paused:false, raf:0, DUR:6500, data:null};
+const W = {mode:"year", slides:[], i:0, t0:0, paused:false, raf:0, DUR:7000, data:null};
 async function ensureYear(){
   if (S.yearPM !== undefined && S.yearPM !== null) return;
   if (CLOUD) return;
-  try { const d = await (await fetch("/api/data?period=year")).json(); S.yearPM = d.period_minutes || {}; S.yearInfo = d.period; } catch(e){ S.yearPM = {}; }
+  try { const d = await (await fetch("/api/data?period=year")).json(); S.yearPM = d.period_minutes || {}; S.yearInfo = d.period || {}; } catch(e){ S.yearPM = {}; S.yearInfo = {}; }
+  if (!S.yearInfo.complete){ S.yearPM = estimateYear(new Date().getFullYear(), S.yearPM); S.yearInfo.estimated = true; }
 }
 function renderWrapped(){
   const y = new Date().getFullYear(), bd = badges(), got = bd.filter(b=>b.got).length;
@@ -1311,6 +1476,7 @@ function renderWrapped(){
     const el = $("#wrapHint"); if (!el) return;
     const info = S.yearInfo || {}, has = Object.values(S.yearPM||{}).some(v=>v>0) || (S.data.sessions||[]).some(x=>x[1] >= new Date(y,0,1)/1000);
     el.innerHTML = !has ? `Für ${y} gibt es noch keine Daten: Gaming Recap zeichnet ab jetzt auf. Bis dahin zeigt die Story <b>alle Zeiten</b>.`
+      : info.estimated ? `${y} ist geschätzt aus deinen Spieldaten (erster und letzter Spieltag je Spiel). Ab jetzt misst Gaming Recap genau mit.`
       : info.complete === false && info.tracking_since ? `Hinweis: Für ${y} zählt alles ab dem ${fdate(new Date(info.tracking_since))}, dem Start der Aufzeichnung.` : "";
   });
 }
@@ -1345,55 +1511,94 @@ const FUN = [[686,"× Herr der Ringe (Extended)"],[510,"Flüge nach New York"],[
 function wrapSlides(D){
   const L = [], label = D.yr ? String(D.year) : "aller Zeiten";
   const cover = g => `<div class="poster">${img(g.covers,g.title)}</div>`;
-  L.push({bg:"radial-gradient(70% 60% at 20% 20%,#ff4fa3,transparent),radial-gradient(60% 60% at 90% 80%,#7a5cff,transparent),#1a0b24",
-    html:`<div class="k w-in">Gaming Recap</div><div class="xl w-in d1">${D.yr?D.year:"∞"}</div><div class="h w-in d2">${D.yr?"Dein Gaming-Jahr.":"Deine ganze Gaming-Geschichte."}</div>
-      <p class="w-in d3">${D.yr && D.info && D.info.complete===false && D.info.tracking_since ? `Aufgezeichnet seit ${fdate(new Date(D.info.tracking_since))}. ` : ""}Tippe rechts für weiter, links für zurück. Gedrückt halten pausiert.</p>`});
+  const blobs = (...c) => c.map((col,i)=>`<div class="wblob" style="background:${col};width:${60+i*14}cqw;height:${60+i*14}cqw;left:${[-20,40,-10,50][i%4]}%;top:${[-10,30,60,-20][i%4]}%;animation-delay:${-i*3}s"></div>`).join("");
+  const mosaic = list => `<div class="wmosaic">${[...list, ...list, ...list].slice(0,40).map(cover).join("")}</div>`;
+  const topCovers = D.rows.slice(0,14).map(x=>x.g);
+  L.push({bg:"#12061f", html:`${mosaic(topCovers)}${blobs("#ff4fa3","#7a5cff")}
+    <div class="k w-in">Gaming Recap</div><div class="xl w-in d1">${D.yr?D.year:"∞"}</div><div class="h w-in d2 split">${D.yr?"Dein Gaming-Jahr.":"Deine ganze Gaming-Geschichte."}</div>
+    <p class="w-in d3">${D.yr && D.info && D.info.estimated ? "Geschätzt aus deinen Spieldaten. " : ""}Tippe rechts für weiter, links für zurück. Gedrückt halten pausiert.</p>`});
   if (!D.total){ L.push({bg:"#15141c", html:`<div class="h">Noch keine Spielzeit ${D.yr?"in diesem Jahr":""} erfasst.</div><p>Schau wieder vorbei, wenn ein paar Abgleiche gelaufen sind.</p>`}); return L; }
   const fun = FUN[Math.floor(Math.random()*FUN.length)];
-  L.push({bg:"linear-gradient(160deg,#7a5cff,#2a0f5a)", html:`<div class="k w-in">${D.yr?`${D.year} hast du`:"Insgesamt hast du"}</div>
-    <div class="xl w-in d1" data-count="${Math.round(D.total/60)}">0</div><div class="h w-in d2">Stunden gezockt.</div>
+  L.push({bg:"#2a0f5a", html:`${blobs("#7a5cff","#3d7bff","#ff4fa3")}<div class="k w-in">${D.yr?`${D.year} hast du`:"Insgesamt hast du"}</div>
+    <div class="xl w-in d1" data-count="${Math.round(D.total/60)}">0</div><div class="h w-in d2 split">Stunden gezockt.</div>
     <p class="w-in d3">Das sind <b>${num(D.total/1440,1)} Tage</b> am Stück.</p><p class="w-in d4">Oder <b>${num(D.total/fun[0], D.total/fun[0]<10?1:0)} ${fun[1]}</b>.</p>`});
-  L.push({bg:"linear-gradient(160deg,#ff8a3d,#ff4fa3)", html:`<div class="k w-in">Gespielt</div><div class="xl w-in d1">${D.rows.length}</div><div class="h w-in d2">verschiedene Spiele.</div>
-    <p class="w-in d3">Auf ${D.plat.length} Plattformen${D.added?`, und ${D.added} ${D.yr?"neue":""} PC-Spiele in der Bibliothek`:""}.</p>
+  L.push({bg:"#3a0d1f", html:`${blobs("#ff8a3d","#ff4fa3")}<div class="k w-in">Gespielt</div><div class="xl w-in d1" data-count="${D.rows.length}">0</div><div class="h w-in d2 split">verschiedene Spiele.</div>
+    <p class="w-in d3">${D.rows.filter(x=>x.m>=600).length} davon mit mehr als 10 Stunden, auf ${D.plat.length} Plattformen.</p>
     <div class="wpost w-in d4">${D.rows.slice(5,9).map(x=>cover(x.g)).join("")}</div>`});
-  const pc = (D.dev.PC||0)/D.total*100;
-  L.push({bg:"#c8f135", fg:"#111", html:`<div class="k w-in">PC vs. Konsole</div><div class="xl w-in d1">${num(pc)}%</div>
-    <div class="h w-in d2">${pc>=70?"PC-Masterrace.":pc>=50?"Am liebsten am PC.":"Team Couch."}</div>
-    ${["PC","PlayStation","Xbox","Nintendo"].filter(k=>D.dev[k]).map((k,i)=>`<div class="devrow w-in d${i+2}" style="font-size:17px"><span class="lbl">${k}</span><span class="trk"><div style="width:${D.dev[k]/D.total*100}%"></div></span><span class="v">${hrs(D.dev[k])}</span></div>`).join("")}`});
-  if (D.gen.length) L.push({bg:"linear-gradient(160deg,#2ee6d6,#3d7bff)", fg:"#04201d", html:`<div class="k w-in">Deine Gamer-DNA</div><div class="h w-in d1" style="font-size:clamp(40px,13cqw,72px)">${esc(D.gen[0][0])}</div>
-    <p class="w-in d2">Dein Lieblingsgenre mit ${hrs(D.gen[0][1])}.</p><div class="wlist w-in d3">${D.gen.slice(1,5).map(([n,v],i)=>`<div><i>${i+2}</i>${esc(n)}<span>${hrs(v)}</span></div>`).join("")}</div>`});
-  if (D.rows.length > 1) L.push({bg:"linear-gradient(170deg,#15141c,#2a0f3a)", html:`<div class="k w-in">Deine Top 5</div><div class="h w-in d1">Fast ganz oben …</div>
-    <div class="wlist">${D.rows.slice(1,5).reverse().map((x,i)=>`<div class="w-in d${i+2}"><i>${5-i-(D.rows.length<5?5-D.rows.length:0)}</i><span style="margin:0;font-size:19px;opacity:1;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.g.title)}</span><span>${hrs(x.m)}</span></div>`).join("")}</div>`});
+  const devs = ["PC","PlayStation","Xbox","Nintendo"].filter(k=>D.dev[k]);
+  let acc = 0; const cols = {PC:"#c8f135",PlayStation:"#3d7bff",Xbox:"#2ecc40",Nintendo:"#ff3b3b"};
+  const grad = devs.map(k=>{ const a = acc; acc += D.dev[k]/D.total*100; return `${cols[k]} ${a}% ${acc}%`; }).join(",");
+  const topDev = devs.sort((a,b)=>D.dev[b]-D.dev[a])[0];
+  L.push({bg:"#0d1424", html:`${blobs(cols[topDev]+"88","#7a5cff")}<div class="k w-in">Wo du spielst</div>
+    <div class="h w-in d1 split">${topDev==="PC"?"Am liebsten am PC.":topDev==="PlayStation"?"Team PlayStation.":topDev==="Xbox"?"Team Xbox.":"Team Nintendo."}</div>
+    <div class="wdonut" style="background:conic-gradient(${grad})"><div style="background:#0d1424">${num(D.dev[topDev]/D.total*100)}%</div></div>
+    <div class="wlegend w-in d3">${devs.map(k=>`<span><i style="background:${cols[k]}"></i>${k} ${hrs(D.dev[k])}</span>`).join("")}</div>`});
+  if (D.gen.length) L.push({bg:"#05302c", fg:"#eafffb", html:`${blobs("#2ee6d6","#3d7bff")}<div class="k w-in">Deine Gamer-DNA</div><div class="h w-in d1" style="font-size:clamp(40px,13cqw,72px)">${esc(D.gen[0][0])}</div>
+    <p class="w-in d2">Dein Lieblingsgenre am PC mit ${hrs(D.gen[0][1])}.</p><div class="wlist w-in d3">${D.gen.slice(1,5).map(([n,v],i)=>`<div><i>${i+2}</i>${esc(n)}<span>${hrs(v)}</span></div>`).join("")}</div>`});
+  const fr = franchises(D.rows.map(x=>x.g), g=>{ const r = D.rows.find(y=>y.g===g); return r ? r.m : 0; })[0];
+  if (fr && fr.games.length >= 2) L.push({bg:"#24103a", html:`${blobs("#b26bff","#ff4fa3")}<div class="k w-in">Deine Lieblingsreihe</div>
+    <div class="h w-in d1" style="font-size:clamp(36px,11cqw,64px)">${esc(fr.name)}</div><p class="w-in d2">${fr.games.length} Teile, zusammen ${hrs(fr.minutes)}.</p>
+    <div class="wpost w-in d3">${fr.games.slice(0,4).map(cover).join("")}</div>`});
+  const cons = D.rows.filter(x=>(x.devs.PlayStation||0)+(x.devs.Xbox||0)>0).sort((a,b)=>((b.devs.PlayStation||0)+(b.devs.Xbox||0))-((a.devs.PlayStation||0)+(a.devs.Xbox||0)))[0];
+  if (cons && D.dev.PC) L.push({bg:"#071a3d", html:`${blobs("#3d7bff","#2ecc40")}<div class="k w-in">Konsolen-Krone</div>
+    <div class="wtop1" style="margin-top:6px"><div class="w-in d1">${cover(cons.g)}</div></div>
+    <div class="h w-in d2" style="text-align:center;font-size:clamp(28px,9cqw,46px)">${esc(cons.g.title)}</div>
+    <p class="w-in d3" style="text-align:center">${hrs((cons.devs.PlayStation||0)+(cons.devs.Xbox||0))} auf der Couch.</p>`});
+  if (D.rows.length > 1){
+    const n = Math.min(5, D.rows.length), mx = D.rows[1].m;
+    L.push({bg:"#160b26", html:`${blobs("#ff4fa3","#7a5cff")}<div class="k w-in">Deine Top ${n}</div><div class="h w-in d1 split">Fast ganz oben …</div>
+      ${D.rows.slice(1,n).reverse().map((x,i)=>`<div class="wrow w-in d${i+2}"><div class="r">${n-i}</div>${cover(x.g)}<b>${esc(x.g.title)}</b><span>${hrs(x.m)}</span></div>`).join("")}`});
+  }
   const t = D.rows[0];
-  L.push({bg:"radial-gradient(80% 60% at 50% 30%,#ff4fa3aa,transparent),#0b0610", cls:"wtop1", html:`<div class="k w-in" style="text-align:center">Und deine Nummer eins …</div>
-    <div class="w-in d2">${cover(t.g)}</div><div class="h w-in d3" style="text-align:center;font-size:clamp(28px,9cqw,48px)">${esc(t.g.title)}</div>
-    <p class="w-in d4" style="text-align:center"><b>${hrs(t.m)}</b> · ${num(t.m/D.total*100)} % deiner Zeit</p>`});
+  L.push({bg:"#0b0610", cls:"wtop1", confetti:true, html:`${blobs("#ff4fa3","#ffd23f","#7a5cff")}<div class="k w-in" style="text-align:center">Trommelwirbel … deine Nummer eins</div>
+    <div class="wflip">${cover(t.g)}</div><div class="h w-in d4" style="text-align:center;font-size:clamp(28px,9cqw,48px)">${esc(t.g.title)}</div>
+    <p class="w-in d5" style="text-align:center"><b>${hrs(t.m)}</b> · ${num(t.m/D.total*100)} % deiner Zeit</p>`});
   if (D.st.ss.length >= 3){
     const mx = Math.max(...D.st.hours,1);
-    L.push({bg:"linear-gradient(160deg,#3d1a8a,#0b0a2a)", html:`<div class="k w-in">Dein Typ</div><div class="h w-in d1" style="font-size:clamp(38px,12.5cqw,70px)">${esc(D.st.type)}</div>
+    L.push({bg:"#1b0e4d", html:`${blobs("#3d1a8a","#7a5cff","#2ee6d6")}<div class="k w-in">Dein Typ</div><div class="h w-in d1" style="font-size:clamp(38px,12.5cqw,70px)">${esc(D.st.type)}</div>
       <p class="w-in d2">${num(D.st.night*100)} % deiner PC-Zeit lag zwischen 22 und 5 Uhr.</p>
       <div class="cols thin w-in d3" style="height:150px">${D.st.hours.map((v,i)=>`<div class="c"><div style="height:${Math.max(2,v/mx*100)}%;background:#fff"></div><span style="color:#fff">${i%6===0?i:""}</span></div>`).join("")}</div>`});
     const lg = D.st.longest;
-    L.push({bg:"linear-gradient(160deg,#ffd23f,#ff8a3d)", fg:"#1d1000", html:`<div class="k w-in">Rekorde</div>
+    L.push({bg:"#ff9a3d", fg:"#1d1000", html:`${blobs("#ffd23f","#ff4fa3")}<div class="k w-in">Rekorde</div>
       <div class="h w-in d1">${hrs(lg[2]/60)} am Stück.</div><p class="w-in d2">Deine längste Session: ${esc(titleOf(lg[0]))} am ${fdate(new Date(lg[1]*1000))}.</p>
       <div class="h w-in d3" style="margin-top:26px">${D.st.best} Tage in Folge.</div><p class="w-in d4">Deine längste Serie.${D.bestMonth?` Stärkster Monat: <b>${new Date(Number(D.bestMonth[0].split("-")[0]), Number(D.bestMonth[0].split("-")[1]),1).toLocaleDateString("de-DE",{month:"long"})}</b> mit ${hrs(D.bestMonth[1])}.`:""}</p>`});
   }
-  if (D.done.length) L.push({bg:"linear-gradient(160deg,#7a5cff,#ff4fa3)", html:`<div class="k w-in">Backlog</div><div class="xl w-in d1">${D.done.length}</div>
-    <div class="h w-in d2">Spiele durchgespielt.</div><div class="wpost w-in d3">${D.done.slice(0,4).map(cover).join("")}</div>
+  if (D.done.length) L.push({bg:"#3b1a7a", confetti:true, html:`${blobs("#7a5cff","#ff4fa3")}<div class="k w-in">Backlog</div><div class="xl w-in d1" data-count="${D.done.length}">0</div>
+    <div class="h w-in d2 split">Spiele durchgespielt.</div><div class="wpost w-in d3">${D.done.slice(0,4).map(cover).join("")}</div>
     ${D.added?`<p class="w-in d4">Dazugekommen sind ${D.added}. ${D.added > D.done.length ? "Der Stapel wächst … 😅" : "Der Stapel schrumpft! 💪"}</p>`:""}`});
-  if (D.achN) L.push({bg:"linear-gradient(160deg,#ff4fa3,#ff8a3d)", fg:"#160411", html:`<div class="k w-in">Steam-Erfolge</div><div class="xl w-in d1">${num(D.achN)}</div>
-    <div class="h w-in d2">freigeschaltet.</div>${D.rare?`<p class="w-in d3">Dein seltenster: <b>${esc(D.rare.r[0])}</b>. Den haben nur ${num(D.rare.r[1],1)} % aller Spieler.</p>`:""}`});
-  if (D.rank) L.push({bg:"linear-gradient(160deg,#2ee6d6,#c8f135)", fg:"#04201d", html:`<div class="k w-in">Unter Freunden</div><div class="xl w-in d1">#${D.rank}</div>
-    <div class="h w-in d2">von ${D.friends+1}.</div><p class="w-in d3">${D.rank===1?"Niemand in deiner Steam-Freundesliste hat mehr gezockt. 👑":"Gemessen an den Steam-Stunden deiner Freunde."}</p>`});
-  if (D.bd.length) L.push({bg:"linear-gradient(170deg,#15141c,#0b3b36)", html:`<div class="k w-in">Abzeichen</div><div class="h w-in d1">${D.bd.length} freigeschaltet.</div>
-    <div class="w-in d2" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:10px">${D.bd.slice(0,12).map(b=>`<div style="text-align:center;width:72px"><div style="font-size:40px">${b.e}</div><div style="font-size:11.5px;font-weight:700;opacity:.85">${esc(b.n)}</div></div>`).join("")}</div>`});
-  L.push({bg:"radial-gradient(60% 80% at 15% 20%,#ff4fa3,transparent),radial-gradient(50% 70% at 85% 10%,#7a5cff,transparent),radial-gradient(60% 80% at 70% 100%,#ff8a3d,transparent),#2a0f3a",
-    final:true, html:`<div class="k w-in">Das war ${label}</div>
+  if (D.achN) L.push({bg:"#5a0f3a", fg:"#fff0f7", html:`${blobs("#ff4fa3","#ff8a3d")}<div class="k w-in">Steam-Erfolge</div><div class="xl w-in d1" data-count="${D.achN}">0</div>
+    <div class="h w-in d2 split">freigeschaltet.</div>${D.rare?`<p class="w-in d3">Dein seltenster: <b>${esc(D.rare.r[0])}</b>. Den haben nur ${num(D.rare.r[1],1)} % aller Spieler.</p>`:""}`});
+  if (D.rank) L.push({bg:"#0d3b2a", html:`${blobs("#2ee6d6","#c8f135")}<div class="k w-in">Unter Freunden</div><div class="xl w-in d1">#${D.rank}</div>
+    <div class="h w-in d2 split">von ${D.friends+1}.</div><p class="w-in d3">${D.rank===1?"Niemand in deiner Steam-Freundesliste hat mehr gezockt. 👑":"Gemessen an den Steam-Stunden deiner Freunde."}</p>`});
+  if (D.bd.length) L.push({bg:"#0b2b28", confetti:true, html:`${blobs("#2ee6d6","#c8f135")}<div class="k w-in">Abzeichen</div><div class="h w-in d1 split">${D.bd.length} freigeschaltet.</div>
+    <div class="w-in d2" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:10px">${D.bd.slice(0,15).map((b,i)=>`<div class="w-in" style="text-align:center;width:72px;animation-delay:${.6+i*.08}s"><div style="font-size:40px">${b.e}</div><div style="font-size:11.5px;font-weight:700;opacity:.85">${esc(b.n)}</div></div>`).join("")}</div>`});
+  L.push({bg:"#2a0f3a", final:true, html:`${mosaic(topCovers)}${blobs("#ff4fa3","#7a5cff","#ff8a3d")}<div class="k w-in">Das war ${label}</div>
     <div class="wlist w-in d1" style="margin-top:12px"><div><i>⏱</i>${num(Math.round(D.total/60))} Stunden</div><div><i>🎮</i>${D.rows.length} Spiele</div>
       <div><i>🏆</i><span style="margin:0;font-size:19px;opacity:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.g.title)}</span></div>
-      ${D.st.ss.length>=3?`<div><i>🦉</i>${esc(D.st.type)}</div>`:""}${D.gen.length?`<div><i>🧬</i>${esc(D.gen[0][0])}</div>`:""}${D.done.length?`<div><i>🏁</i>${D.done.length} durchgespielt</div>`:""}</div>
+      ${D.st.ss.length>=3?`<div><i>🦉</i>${esc(D.st.type)}</div>`:""}${D.gen.length?`<div><i>🧬</i>${esc(D.gen[0][0])}</div>`:""}${D.done.length?`<div><i>🏁</i>${D.done.length} durchgespielt</div>`:""}${D.bd.length?`<div><i>🎖️</i>${D.bd.length} Abzeichen</div>`:""}</div>
     <div class="wbtns w-in d2"><button class="btn" data-act="share">📤 Bild teilen</button><button class="btn ghost" data-act="again">↺ Nochmal</button></div>`});
   return L;
+}
+function confetti(){
+  const st = $("#wstage"); if (!st) return;
+  let c = $("#wconf"); if (!c){ c = document.createElement("canvas"); c.id = "wconf"; st.appendChild(c); }
+  const W2 = c.width = st.clientWidth * devicePixelRatio, H2 = c.height = st.clientHeight * devicePixelRatio, x = c.getContext("2d");
+  const cols = ["#c8f135","#ff4fa3","#7a5cff","#2ee6d6","#ffd23f","#ff8a3d","#ffffff"];
+  const P = Array.from({length:150}, () => ({x:W2/2 + (Math.random()-.5)*W2*.3, y:H2*.42, vx:(Math.random()-.5)*W2*.022, vy:-Math.random()*H2*.028-H2*.006,
+    r:(4+Math.random()*6)*devicePixelRatio, c:cols[Math.floor(Math.random()*cols.length)], a:Math.random()*6, va:(Math.random()-.5)*.3}));
+  const t0 = performance.now();
+  const tick = t => { const dt = t - t0; x.clearRect(0,0,W2,H2);
+    for (const p of P){ p.vy += H2*.0009; p.x += p.vx; p.y += p.vy; p.a += p.va; x.save(); x.translate(p.x,p.y); x.rotate(p.a); x.fillStyle = p.c; x.globalAlpha = Math.max(0, 1 - dt/2600); x.fillRect(-p.r/2,-p.r/4,p.r,p.r/2); x.restore(); }
+    if (dt < 2600) requestAnimationFrame(tick); else x.clearRect(0,0,W2,H2); };
+  requestAnimationFrame(tick);
+}
+function splitWords(root){
+  root.querySelectorAll(".split").forEach(el => {
+    if (el.children.length) return;
+    const base = parseFloat(getComputedStyle(el).animationDelay) || 0;
+    el.classList.remove("w-in", "d1", "d2", "d3", "d4", "d5");
+    el.innerHTML = el.textContent.split(/(\s+)/).map((w,i)=> /\s+/.test(w) ? w : `<span class="wd" style="animation-delay:${(base + i*0.06).toFixed(2)}s">${esc(w)}</span>`).join("");
+  });
 }
 window.startWrapped = async () => {
   if (W.mode === "year") await ensureYear();
@@ -1422,12 +1627,17 @@ function wKeys(e){ if (e.key==="ArrowRight"||e.key===" ") wGo(1); else if (e.key
 function closeWrapped(){ cancelAnimationFrame(W.raf); $("#wrap").classList.remove("open"); document.body.style.overflow = ""; document.removeEventListener("keydown", wKeys); }
 function wGo(d){ const n = W.i + d; if (n < 0) { W.i = 0; return wShow(); } if (n >= W.slides.length) return; W.i = n; wShow(); }
 function wShow(){
-  const sl = W.slides[W.i];
-  $("#wslot").innerHTML = `<div class="wslide ${sl.cls||""}" style="background:${sl.bg};color:${sl.fg||"#fff"}">${sl.html}</div>`;
+  const sl = W.slides[W.i], slot = $("#wslot");
+  const prev = slot.querySelector(".wslide:not(.leave)");
+  if (prev){ prev.classList.add("leave"); setTimeout(()=>prev.remove(), 600); }
+  const el = document.createElement("div");
+  el.className = `wslide enter ${sl.cls||""}`; el.style.background = sl.bg; el.style.color = sl.fg || "#fff"; el.innerHTML = sl.html;
+  slot.appendChild(el); splitWords(el);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.remove("enter")));
   document.querySelectorAll(".wbars i b").forEach((b,i)=>b.style.width = i < W.i ? "100%" : "0");
-  const root = $("#wslot");
-  setTimeout(()=>animate(root), 250);
-  root.querySelectorAll("[data-act]").forEach(b=>b.onclick = e => { e.stopPropagation(); if (b.dataset.act==="share") shareWrapped(); else { W.i = 0; wShow(); } });
+  setTimeout(()=>animate(el), 300);
+  if (sl.confetti) setTimeout(confetti, 1300);
+  el.querySelectorAll("[data-act]").forEach(b=>b.onclick = e => { e.stopPropagation(); if (b.dataset.act==="share") shareWrapped(); else { W.i = 0; wShow(); } });
   W.t0 = performance.now(); W.elapsed = 0; cancelAnimationFrame(W.raf);
   const bar = document.querySelectorAll(".wbars i b")[W.i];
   const tick = t => {
@@ -1456,12 +1666,21 @@ async function shareWrapped(){
   D.rows.slice(0,5).forEach((r,i)=>{ const y = 800 + i*96; txt(String(i+1), y, 64, 900, "#c8f135");
     let t = r.g.title; x.font = `800 52px ${F}`; while (x.measureText(t).width > 640 && t.length > 4) t = t.slice(0,-2); if (t !== r.g.title) t += "…";
     txt(t, y, 52, 800, "#fff", 180); x.font = `700 40px ${F}`; const h = hrs(r.m); x.fillStyle = "#ffffffcc"; x.fillText(h, 990 - x.measureText(h).width, y); });
-  let y = 1340;
+  // Plattform-Balken
+  const devsS = ["PC","PlayStation","Xbox","Nintendo"].filter(k=>D.dev[k]), colS = {PC:"#c8f135",PlayStation:"#3d7bff",Xbox:"#2ecc40",Nintendo:"#ff3b3b"};
+  let bx = 90; const bw = 900;
+  x.save(); x.beginPath(); x.roundRect ? x.roundRect(90, 1250, bw, 34, 17) : x.rect(90, 1250, bw, 34); x.clip();
+  for (const k of devsS){ const w = D.dev[k]/D.total*bw; x.fillStyle = colS[k]; x.fillRect(bx, 1250, w, 34); bx += w; }
+  x.restore();
+  let lx = 90; x.font = `700 30px ${F}`;
+  for (const k of devsS){ const t = `${k} ${num(D.dev[k]/D.total*100)} %`; x.fillStyle = colS[k]; x.fillRect(lx, 1312, 22, 22); x.fillStyle = "#fff"; x.fillText(t, lx+32, 1334); lx += x.measureText(t).width + 70; }
+  let y = 1430;
   const line = (a, b) => { txt(a, y, 34, 800, "#ffffffaa"); txt(b, y+64, fit(b, 900, 60), 900); y += 160; };
   if (D.st.ss.length >= 3) line("MEIN TYP", D.st.type);
   if (D.gen.length) line("LIEBLINGSGENRE", D.gen[0][0]);
   if (y < 1700 && D.bd.length) line("ABZEICHEN", `${D.bd.length} freigeschaltet`);
-  txt("🎮 Gaming Recap", 1840, 36, 800, "#ffffffbb");
+  if (D.bd.length){ x.font = `64px ${F}`; x.fillText(D.bd.slice(0,10).map(b=>b.e).join(" "), 90, Math.min(y+40, 1790)); }
+  txt("🎮 Gaming Recap", 1870, 34, 800, "#ffffffbb");
   const file = await new Promise(r=>c.toBlob(b=>r(new File([b], `gaming-recap-${D.yr?D.year:"alle"}.png`, {type:"image/png"})), "image/png"));
   try {
     if (navigator.canShare && navigator.canShare({files:[file]})) { await navigator.share({files:[file], title:"Mein Gaming Recap"}); return; }
@@ -1502,12 +1721,13 @@ window.openGame = key => {
   const right = `${g.pc && !g.hidden && g.owned ? `<div class="secttl">Backlog-Status ${g.isAuto?"<span style='text-transform:none;letter-spacing:0'>(automatisch erkannt)</span>":""}</div>
       <div class="sgrid">${STATUS.map(s=>`<button style="color:${s.c}" class="${g.status===s.k?"on":""}" onclick="setStatus('${esc(g.key)}','${s.k}')"><span style="color:var(--ink)">${s.e} ${s.l}</span></button>`).join("")}
       ${g.isAuto?"":`<button onclick="setStatus('${esc(g.key)}',null)" style="color:var(--muted)">↺ Automatisch</button>`}</div>`
-      : `<p class="help">${!g.pc?"Konsolenspiele zählen in die Statistik, aber nicht in den Backlog.":!g.owned?"Über Steam Family Sharing geliehen, daher nicht im Backlog.":"In Playnite ausgeblendet, daher nicht im Backlog."}</p>`}
+      : `<p class="help">${!g.pc?"Konsolenspiele zählen in die Statistik, aber nicht in den Backlog.":!g.owned?"Nicht im Backlog: Der Store ist dort ausgeschlossen (Einstellungen) oder das Spiel ist geliehen.":"In Playnite ausgeblendet, daher nicht im Backlog."}</p>`}
     <div class="secttl">Tier-Liste</div>
     <div class="tpick">${TIERS.map(([t,c])=>`<button style="background:${c}" class="${g.tier===t?"on":""}" onclick="setTier('${esc(g.key)}', ${g.tier===t?"null":`'${t}'`})">${t}</button>`).join("")}</div>
     <div class="secttl">Deine Bewertung</div>
     <div class="stars">${[1,2,3,4,5].map(i=>`<button class="${(g.meta.rating||0)>=i?"on":""}" onclick="setRating('${esc(g.key)}',${i})">★</button>`).join("")}</div>
-    <div class="secttl">Notiz</div><textarea id="note" placeholder="z. B. Bei Kapitel 3 aufgehört …">${esc(g.meta.note||"")}</textarea>`;
+    <div class="secttl">Notiz</div><textarea id="note" placeholder="z. B. Bei Kapitel 3 aufgehört …">${esc(g.meta.note||"")}</textarea>
+    <button class="btn ghost small" style="margin-top:14px" onclick="setHide('${esc(g.key)}', ${g.hide?"false":"true"})">${g.hide?"👁 Wieder in der Statistik zeigen":"🙈 Kein Spiel / aus der Statistik ausblenden"}</button>`;
   $("#detailBody").innerHTML = `<button class="ibtn dclose" onclick="$('#detail').close()">✕</button>
     <div class="dban">${img(g.banners,g.title)}</div>
     <div class="dhead"><div class="poster">${img(g.covers,g.title)}</div>
@@ -1525,10 +1745,11 @@ async function saveMeta(key, patch){
   const r = await fetch("/api/meta",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({key, ...patch})});
   if (!r.ok) { toast("Speichern fehlgeschlagen"); return; }
   const m = await r.json();
-  S.data.meta[m.key] = {status:m.status, rating:m.rating, note:m.note, tier:m.tier, updated:m.updated};
+  S.data.meta[m.key] = {status:m.status, rating:m.rating, note:m.note, tier:m.tier, hide:m.hide, updated:m.updated};
   buildGroups();
 }
 window.setStatus = async (key, st) => { await saveMeta(key,{status:st}); openGame(key); route(); };
+window.setHide = async (key, h) => { await saveMeta(key,{hide:h}); toast(h?"Ausgeblendet":"Wieder sichtbar"); $("#detail").close(); route(); };
 window.setTier = async (key, t, reopen=true) => { await saveMeta(key,{tier:t}); if (reopen && $("#detail").open) openGame(key); if (cur()==="spiele" && S.lib.view==="tier") renderLib(); };
 async function saveKv(key, value){
   if (CLOUD){ const q = edits(); q.push({kind:"kv", key, value, ts:Date.now()}); store.set("gr_edits", q); S.data.goals = value; header(); flushEdits(); return; }
@@ -1704,6 +1925,10 @@ window.openSettings = async () => {
       <div class="help"><ol><li>Auf <a href="https://xbl.io" target="_blank" rel="noopener">xbl.io</a> mit deinem Microsoft-Konto anmelden.</li>
       <li>Unter „API Keys“ einen Key erstellen und hier einfügen.</li></ol>Drittanbieter-Dienst. Spielzeiten kommen in Portionen.</div>
     </fieldset>
+    <fieldset><legend>📚 Backlog</legend>
+      <div class="help" style="margin-top:0">Welche PC-Stores zählen in deinen Backlog? Konsolen und geliehene Spiele sind nie dabei.</div>
+      ${[...new Set([...DEFAULT_BL_STORES, ...S.data.games.filter(g=>g.device==="PC").map(g=>g.store)])].map(st=>`<label class="check" style="margin-top:8px"><input type="checkbox" class="blstore" value="${esc(st)}" ${backlogStores().includes(st)?"checked":""}> ${esc(st)}</label>`).join("")}
+    </fieldset>
     <fieldset><legend>🔔 Extras & Hinweise</legend>
       <label class="check"><input type="checkbox" id="steam_extras" ${c.steam_extras?"checked":""}> Steam-Erfolge, Wunschliste, Preise und Freunde laden</label>
       <label class="check" style="margin-top:10px"><input type="checkbox" id="notify_sales" ${c.notify_sales?"checked":""}> Windows-Hinweis bei Angeboten auf der Wunschliste</label>
@@ -1731,6 +1956,7 @@ window.openSettings = async () => {
       await post("/api/config", {steam_api_key:v("steam_api_key"), steam_id:v("steam_id"), psn_npsso:v("psn_npsso"), xbox_api_key:v("xbox_api_key"),
         playnite_export:v("playnite_export"), gh_repo:v("gh_repo"), igdb_client_id:v("igdb_client_id"), igdb_client_secret:v("igdb_client_secret"), gh_token:v("gh_token"), cloud_pass:v("cloud_pass"),
         cloud_enabled:ch("cloud_enabled"), tracker:ch("tracker"), hltb:ch("hltb"), lan:ch("lan"), sync_hours:Number(v("sync_hours"))||6,
+        backlog_stores:[...document.querySelectorAll(".blstore:checked")].map(e=>e.value),
         steam_extras:ch("steam_extras"), notify_sales:ch("notify_sales"), notify_weekly:ch("notify_weekly"),
         pause_hours:Number(v("pause_hours"))||0, watts:Number(v("watts"))||350, kwh_price:Number(v("kwh_price"))||0.35});
       $("#settings").close(); toast("Gespeichert"); setTimeout(load,400);
