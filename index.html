@@ -2777,7 +2777,8 @@ function myDuoRows(){
 }
 function duoLive(d){ // nur frische Daten zählen (sonst ist der PC aus)
   if (!d || !d.at) return [];
-  return Date.now() - Date.parse(d.at) < 25*60e3 ? (d.playing||[]) : [];
+  const tools = /^(wallpaper engine|soundpad|steamvr|lossless scaling|obs studio|fpsvr|ovr .*|virtual desktop|voicemeeter|steam link)$/i;
+  return Date.now() - Date.parse(d.at) < 25*60e3 ? (d.playing||[]).filter(x=>!tools.test(String(x.t||"").trim())) : [];
 }
 function duoWeeks(a, b){ // [[montag, ich, partner], ...] nur Wochen, die beide kennen
   const B = new Map((b||[]).map(w=>[w[0], w[1]]));

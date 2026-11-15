@@ -28,6 +28,9 @@ NON_GAMES = {
     "max", "hbo max", "vlc", "kodi", "web browser", "internet browser", "playstation vue", "tv video", "ps vr",
     "live from playstation", "playstation video", "playstation music", "funimation", "pluto tv", "rakuten tv",
     "microsoft edge", "movies tv", "filme tv", "xbox app", "xbox", "game pass", "eurosport", "dazn player",
+    # PC-Werkzeuge aus Steam, die laufen, ohne dass gespielt wird
+    "wallpaper engine", "soundpad", "steamvr", "lossless scaling", "obs studio", "fpsvr", "ovr advanced settings",
+    "ovr toolkit", "virtual desktop", "voicemeeter", "steam link", "steamworks common redistributables",
 }
 
 

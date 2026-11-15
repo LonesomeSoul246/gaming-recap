@@ -1343,7 +1343,8 @@ def duo_extras(cfg, games, keys):
             gen[n] = gen.get(n, 0) + int(g.get("minutes") or 0)
     meta = load_meta()
     tiers = {k: v["tier"] for k, v in meta.items() if v.get("tier") and k in keys}
-    playing = [{"k": norm_title(p.get("title") or ""), "t": p.get("title"), "s": p.get("since")} for p in (TRACKER.current or [])]
+    playing = [{"k": norm_title(p.get("title") or ""), "t": p.get("title"), "s": p.get("since")} for p in (TRACKER.current or [])
+               if not is_non_game(p.get("title")) and not (meta.get(norm_title(p.get("title") or "")) or {}).get("hide")]
     since = int(time.time()) - 400 * 86400
     sess = [[k, int(st), int(sec)] for k, st, sec in tracker.load_sessions(APP_DB, since)]
     return {"avatar": (sx.get("me") or {}).get("avatar"), "weeks": weekly_minutes(), "months": monthly_minutes(),
