@@ -190,6 +190,17 @@ def update(cache_path, key, sid, games, max_ach=120, status=None):
             status["ach"] = status.get("ach", 0) + 1
         time.sleep(0.2)
 
+    # Eigenes Profil (Name, Avatar) einmal am Tag – für „Wir zwei“
+    if now - (c.get("me_at") or 0) > DAY or not c.get("me"):
+        try:
+            j = _get("/ISteamUser/GetPlayerSummaries/v2/", key=key, steamids=sid)
+            p = ((j.get("response") or {}).get("players") or [{}])[0]
+            if p.get("steamid"):
+                c["me"] = {"name": p.get("personaname"), "avatar": p.get("avatarfull") or p.get("avatarmedium")}
+                c["me_at"] = now
+        except Exception:
+            pass
+
     # Freunde einmal am Tag
     if now - (c.get("friends_at") or 0) > DAY or any("tops" not in f for f in c.get("friends") or []):
         try:
@@ -314,4 +325,4 @@ def summary(c, games):
                          "release_text": p.get("release_text"), "cover": p.get("cover"), "header": p.get("header")})
     scores = {a: {k: v for k, v in e.items() if k not in ("t", "v")} for a, e in (c.get("scores") or {}).items() if str(a) in titles and ("rp" in e or "mc" in e)}
     return {"ach": ach, "prices": prices, "wishlist": wishlist, "wishlist_error": c.get("wishlist_error"),
-            "friends": c.get("friends") or [], "at": c.get("at"), "scores": scores}
+            "friends": c.get("friends") or [], "at": c.get("at"), "scores": scores, "me": c.get("me")}

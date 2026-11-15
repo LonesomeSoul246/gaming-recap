@@ -698,7 +698,7 @@ def clean_goals(v):
     return out
 
 
-NOTIFY_CATS = ("sales", "lows", "free", "release", "weekly", "monthly", "yearly", "pause", "health", "offline")
+NOTIFY_CATS = ("sales", "lows", "free", "release", "weekly", "monthly", "yearly", "pause", "health", "offline", "duo")
 
 
 def notify_prefs(cfg=None):
@@ -723,12 +723,14 @@ def in_quiet(prefs, now=None):
     return a <= h < b if a < b else (h >= a or h < b)
 
 
-def alert(kind, title, body, url=None):
+def alert(kind, title, body, url=None, queue=True):
     """Zentrale Stelle für alle Hinweise: Thema an/aus, Windows und/oder Handy, Nachtruhe fürs Handy."""
     prefs = notify_prefs()
     if not (prefs.get("cats") or {}).get(kind, True):
         return False
     phone = bool(prefs.get("phone", True))
+    if phone and in_quiet(prefs) and not queue:
+        phone = False
     if phone and in_quiet(prefs):
         q = kv_get("push_queue", []) or []
         q.append([title, body, url])
@@ -1222,6 +1224,58 @@ def media_worker(cfg, games):
 partner_state = {"last": 0, "error": None, "at": None}
 
 
+def weekly_minutes(n=60):
+    """Spielzeit pro Kalenderwoche (Mo–So) aus den täglichen Ständen: [[Montag, Minuten], ...], älteste zuerst.
+    Wochen ohne Ausgangsstand fehlen (vor Beginn der Aufzeichnung)."""
+    con = history_con()
+    days = [r[0] for r in con.execute("SELECT DISTINCT day FROM snapshots ORDER BY day")]
+    if not days:
+        con.close()
+        return []
+    cache = {}
+    def snap(day):
+        if day not in cache:
+            cache[day] = {i: (m, p) for i, p, m in con.execute("SELECT id, platform, minutes FROM snapshots WHERE day = ?", (day,))}
+        return cache[day]
+    def last_before(d):
+        iso = d.isoformat()
+        prev = [x for x in days if x < iso]
+        return prev[-1] if prev else None
+    today = dt.date.today()
+    monday = today - dt.timedelta(days=today.weekday())
+    out = []
+    for i in range(n - 1, -1, -1):
+        ws = monday - dt.timedelta(weeks=i)
+        b, e = last_before(ws), last_before(ws + dt.timedelta(days=7))
+        if not b or not e:
+            continue
+        A, B = snap(b), snap(e)
+        devs = {p for _, p in A.values()}
+        tot = 0
+        for gid, (m, p) in B.items():
+            if gid in A:
+                tot += max(0, m - A[gid][0])
+            elif p in devs:
+                tot += m
+        out.append([ws.isoformat(), int(tot)])
+    con.close()
+    return out
+
+
+def duo_extras(cfg, games, keys):
+    """Zusatzdaten für „Wir zwei“: Avatar, Wochen, Genres, Tier-Liste, gerade gespielt."""
+    sx = read_json(STEAMX_PATH, {}) or {}
+    gen = {}
+    for g in games:
+        for n in g.get("genres") or []:
+            gen[n] = gen.get(n, 0) + int(g.get("minutes") or 0)
+    meta = load_meta()
+    tiers = {k: v["tier"] for k, v in meta.items() if v.get("tier") and k in keys}
+    playing = [{"k": norm_title(p.get("title") or ""), "t": p.get("title"), "s": p.get("since")} for p in (TRACKER.current or [])]
+    return {"avatar": (sx.get("me") or {}).get("avatar"), "weeks": weekly_minutes(),
+            "genres": dict(sorted(gen.items(), key=lambda x: -x[1])[:16]), "tiers": tiers, "playing": playing}
+
+
 def partner_summary(cfg, stable=False):
     """Was „Wir zwei“ mit dem Partner teilt: pro Spiel Titel, Spielzeiten (gesamt/Jahr/Monat), Besitz, Cover, Koop.
     Wird mit dem gemeinsamen Partner-Code verschlüsselt hochgeladen."""
@@ -1251,15 +1305,18 @@ def partner_summary(cfg, stable=False):
         rows.append([k, e["t"], e["m"], e["y"], e["mo"], int(e["own"]), e["c"] or xc.get(k), int(e["mp"]), sorted(e["d"])])
     out = {"v": 1, "name": (cfg.get("user_name") or "").strip() or "Partner", "year_n": dt.date.today().year,
            "total": sum(r[2] for r in rows), "year": sum(r[3] for r in rows), "month": sum(r[4] for r in rows), "games": rows}
+    out.update(duo_extras(cfg, games, set(groups)))
     if not stable:
         out["at"] = now_iso()
+    elif out["playing"]:
+        out["hb"] = int(time.time() // 600)  # beim Spielen alle 10 Min. neu hochladen, damit „spielt gerade“ frisch bleibt
     return out
 
 
 def fetch_partner(cfg):
     """Holt die Daten des Partners (verschlüsselt in dessen GitHub-Pages-Repository)."""
     url, code = (cfg.get("partner_url") or "").strip(), (cfg.get("partner_code") or "").strip()
-    if not url or not code or time.time() - partner_state["last"] < 1800:
+    if not url or not code or time.time() - partner_state["last"] < 290:
         return
     partner_state["last"] = time.time()
     try:
@@ -1273,14 +1330,54 @@ def fetch_partner(cfg):
             kv_set("partner", data)
             cloud_state["pending"] = True
         partner_state.update(error=None, at=data.get("at"))
+        duo_live_alert(cfg, data)
     except urllib.error.HTTPError as e:
         partner_state["error"] = "Beim Partner liegt noch nichts (sein PC muss einmal hochgeladen haben)." if e.code == 404 else err_text(e)
     except ValueError:
         partner_state["error"] = "Partner-Code passt nicht – bei beiden muss derselbe Code eingetragen sein."
     except Exception as e:
         partner_state["error"] = err_text(e)
-    if partner_state["error"]:
-        partner_state["last"] = time.time() - 1500  # bei Fehlern schon nach 5 Minuten wieder versuchen
+
+
+_me_duo = {"t": 0, "v": None}
+
+
+def me_duo(cfg):
+    """Eigene Wir-zwei-Zusatzdaten fürs Frontend (Wochen sind teuer, daher 10 Min. zwischengespeichert)."""
+    if time.time() - _me_duo["t"] > 600 or _me_duo["v"] is None:
+        d = partner_summary(cfg, stable=True)
+        d.pop("games", None)
+        d.pop("hb", None)
+        _me_duo["v"] = d
+        _me_duo["t"] = time.time()
+    return _me_duo["v"]
+
+
+def duo_live(data):
+    """Was der Partner gerade spielt – nur wenn seine Daten frisch sind (sonst ist der PC aus)."""
+    try:
+        age = time.time() - dt.datetime.fromisoformat(str(data.get("at"))).timestamp()
+    except (TypeError, ValueError):
+        return []
+    return data.get("playing") or [] if age < 25 * 60 else []
+
+
+def duo_live_alert(cfg, data):
+    seen = kv_get("duo_seen", {})
+    for p in duo_live(data):
+        sid = f'{p.get("k")}|{p.get("s")}'
+        if sid in seen:
+            continue
+        seen[sid] = int(time.time())
+        try:
+            fresh = time.time() - float(p.get("s") or 0) < 45 * 60
+        except (TypeError, ValueError):
+            fresh = False
+        if fresh:
+            alert("duo", f'💞 {data.get("name") or "Partner"} spielt gerade', p.get("t") or "", "#/freunde", queue=False)
+    if len(seen) > 40:
+        seen = dict(sorted(seen.items(), key=lambda x: -x[1])[:20])
+    kv_set("duo_seen", seen)
 
 
 SHARE_KEYS = ("igdb_client_id", "igdb_client_secret", "itad_key", "sgdb_key", "rawg_key")
@@ -1703,6 +1800,7 @@ def shared_data(cfg, games):
         "covers": kv_get("covers", {}), "paid": kv_get("paid", {}),
         "partner": kv_get("partner", None) if (cfg.get("partner_url") and cfg.get("partner_code")) else None,
         "me_name": (cfg.get("user_name") or "").strip(),
+        "me_duo": me_duo(cfg) if (cfg.get("partner_url") and cfg.get("partner_code")) else None,
         "trophies": read_json(EXTRAS_PATH, {}).get("trophies") or [],
         "free_games": read_json(EXTRAS_PATH, {}).get("free") or [],
         "snotes": kv_get("snotes", {}),
@@ -1866,7 +1964,11 @@ def scheduler():
             offline_watchdog(cfg)
             if time.time() - started > 300:
                 threading.Thread(target=update_worker, args=(cfg,), daemon=True).start()
-            if cfg.get("partner_url") and time.time() - partner_state["last"] > 1800:
+            cur_play = tuple(sorted(str(p.get("key")) for p in TRACKER.current or []))
+            if cfg.get("partner_code") and cur_play != partner_state.get("play"):
+                partner_state["play"] = cur_play
+                cloud_state["pending"] = True  # „spielt gerade“ zügig an den Partner geben
+            if cfg.get("partner_url") and time.time() - partner_state["last"] > 290:
                 threading.Thread(target=fetch_partner, args=(cfg,), daemon=True).start()
         except Exception as e:
             print("  Hinweise:", e)
