@@ -2720,7 +2720,7 @@ function duoMatch(me, pa, both, mineN, theirsN){
   keys.forEach(k=>{ const x = (ga[k]||0)/sa, y = (gb[k]||0)/sb; dot += x*y; na += x*x; nb += y*y; });
   const gcos = na && nb ? dot/Math.sqrt(na*nb) : 0;
   const ov = Math.min(1, Math.sqrt(both / Math.max(1, Math.min(mineN, theirsN))));
-  const pct = Math.round(100 * (keys.length ? .6*gcos + .4*ov : ov));
+  const pct = Math.round(100 * (na && nb ? .6*gcos + .4*ov : ov));  // ohne Genres beim Partner (ältere Fassung) nur die Spiele
   const gen = keys.map(k=>[k, (ga[k]||0)/sa, (gb[k]||0)/sb]).sort((a,b)=>(b[1]+b[2])-(a[1]+a[2])).slice(0,7);
   return {pct, gen};
 }
@@ -2793,7 +2793,7 @@ function renderDuo(head){
       <p class="help" style="margin-bottom:0"><span class="lg me"></span>${esc(meName)} <span class="lg pa"></span>${esc(p.name)}</p></section>`;
   }
   // Geschmack: Genres im Spiegel
-  if (match.gen.length){
+  if (match.gen.length && Object.keys(p.genres||{}).length){
     const gm = Math.max(...match.gen.flatMap(g=>[g[1],g[2]]), .01);
     h += `<section class="card s12 x5 reveal"><h3>🧬 Eure Gamer-DNA</h3>
       ${match.gen.map(([n,x,y])=>`<div class="gmir"><span class="l"><i class="me" style="width:0" data-w="${x/gm*100}%"></i></span><em>${esc(n)}</em><span class="r"><i class="pa" style="width:0" data-w="${y/gm*100}%"></i></span></div>`).join("")}
