@@ -662,7 +662,7 @@ def save_meta(body):
     return {"key": key, "status": status, "rating": rating, "note": note, "updated": updated, "tier": tier, "hide": bool(hide)}
 
 
-KV_KEYS = {"goals", "year_overrides", "wrapped", "notpc", "snotes", "covers", "paid", "notify", "critic", "ui"}
+KV_KEYS = {"goals", "year_overrides", "wrapped", "notpc", "snotes", "covers", "paid", "notify", "critic", "ui", "pet"}
 
 
 def kv_get(key, default=None):
@@ -698,7 +698,7 @@ def clean_goals(v):
     return out
 
 
-NOTIFY_CATS = ("sales", "lows", "free", "release", "weekly", "monthly", "yearly", "pause", "health", "offline", "duo")
+NOTIFY_CATS = ("sales", "lows", "free", "release", "weekly", "monthly", "yearly", "pause", "health", "offline", "duo", "pet")
 
 
 def notify_prefs(cfg=None):
@@ -764,6 +764,18 @@ def clean_kv(key, v):
             return {}
         return {str(k)[:140]: [int(x[0]) if str(x[0]).isdigit() else 0, str(x[1] or "")[:280]]
                 for k, x in list(v.items())[-2000:] if isinstance(x, list) and len(x) == 2}
+    if key == "pet":  # Begleiter: Eier/Begleiter, wer aktiv ist, Accessoires, Lebensraum
+        v = v if isinstance(v, dict) else {}
+        pets = []
+        for p in (v.get("pets") or [])[:12]:
+            if isinstance(p, dict) and p.get("sp") in PET_SPECIES and re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(p.get("start") or "")):
+                pets.append({"id": re.sub(r"[^a-z0-9]", "", str(p.get("id") or ""))[:12] or f"p{len(pets) + 1}", "sp": p["sp"],
+                             "nick": str(p.get("nick") or "")[:24], "start": p["start"]})
+        ids = {p["id"] for p in pets}
+        act = [[str(a[0])[:10], a[1]] for a in (v.get("act") or [])[-200:] if isinstance(a, list) and len(a) == 2 and a[1] in ids]
+        acc = {k: str(x)[:20] for k, x in (v.get("acc") or {}).items() if k in ids and x}
+        _pet_cache["v"] = None
+        return {"pets": pets, "act": act, "acc": acc, "hab": re.sub(r"[^a-z]", "", str(v.get("hab") or ""))[:20]}
     if key == "ui":  # Design (Farbwelt), gilt für PC und Handy
         v = v if isinstance(v, dict) else {}
         return {"theme": re.sub(r"[^a-z0-9-]", "", str(v.get("theme") or ""))[:20]}
@@ -1334,6 +1346,343 @@ def game_history():
     return out
 
 
+# ================================================================ Begleiter (Eier, Level, Bosse, Beute)
+
+PET_SPECIES = {
+    "brasu": {"name": "Brasu", "stages": ["Funkel", "Flimm", "Solvar"], "fav": "Action", "start": True,
+              "match": ("action", "shooter", "hack and slash", "fighting", "platform", "arcade")},
+    "neruma": {"name": "Neruma", "stages": ["Blupp", "Wellen", "Thalune"], "fav": "Rollenspiele", "start": True,
+               "match": ("role-playing", "rpg")},
+    "moselle": {"name": "Moselle", "stages": ["Spross", "Rankel", "Sylvara"], "fav": "Cozy & Simulation", "start": True,
+                "match": ("simulator", "simulation", "puzzle", "card", "board", "music", "sport")},
+    "crysto": {"name": "Crysto", "stages": ["Splitter", "Facett", "Prismarch"], "fav": "Strategie", "start": False,
+               "match": ("strategy", "tactical", "rts", "tbs", "moba")},
+    "nocti": {"name": "Nocti", "stages": ["Flausch", "Dämmer", "Velunara"], "fav": "Horror & Mystery", "start": False,
+              "match": ("horror", "survival", "mystery", "point-and-click", "visual novel")},
+    "koppla": {"name": "Koppla", "stages": ["Piko & Pika", "Echo & Edda", "Harmonia"], "fav": "Koop & Mehrspieler", "start": False,
+               "match": ("co-op", "coop", "co-operative", "multiplayer", "koop")},
+}
+PET_STAGE_LV = (10, 25)          # Stufe 2 ab Level 10, Stufe 3 ab Level 25
+PET_HATCH_DAYS = 3               # Spieltage (mind. 15 Min) bis zum Schlüpfen
+PET_DAY_CAP = 180                # höchstens 3 Std Spielzeit pro Tag zählen
+PET_ACC = {"schleife": ("Schleife", "🎀"), "headset": ("Gaming-Headset", "🎧"), "brille": ("Sonnenbrille", "🕶️"),
+           "krone": ("Krone", "👑"), "zauberhut": ("Zauberhut", "🎩"), "blume": ("Blümchen", "🌸"), "herz": ("Partnerherz", "💞"),
+           "muetze": ("Bommelmütze", "🧶")}
+PET_HAB = {"lichtung": "Lichtung", "sterne": "Sternenhimmel", "strand": "Strand", "zimmer": "Gaming-Zimmer", "vulkan": "Vulkan"}
+# Beute nach Anzahl Siege (Wochen- und Monats-Bosse zusammen)
+PET_LOOT = {1: ("acc", "schleife"), 2: ("hab", "sterne"), 3: ("egg", "crysto"), 4: ("acc", "headset"), 5: ("theme", "drachenglut"),
+            6: ("hab", "strand"), 7: ("acc", "brille"), 9: ("hab", "zimmer"), 10: ("acc", "krone"), 12: ("theme", "mondnacht"),
+            14: ("acc", "zauberhut"), 16: ("egg", "koppla"), 18: ("hab", "vulkan"), 20: ("shiny", ""), 23: ("acc", "muetze"), 26: ("acc", "blume")}
+PET_WEEKLY = [("golem", "Backlog-Golem", "🗿", "Durchgespielte Spiele treffen ihn dreifach."),
+              ("hydra", "Genre-Hydra", "🐍", "Jedes verschiedene Genre der Woche schlägt einen Kopf ab."),
+              ("drache", "Trophäen-Drache", "🐉", "Erfolge und Trophäen sind kritische Treffer."),
+              ("nachtmahr", "Nachtmahr", "👻", "Sessions, die vor Mitternacht enden, treffen doppelt – Zocken nach Mitternacht heilt ihn."),
+              ("sphinx", "Entdecker-Sphinx", "🦁", "Jedes neu angefangene Spiel trifft hart.")]
+PET_MONTHLY = [("titan", "Uralter Titan", "🌋", "Durchgespielte Spiele sind seine Schwäche."),
+               ("leviathan", "Leviathan", "🐋", "Abwechslung bei den Genres schwächt ihn."),
+               ("phoenix", "Schattenphönix", "🦅", "Neu angefangene Spiele löschen sein Feuer.")]
+
+
+def pet_xp_for(level):
+    return int(round(40 * (level - 1) ** 1.76)) if level > 1 else 0
+
+
+def pet_level(xp):
+    lv = 1
+    while lv < 60 and xp >= pet_xp_for(lv + 1):
+        lv += 1
+    return lv
+
+
+def _pet_game_info():
+    info = {}
+    for g in load_cache().get("games", []):
+        txt = " ".join([str(x).lower() for x in (g.get("genres") or []) + (g.get("features") or []) + (g.get("tags") or [])])
+        info[g["id"]] = {"k": norm_title(g["title"]), "genres": [str(x) for x in g.get("genres") or []], "txt": txt}
+    return info
+
+
+def _pet_days(since):
+    """Spielzeit pro Tag ab since (date): {tag: {"min", "per": {id: Minuten}, "started": [ids]}}."""
+    con = history_con()
+    days = [r[0] for r in con.execute("SELECT DISTINCT day FROM snapshots ORDER BY day")]
+    out, prev = {}, None
+    s_iso = since.isoformat()
+    for d in days:
+        snap = {i: (m, p) for i, p, m in con.execute("SELECT id, platform, minutes FROM snapshots WHERE day = ?", (d,))}
+        if prev is not None and d >= s_iso:
+            devs = {p for _, p in prev.values()}
+            per, started = {}, []
+            for gid, (m, p) in snap.items():
+                if gid in prev:
+                    dm = m - prev[gid][0]
+                    if dm > 0 and prev[gid][0] == 0:
+                        started.append(gid)
+                elif p in devs:
+                    dm = m
+                    if m > 0:
+                        started.append(gid)
+                else:
+                    dm = 0
+                if dm > 0:
+                    per[gid] = dm
+            out[d] = {"min": sum(per.values()), "per": per, "started": started}
+        prev = snap
+    con.close()
+    return out
+
+
+_pet_cache = {"t": 0, "v": None}
+
+
+def pet_state(cfg, force=False):
+    """Berechnet den ganzen Begleiter-Stand aus dem echten Verlauf (deterministisch, nichts doppelt)."""
+    if not force and _pet_cache["v"] is not None and time.time() - _pet_cache["t"] < 300:
+        return _pet_cache["v"]
+    raw = kv_get("pet", {}) or {}
+    pets = raw.get("pets") or []
+    if not pets:
+        res = {"pets": [], "starter": [k for k, v in PET_SPECIES.items() if v["start"]]}
+        _pet_cache.update(t=time.time(), v=res)
+        return res
+    today = dt.date.today()
+    start = min(dt.date.fromisoformat(p["start"]) for p in pets)
+    act = sorted(raw.get("act") or [[pets[0]["start"], pets[0]["id"]]])
+    def active_on(d):
+        cur = act[0][1]
+        for dd, pid in act:
+            if dd <= d:
+                cur = pid
+        return cur
+    gi = _pet_game_info()
+    days = _pet_days(start)
+    # Ereignisse
+    ev = {}
+    def add(day, key, n=1):
+        ev.setdefault(day, {}).setdefault(key, 0)
+        ev[day][key] += n
+    seen = set()
+    for k, st, at in load_status_log(800):
+        day = str(at)[:10]
+        if st in ("durchgespielt", "komplett") and day >= start.isoformat() and (k, st) not in seen:
+            seen.add((k, st))
+            add(day, "done" if st == "durchgespielt" else "full")
+    try:
+        sx = read_json(STEAMX_PATH, {}) or {}
+        for a in (sx.get("ach") or {}).values():
+            for u in a.get("u") or []:
+                ts = int(u[2] or 0)
+                if ts:
+                    day = time.strftime("%Y-%m-%d", time.localtime(ts))
+                    if day >= start.isoformat():
+                        add(day, "ach")
+    except Exception:
+        pass
+    sess = tracker.load_sessions(APP_DB, int(dt.datetime.combine(start, dt.time()).timestamp()))
+    for k, s0, sec in sess:   # Nachtmahr: vor bzw. nach Mitternacht
+        e = s0 + sec
+        d0 = dt.datetime.fromtimestamp(s0)
+        late = 0
+        for t in range(s0, e, 300):
+            h = dt.datetime.fromtimestamp(t).hour
+            if h < 5:
+                late += 5
+        day = (d0 - dt.timedelta(hours=5)).date().isoformat()
+        add(day, "late", late)
+        add(day, "early", max(0, sec // 60 - late))
+    pa = kv_get("partner", None) if cfg.get("partner_url") and cfg.get("partner_code") else None
+    evenings = set()
+    if pa and pa.get("sess"):
+        by = {}
+        for k, s2, sec2 in pa["sess"]:
+            by.setdefault(k, []).append((s2, s2 + sec2))
+        for k, s0, sec in sess:
+            for a2, b2 in by.get(k, []):
+                if min(s0 + sec, b2) - max(s0, a2) >= 900:
+                    evenings.add((dt.datetime.fromtimestamp(max(s0, a2)) - dt.timedelta(hours=5)).date().isoformat())
+    for d in evenings:
+        add(d, "evening")
+    # XP pro Tag
+    xp = {p["id"]: 0 for p in pets}
+    playdays = {p["id"]: 0 for p in pets}
+    sp_of = {p["id"]: p["sp"] for p in pets}
+    daylog, d = {}, start
+    prev_min = None
+    while d <= today:
+        iso = d.isoformat()
+        D = days.get(iso, {"min": 0, "per": {}, "started": []})
+        E = ev.get(iso, {})
+        pid = active_on(iso)
+        sp = PET_SPECIES.get(sp_of.get(pid), {})
+        raw_m = min(PET_DAY_CAP, D["min"])
+        base = min(60, raw_m) + 0.3 * max(0, raw_m - 60)   # erste Stunde voll, danach deutlich weniger
+        fav = sum(m for gid, m in D["per"].items() if any(w in (gi.get(gid) or {}).get("txt", "") for w in sp.get("match", ())))
+        rested = base > 0 and prev_min == 0
+        x = int(base * (2 if rested else 1) + 0.5 * min(fav, base))
+        x += 100 * min(3, len(D["started"])) + 500 * E.get("done", 0) + 800 * E.get("full", 0)
+        x += min(250, 10 * E.get("ach", 0)) + 200 * E.get("evening", 0)
+        if pid in xp:
+            xp[pid] += x
+            if D["min"] >= 15:
+                playdays[pid] += 1
+        genres = set()
+        for gid in D["per"]:
+            genres.update((gi.get(gid) or {}).get("genres") or [])
+        daylog[iso] = {"xp": x, "min": D["min"], "rested": rested, "pid": pid, "genres": genres, "started": len(D["started"]), **E}
+        prev_min = D["min"]
+        d += dt.timedelta(days=1)
+    # Bosse
+    wins, history, loot = 0, [], []
+    has_partner = bool(pa)
+    def dmg_week(kind, dlist):
+        tot = sum(daylog[x]["xp"] for x in dlist)
+        g = set().union(*[daylog[x]["genres"] for x in dlist]) if dlist else set()
+        if kind in ("golem", "titan"):
+            tot += 1000 * sum(daylog[x].get("done", 0) + daylog[x].get("full", 0) for x in dlist)
+        elif kind in ("hydra", "leviathan"):
+            tot += (250 if kind == "hydra" else 400) * len(g)
+        elif kind == "drache":
+            tot += min(600, 20 * sum(daylog[x].get("ach", 0) for x in dlist))
+        elif kind == "nachtmahr":
+            tot += sum(daylog[x].get("early", 0) for x in dlist) // 2 - sum(daylog[x].get("late", 0) for x in dlist)
+        elif kind in ("sphinx", "phoenix"):
+            tot += (400 if kind == "sphinx" else 600) * sum(daylog[x]["started"] for x in dlist)
+        return max(0, int(tot))
+    events = []   # (Enddatum, Art, ...)
+    monday = start - dt.timedelta(days=start.weekday())
+    w = monday
+    while w <= today:
+        dl = [(w + dt.timedelta(days=i)).isoformat() for i in range(7)]
+        dl = [x for x in dl if x in daylog]
+        events.append((min(w + dt.timedelta(days=6), today), "week", w, dl))
+        w += dt.timedelta(days=7)
+    m = start.replace(day=1)
+    while m <= today:
+        nm = (m.replace(day=28) + dt.timedelta(days=4)).replace(day=1)
+        dl = [x for x in daylog if m.isoformat() <= x < nm.isoformat()]
+        end = min(nm - dt.timedelta(days=1), today)
+        events.append((end, "month", m, dl))
+        if has_partner:
+            events.append((end, "raid", m, dl))
+        m = nm
+    events.sort(key=lambda e: (e[0], {"week": 0, "month": 1, "raid": 2}[e[1]]))
+    current = {}
+    got = {"acc": [], "hab": ["lichtung"], "theme": [], "egg": [], "shiny": []}
+    raid_wins, month_wins = 0, 0
+    reward_xp = {p["id"]: 0 for p in pets}
+    def give(kind, val, why):
+        if kind == "egg" and val in got["egg"]:
+            kind, val = "acc", "herz" if "herz" not in got["acc"] else "blume"
+        if kind == "shiny":
+            val = active_on(today.isoformat())
+        if val in got[kind]:
+            return
+        got[kind].append(val)
+        loot.append({"kind": kind, "val": val, "why": why})
+    for end, kind, key, dl in events:
+        done_ = end < today or (kind == "week" and end.weekday() == 6 and end < today)
+        live = not end < today
+        if kind == "week":
+            idx = (key.isocalendar()[1] + key.isocalendar()[0]) % len(PET_WEEKLY)
+            b = PET_WEEKLY[idx]
+            hp = int(700 * 1.08 ** min(wins, 15))
+        elif kind == "month":
+            b = PET_MONTHLY[(key.month + key.year) % len(PET_MONTHLY)]
+            hp = int(4200 * 1.1 ** min(month_wins, 12))
+        else:
+            b = ("kraken", "Koop-Kraken", "🐙", "Nur gemeinsame Abende und Spiele, die ihr beide durchspielt, treffen ihn.")
+            hp = int(1200 * 1.15 ** min(raid_wins, 10))
+        if kind == "raid":
+            dmg = 500 * sum(daylog[x].get("evening", 0) for x in dl)
+            mydone = {k for k, st, at in load_status_log(800) if st in ("durchgespielt", "komplett") and dl and dl[0] <= str(at)[:10] <= dl[-1]}
+            padone = {e[1] for e in (pa or {}).get("news") or [] if e[0] in ("done", "full") and dl and dl[0] <= str(e[3])[:10] <= dl[-1]}
+            dmg += 800 * len(mydone & padone)
+        else:
+            dmg = dmg_week(b[0], dl)
+        won = dmg >= hp
+        rec = {"kind": kind, "id": b[0], "name": b[1], "icon": b[2], "weak": b[3], "hp": hp, "dmg": dmg, "won": won,
+               "from": dl[0] if dl else key.isoformat(), "to": end.isoformat(), "live": live}
+        if live:
+            rec["ends"] = ((key + dt.timedelta(days=6)) if kind == "week" else ((key.replace(day=28) + dt.timedelta(days=4)).replace(day=1) - dt.timedelta(days=1))).isoformat()
+            current[kind] = rec
+        if won and (not live or True):
+            if kind == "raid":
+                raid_wins += 1
+                give("egg", "koppla", "Raid gegen den Koop-Kraken") if raid_wins == 1 else give("acc", "herz", "Raid-Sieg")
+                reward_xp[active_on(end.isoformat())] = reward_xp.get(active_on(end.isoformat()), 0) + 500
+            else:
+                wins += 1
+                if kind == "month":
+                    month_wins += 1
+                    if month_wins == 1:
+                        give("egg", "nocti", f"Erster Sieg gegen den Monats-Boss")
+                if wins in PET_LOOT:
+                    give(PET_LOOT[wins][0], PET_LOOT[wins][1], f"{wins}. Sieg")
+                reward_xp[active_on(end.isoformat())] = reward_xp.get(active_on(end.isoformat()), 0) + (100 + 10 * min(wins, 20) if kind == "week" else 300)
+            history.append(rec)
+        elif not live:
+            history.append(rec)
+    out = []
+    accs = raw.get("acc") or {}
+    for p in pets:
+        total = xp.get(p["id"], 0) + reward_xp.get(p["id"], 0)
+        hatched = playdays.get(p["id"], 0) >= PET_HATCH_DAYS
+        lv = pet_level(total) if hatched else 1
+        stage = 0 if not hatched else 1 if lv < PET_STAGE_LV[0] else 2 if lv < PET_STAGE_LV[1] else 3
+        S = PET_SPECIES.get(p["sp"], PET_SPECIES["brasu"])
+        shiny = (int(hashlib.sha256(p["id"].encode()).hexdigest(), 16) % 10 == 0) or p["id"] in got["shiny"]
+        out.append({"id": p["id"], "sp": p["sp"], "species": S["name"], "nick": p.get("nick") or "", "stage": stage,
+                    "stage_name": "Ei" if stage == 0 else S["stages"][stage - 1], "lvl": lv, "xp": total,
+                    "xp_lv": pet_xp_for(lv), "xp_next": pet_xp_for(lv + 1), "hatch": min(playdays.get(p["id"], 0), PET_HATCH_DAYS),
+                    "hatch_need": PET_HATCH_DAYS, "fav": S["fav"], "shiny": shiny, "acc": accs.get(p["id"]) if accs.get(p["id"]) in got["acc"] else None,
+                    "start": p["start"], "next_stage": PET_STAGE_LV[0] if stage <= 1 else PET_STAGE_LV[1] if stage == 2 else None})
+    td = daylog.get(today.isoformat(), {})
+    res = {"pets": out, "active": active_on(today.isoformat()), "hab": raw.get("hab") if raw.get("hab") in got["hab"] else "lichtung",
+           "unlocked": got, "loot": loot[-30:], "wins": wins, "raid_wins": raid_wins, "current": current,
+           "history": history[-12:], "today": {"xp": td.get("xp", 0), "min": td.get("min", 0), "rested": bool(td.get("rested")),
+           "cap": PET_DAY_CAP}, "next_loot": next(([n, PET_LOOT[n][0], PET_LOOT[n][1]] for n in sorted(PET_LOOT) if n > wins), None),
+           "starter": [k for k, v in PET_SPECIES.items() if v["start"]], "has_partner": has_partner,
+           "eggs_ready": [e for e in got["egg"] if e not in {p["sp"] for p in pets}]}
+    _pet_cache.update(t=time.time(), v=res)
+    return res
+
+
+def pet_public(cfg):
+    """Kurzfassung des aktiven Begleiters für den Partner."""
+    try:
+        st = pet_state(cfg)
+        p = next((x for x in st.get("pets") or [] if x["id"] == st.get("active")), None)
+        return {k: p[k] for k in ("sp", "stage", "stage_name", "lvl", "nick", "shiny", "acc", "species")} if p else None
+    except Exception:
+        return None
+
+
+def check_pet(cfg):
+    """Pushes: geschlüpft, Entwicklung, alle 5 Level, Boss besiegt, neue Beute."""
+    st = pet_state(cfg, force=True)
+    if not st.get("pets"):
+        return
+    seen = kv_get("pet_seen", None)
+    now = {"p": {p["id"]: [p["stage"], p["lvl"]] for p in st["pets"]}, "wins": st["wins"] + st["raid_wins"], "loot": len(st["loot"])}
+    if seen is None:
+        kv_set("pet_seen", now)
+        return
+    for p in st["pets"]:
+        old = (seen.get("p") or {}).get(p["id"], [0, 1])
+        name = p["nick"] or p["stage_name"]
+        if p["stage"] > old[0]:
+            if p["stage"] == 1:
+                alert("pet", "🐣 Dein Ei ist geschlüpft!", f"Sag Hallo zu {name} – tippe, um es zu sehen.", "#/begleiter")
+            else:
+                alert("pet", f"✨ {p['species']} hat sich entwickelt!", f"Aus deinem Begleiter wurde {p['stage_name']} (Level {p['lvl']}).", "#/begleiter")
+        elif p["stage"] and p["lvl"] // 5 > old[1] // 5:
+            alert("pet", f"⬆️ {name} ist jetzt Level {p['lvl']}", "Weiter so!", "#/begleiter")
+    if now["wins"] > (seen.get("wins") or 0):
+        last = (st.get("history") or [{}])[-1]
+        alert("pet", f"⚔️ {last.get('name', 'Boss')} besiegt!", "Dein Begleiter hat gewonnen – schau dir die Beute an.", "#/begleiter")
+    kv_set("pet_seen", now)
+
+
 def duo_extras(cfg, games, keys):
     """Zusatzdaten für „Wir zwei“: Avatar, Wochen, Genres, Tier-Liste, gerade gespielt."""
     sx = read_json(STEAMX_PATH, {}) or {}
@@ -1349,7 +1698,8 @@ def duo_extras(cfg, games, keys):
     sess = [[k, int(st), int(sec)] for k, st, sec in tracker.load_sessions(APP_DB, since)]
     return {"avatar": (sx.get("me") or {}).get("avatar"), "weeks": weekly_minutes(), "months": monthly_minutes(),
             "genres": dict(sorted(gen.items(), key=lambda x: -x[1])[:16]), "tiers": tiers, "playing": playing,
-            "sess": sess[-1500:], "news": duo_news(games, meta), "topic": (cfg.get("push_topic") or "").strip() or None}
+            "sess": sess[-1500:], "news": duo_news(games, meta), "topic": (cfg.get("push_topic") or "").strip() or None,
+            "pet": pet_public(cfg)}
 
 
 def duo_news(games, meta):
@@ -1929,6 +2279,12 @@ def app_files():
         if os.path.exists(p):
             with open(p, "rb") as f:
                 files[name] = f.read()
+    pd = os.path.join(WEB_DIR, "pets")
+    if os.path.isdir(pd):
+        for name in sorted(os.listdir(pd)):
+            if name.endswith(".webp"):
+                with open(os.path.join(pd, name), "rb") as f:
+                    files["pets/" + name] = f.read()
     h = hashlib.sha256(b"".join(files[k] for k in sorted(files))).hexdigest()[:12]
     if "sw.js" in files:
         files["sw.js"] = files["sw.js"].replace(b"__APPHASH__", h.encode())
@@ -1990,7 +2346,7 @@ def shared_data(cfg, games):
         "me_name": (cfg.get("user_name") or "").strip(),
         "me_duo": me_duo(cfg) if (cfg.get("partner_url") and cfg.get("partner_code")) else None,
         "greets": kv_get("greets", []) or [], "push_topic": (cfg.get("push_topic") or "").strip() or None, "partner_url": (cfg.get("partner_url") or "").strip() or None,
-        "ui": kv_get("ui", {}) or {}, "ghist": game_history(),
+        "ui": kv_get("ui", {}) or {}, "ghist": game_history(), "pet": pet_state(cfg), "pet_raw": kv_get("pet", {}) or {},
         "trophies": read_json(EXTRAS_PATH, {}).get("trophies") or [],
         "free_games": read_json(EXTRAS_PATH, {}).get("free") or [],
         "snotes": kv_get("snotes", {}),
@@ -2151,6 +2507,10 @@ def scheduler():
                 last_health = time.time()
                 check_health(cfg)
                 check_expiry(cfg)
+                try:
+                    check_pet(cfg)
+                except Exception as e:
+                    print("  Begleiter:", err_text(e))
             offline_watchdog(cfg)
             if time.time() - started > 300:
                 threading.Thread(target=update_worker, args=(cfg,), daemon=True).start()
@@ -2259,6 +2619,11 @@ class Handler(BaseHTTPRequestHandler):
         if path in ("/", "/index.html"):
             with open(os.path.join(WEB_DIR, "index.html"), "rb") as f:
                 return self._send(200, f.read(), "text/html; charset=utf-8")
+        if re.fullmatch(r"/pets/[a-z]+_(ei|1|2|3)\.webp", path):
+            fp = os.path.join(WEB_DIR, "pets", path.rsplit("/", 1)[1])
+            if os.path.exists(fp):
+                with open(fp, "rb") as f:
+                    return self._send(200, f.read(), "image/webp", cache=True)
         if path in STATIC:
             fp = os.path.join(WEB_DIR, STATIC[path])
             if os.path.exists(fp):

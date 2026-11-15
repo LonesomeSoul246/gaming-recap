@@ -21,6 +21,7 @@ PROGRAM_FILES = [
     "tracker.py", "updater.py", "guard.py", "Start.bat", "Start mit Fenster.bat", "ANLEITUNG.txt",
     "web/index.html", "web/sw.js", "web/manifest.webmanifest", "web/icon-192.png", "web/icon-512.png",
     "web/apple-touch-icon.png",
+] + [f"web/pets/{n}_{st}.webp" for n in ("brasu", "neruma", "moselle", "crysto", "nocti", "koppla") for st in ("ei", "1", "2", "3")] + [
     "playnite-erweiterung/GamingRecapExport/extension.yaml",
     "playnite-erweiterung/GamingRecapExport/GamingRecap.psm1",
 ]
