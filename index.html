@@ -2683,7 +2683,7 @@ function wrapModes(){
   const months = keys.filter(k=>/^\d{4}-\d{2}$/.test(k) && k < curM).sort().reverse().slice(0,3);
   const years = keys.filter(k=>/^\d{4}$/.test(k) && Number(k) < y).sort().reverse();
   return [["year",String(y)],["month",MON()],["week","Diese Woche"],["all","Gesamt"],
-    ...months.map(a=>["arch:"+a, monLabel(a)]), ...years.map(a=>["arch:"+a, a])];
+    ...months.map(a=>["arch:"+a, monLabel(a)]), ...years.map((a,i)=>["arch:"+a, a, i >= 3])];  // ab dem 4. Vorjahr nur im Auswahlmenü
 }
 const monLabel = k => new Date(Number(k.slice(0,4)), Number(k.slice(5,7))-1, 1).toLocaleDateString("de-DE",{month:"long", year:"numeric"});
 // Laufendes Jahr und laufenden Monat fürs Archiv sichern (höchstens einmal pro Tag). Ab dem 1.1. bleibt es eingefroren.
@@ -2720,7 +2720,7 @@ function renderWrapped(){
   setView(`<section class="card hero reveal in" style="min-height:58vh;justify-content:center;text-align:center;align-items:center">
     <div class="eyebrow">Dein Gaming Recap</div><div class="num" style="font-size:clamp(70px,20vw,170px);line-height:1;padding-bottom:.12em">Wrapped</div>
     <div class="sub" style="margin:10px auto 18px">Deine Story: Stunden, Top-Spiele, dein Gamer-Typ und Rekorde. Am Ende gibt's dein Poster als Bild zum Teilen.</div>
-    <div class="chips" id="wrapChips" style="justify-content:center;flex-wrap:wrap">${wrapModes().map(([k,l])=>`<button class="chip ${W.mode===k?"on":""}" data-k="${esc(k)}" onclick="setWrapMode('${k}')">${esc(l)}</button>`).join("")}</div>
+    <div class="chips" id="wrapChips" style="justify-content:center;flex-wrap:wrap">${wrapModes().filter(m=>!m[2]).map(([k,l])=>`<button class="chip ${W.mode===k?"on":""}" data-k="${esc(k)}" onclick="setWrapMode('${k}')">${esc(l)}</button>`).join("")}${(()=>{ const old = wrapModes().filter(m=>m[2]); return old.length ? `<select class="chip" style="width:auto" onchange="if(this.value){setWrapMode(this.value)}"><option value="">Ältere Jahre ▾</option>${old.map(([k,l])=>`<option value="${esc(k)}" ${W.mode===k?"selected":""}>${esc(l)}</option>`).join("")}</select>` : ""; })()}</div>
     <button class="btn limeb" style="font-size:18px;padding:18px 34px" onclick="startWrapped()">▶ Story starten</button>
     <div class="sub" id="wrapHint" style="margin:14px auto 0;font-size:14px;opacity:.85"></div></section>
     ${badgeShowcase(bd)}`);
