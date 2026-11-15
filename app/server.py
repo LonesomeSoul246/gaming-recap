@@ -662,7 +662,7 @@ def save_meta(body):
     return {"key": key, "status": status, "rating": rating, "note": note, "updated": updated, "tier": tier, "hide": bool(hide)}
 
 
-KV_KEYS = {"goals", "year_overrides", "wrapped", "notpc", "snotes", "covers", "paid", "notify", "critic"}
+KV_KEYS = {"goals", "year_overrides", "wrapped", "notpc", "snotes", "covers", "paid", "notify", "critic", "ui"}
 
 
 def kv_get(key, default=None):
@@ -764,6 +764,9 @@ def clean_kv(key, v):
             return {}
         return {str(k)[:140]: [int(x[0]) if str(x[0]).isdigit() else 0, str(x[1] or "")[:280]]
                 for k, x in list(v.items())[-2000:] if isinstance(x, list) and len(x) == 2}
+    if key == "ui":  # Design (Farbwelt), gilt für PC und Handy
+        v = v if isinstance(v, dict) else {}
+        return {"theme": re.sub(r"[^a-z0-9-]", "", str(v.get("theme") or ""))[:20]}
     if key == "notify":  # Benachrichtigungen: Themen, Kanäle, Nachtruhe
         if not isinstance(v, dict):
             return {}
@@ -1224,14 +1227,19 @@ def media_worker(cfg, games):
 partner_state = {"last": 0, "error": None, "at": None}
 
 
-def weekly_minutes(n=60):
-    """Spielzeit pro Kalenderwoche (Mo–So) aus den täglichen Ständen: [[Montag, Minuten], ...], älteste zuerst.
-    Wochen ohne Ausgangsstand fehlen (vor Beginn der Aufzeichnung)."""
+def _snap_series(bounds, per_key=False):
+    """Spielzeit je Zeitraum aus den täglichen Ständen. bounds: [(start, ende)] als date.
+    Liefert {index: Minuten} bzw. mit per_key {index: {spiel: Minuten}}. Zeiträume ohne Ausgangsstand fehlen;
+    im Zeitraum, in dem die Aufzeichnung begann, wird ab dem ersten Stand gezählt."""
     con = history_con()
     days = [r[0] for r in con.execute("SELECT DISTINCT day FROM snapshots ORDER BY day")]
+    out = {}
     if not days:
         con.close()
-        return []
+        return out
+    keymap = {}
+    if per_key:
+        keymap = {g["id"]: norm_title(g["title"]) for g in load_cache().get("games", [])}
     cache = {}
     def snap(day):
         if day not in cache:
@@ -1241,26 +1249,88 @@ def weekly_minutes(n=60):
         iso = d.isoformat()
         prev = [x for x in days if x < iso]
         return prev[-1] if prev else None
-    today = dt.date.today()
-    monday = today - dt.timedelta(days=today.weekday())
-    out = []
-    for i in range(n - 1, -1, -1):
-        ws = monday - dt.timedelta(weeks=i)
-        b, e = last_before(ws), last_before(ws + dt.timedelta(days=7))
-        if not b and e and days[0] >= ws.isoformat():
-            b = days[0]  # Woche, in der die Aufzeichnung begann: ab dem ersten Stand zählen
-        if not b or not e:
+    for n, (a, z) in enumerate(bounds):
+        b, e = last_before(a), last_before(z)
+        if not b and e and days[0] >= a.isoformat():
+            b = days[0]
+        if not b or not e or b == e:
+            if b and e:
+                out[n] = {} if per_key else 0
             continue
         A, B = snap(b), snap(e)
         devs = {p for _, p in A.values()}
-        tot = 0
+        acc = {} if per_key else 0
         for gid, (m, p) in B.items():
-            if gid in A:
-                tot += max(0, m - A[gid][0])
-            elif p in devs:
-                tot += m
-        out.append([ws.isoformat(), int(tot)])
+            d = max(0, m - A[gid][0]) if gid in A else (m if p in devs else 0)
+            if not d:
+                continue
+            if per_key:
+                k = keymap.get(gid)
+                if k:
+                    acc[k] = acc.get(k, 0) + d
+            else:
+                acc += d
+        out[n] = acc
     con.close()
+    return out
+
+
+def _week_bounds(n):
+    today = dt.date.today()
+    monday = today - dt.timedelta(days=today.weekday())
+    return [(monday - dt.timedelta(weeks=i), monday - dt.timedelta(weeks=i) + dt.timedelta(days=7)) for i in range(n - 1, -1, -1)]
+
+
+def _month_bounds(n):
+    today = dt.date.today()
+    first = today.replace(day=1)
+    out = []
+    for i in range(n - 1, -1, -1):
+        y, m = first.year, first.month - i
+        while m <= 0:
+            y, m = y - 1, m + 12
+        a = dt.date(y, m, 1)
+        z = dt.date(y + (m == 12), m % 12 + 1, 1)
+        out.append((a, z))
+    return out
+
+
+def weekly_minutes(n=60):
+    """Spielzeit pro Kalenderwoche (Mo–So): [[Montag, Minuten], ...], älteste zuerst."""
+    b = _week_bounds(n)
+    r = _snap_series(b)
+    return [[b[i][0].isoformat(), int(v)] for i, v in sorted(r.items())]
+
+
+def monthly_minutes(n=13):
+    """Spielzeit pro Monat: {"YYYY-MM": Minuten}."""
+    b = _month_bounds(n)
+    r = _snap_series(b)
+    return {b[i][0].strftime("%Y-%m"): int(v) for i, v in r.items()}
+
+
+_ghist = {"t": 0, "v": None}
+
+
+def game_history():
+    """Spielverlauf je Spiel: {"weeks": [Montage], "g": {spiel: [[wochenindex, Minuten], ...]}} (nur Wochen mit Spielzeit)."""
+    if time.time() - _ghist["t"] < 900 and _ghist["v"] is not None:
+        return _ghist["v"]
+    con = history_con()
+    first = con.execute("SELECT MIN(day) FROM snapshots").fetchone()[0]
+    con.close()
+    out = {"weeks": [], "g": {}}
+    if first:
+        today = dt.date.today()
+        n = min(260, (today - dt.date.fromisoformat(first)).days // 7 + 2)
+        b = _week_bounds(n)
+        r = _snap_series(b, per_key=True)
+        idx = sorted(r)
+        out["weeks"] = [b[i][0].isoformat() for i in idx]
+        for j, i in enumerate(idx):
+            for k, m in r[i].items():
+                out["g"].setdefault(k, []).append([j, int(m)])
+    _ghist.update(t=time.time(), v=out)
     return out
 
 
@@ -1274,8 +1344,41 @@ def duo_extras(cfg, games, keys):
     meta = load_meta()
     tiers = {k: v["tier"] for k, v in meta.items() if v.get("tier") and k in keys}
     playing = [{"k": norm_title(p.get("title") or ""), "t": p.get("title"), "s": p.get("since")} for p in (TRACKER.current or [])]
-    return {"avatar": (sx.get("me") or {}).get("avatar"), "weeks": weekly_minutes(),
-            "genres": dict(sorted(gen.items(), key=lambda x: -x[1])[:16]), "tiers": tiers, "playing": playing}
+    since = int(time.time()) - 400 * 86400
+    sess = [[k, int(st), int(sec)] for k, st, sec in tracker.load_sessions(APP_DB, since)]
+    return {"avatar": (sx.get("me") or {}).get("avatar"), "weeks": weekly_minutes(), "months": monthly_minutes(),
+            "genres": dict(sorted(gen.items(), key=lambda x: -x[1])[:16]), "tiers": tiers, "playing": playing,
+            "sess": sess[-1500:], "news": duo_news(games, meta), "topic": (cfg.get("push_topic") or "").strip() or None}
+
+
+def duo_news(games, meta):
+    """Neuigkeiten für den Partner: durchgespielt, neu in der Bibliothek, S-/A-Tier. Neueste zuerst."""
+    titles = {norm_title(g["title"]): g["title"] for g in games}
+    ev = []
+    for k, st, at in load_status_log(120):
+        if st in ("durchgespielt", "komplett") and k in titles:
+            ev.append(["done" if st == "durchgespielt" else "full", k, titles[k], at])
+    # neu gekauft: nur echte Neuzugänge (keine Massen-Importe, nicht vor Beginn der Aufzeichnung)
+    start = first_tracking_day() or ""
+    per_day = {}
+    for g in games:
+        a = str(g.get("added") or "")[:10]
+        if a:
+            per_day[a] = per_day.get(a, 0) + 1
+    cutoff = (dt.date.today() - dt.timedelta(days=60)).isoformat()
+    seen = set()
+    for g in games:
+        a = str(g.get("added") or "")
+        k = norm_title(g["title"])
+        if not a or a[:10] <= start or a[:10] < cutoff or per_day.get(a[:10], 0) > 8 or g.get("family") or k in seen:
+            continue
+        seen.add(k)
+        ev.append(["new", k, g["title"], a])
+    for k, v in meta.items():
+        if v.get("tier") in ("S", "A") and v.get("updated") and str(v["updated"])[:10] >= cutoff and k in titles:
+            ev.append(["tier" + v["tier"], k, titles[k], v["updated"]])
+    ev.sort(key=lambda e: str(e[3]), reverse=True)
+    return ev[:30]
 
 
 def partner_summary(cfg, stable=False):
@@ -1291,7 +1394,9 @@ def partner_summary(cfg, stable=False):
         k = norm_title(g["title"])
         if not k or (meta.get(k) or {}).get("hide"):
             continue
-        e = groups.setdefault(k, {"t": g["title"], "m": 0, "y": 0, "mo": 0, "own": False, "c": None, "mp": False, "d": set()})
+        e = groups.setdefault(k, {"t": g["title"], "m": 0, "y": 0, "mo": 0, "own": False, "c": None, "mp": False, "d": set(), "a": None})
+        if g.get("steam_appid") and not e["a"]:
+            e["a"] = str(g["steam_appid"])
         e["m"] += int(g.get("minutes") or 0)
         e["y"] += int((pm_y or {}).get(g["id"], 0))
         e["mo"] += int((pm_m or {}).get(g["id"], 0))
@@ -1304,7 +1409,7 @@ def partner_summary(cfg, stable=False):
             e["mp"] = True
     rows = []
     for k, e in sorted(groups.items(), key=lambda kv: -kv[1]["m"])[:2500]:
-        rows.append([k, e["t"], e["m"], e["y"], e["mo"], int(e["own"]), e["c"] or xc.get(k), int(e["mp"]), sorted(e["d"])])
+        rows.append([k, e["t"], e["m"], e["y"], e["mo"], int(e["own"]), e["c"] or xc.get(k), int(e["mp"]), sorted(e["d"]), e["a"]])
     out = {"v": 1, "name": (cfg.get("user_name") or "").strip() or "Partner", "year_n": dt.date.today().year,
            "total": sum(r[2] for r in rows), "year": sum(r[3] for r in rows), "month": sum(r[4] for r in rows), "games": rows}
     out.update(duo_extras(cfg, games, set(groups)))
@@ -1333,6 +1438,7 @@ def fetch_partner(cfg):
             cloud_state["pending"] = True
         partner_state.update(error=None, at=data.get("at"))
         duo_live_alert(cfg, data)
+        duo_news_alert(data)
     except urllib.error.HTTPError as e:
         partner_state["error"] = "Beim Partner liegt noch nichts (sein PC muss einmal hochgeladen haben)." if e.code == 404 else err_text(e)
     except ValueError:
@@ -1348,11 +1454,51 @@ def me_duo(cfg):
     """Eigene Wir-zwei-Zusatzdaten fürs Frontend (Wochen sind teuer, daher 10 Min. zwischengespeichert)."""
     if time.time() - _me_duo["t"] > 600 or _me_duo["v"] is None:
         d = partner_summary(cfg, stable=True)
-        d.pop("games", None)
-        d.pop("hb", None)
+        for x in ("games", "hb", "sess", "topic"):
+            d.pop(x, None)
         _me_duo["v"] = d
         _me_duo["t"] = time.time()
     return _me_duo["v"]
+
+
+def poll_greets(cfg):
+    """Grüße vom Partner kommen über das eigene ntfy-Thema (sofort als Push aufs Handy).
+    Der PC holt sie zusätzlich ab, zeigt sie in der App und als Windows-Hinweis."""
+    topic = (cfg.get("push_topic") or "").strip()
+    if not topic or not cfg.get("partner_url"):
+        return
+    since = kv_get("greet_since", None) or "12h"
+    try:
+        req = urllib.request.Request(f"https://ntfy.sh/{topic}/json?poll=1&since={since}", headers={"User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=20) as r:
+            lines = r.read().decode("utf-8", "replace").splitlines()
+    except Exception:
+        return
+    greets, new, last = kv_get("greets", []) or [], [], None
+    have = {g.get("id") for g in greets}
+    for ln in lines:
+        try:
+            m = json.loads(ln)
+        except ValueError:
+            continue
+        if m.get("event") != "message":
+            continue
+        last = m.get("id") or last
+        if "gr-greet" not in (m.get("tags") or []) or m.get("id") in have:
+            continue
+        g = {"id": m.get("id"), "at": int(m.get("time") or time.time()), "title": str(m.get("title") or "")[:80],
+             "msg": str(m.get("message") or "")[:200]}
+        greets.append(g)
+        new.append(g)
+    if last:
+        kv_set("greet_since", last)
+    if new:
+        kv_set("greets", greets[-30:])
+        cloud_state["pending"] = True
+        prefs = notify_prefs(cfg)
+        if (prefs.get("cats") or {}).get("duo", True) and prefs.get("win", True):
+            for g in new[-3:]:
+                notify.toast(g["title"] or "💞 Gruß", g["msg"], f"http://localhost:{PORT}/#/freunde", phone=False, win=True)
 
 
 def duo_live(data):
@@ -1362,6 +1508,28 @@ def duo_live(data):
     except (TypeError, ValueError):
         return []
     return data.get("playing") or [] if age < 25 * 60 else []
+
+
+NEWS_TEXT = {"done": "hat {t} durchgespielt 🎉", "full": "hat {t} zu 100 % geschafft 🏆", "new": "hat {t} neu in der Bibliothek",
+             "tierS": "hat {t} ins S-Tier gepackt ⭐", "tierA": "hat {t} ins A-Tier gepackt"}
+
+
+def duo_news_alert(data):
+    seen = kv_get("duo_news_seen", None)
+    ids = [f"{e[0]}|{e[1]}|{e[3]}" for e in data.get("news") or []]
+    if seen is None:  # erster Abruf: nur merken, nicht alles auf einmal melden
+        kv_set("duo_news_seen", ids[:60])
+        return
+    fresh = [e for e, i in zip(data.get("news") or [], ids) if i not in seen]
+    for e in fresh[:3]:
+        try:
+            age = time.time() - dt.datetime.fromisoformat(str(e[3]).replace("Z", "+00:00")[:26]).timestamp()
+        except ValueError:
+            age = 0
+        if age < 3 * 86400 and e[0] in NEWS_TEXT:
+            alert("duo", f'💞 {data.get("name") or "Partner"}', NEWS_TEXT[e[0]].format(t=e[2]), "#/freunde")
+    if fresh:
+        kv_set("duo_news_seen", (ids + seen)[:60])
 
 
 def duo_live_alert(cfg, data):
@@ -1712,6 +1880,23 @@ def check_notifications(cfg):
             text += ". Tippe für dein Monats-Wrapped."
             base = cloud_state.get("url") or f"http://localhost:{PORT}/"
             alert("monthly", f"🎬 Dein {names[prev.month - 1]}-Wrapped ist da", text, f"{base}#/wrapped/arch:{mkey}")
+    # Wir zwei: Monatskrone
+    today = dt.date.today()
+    pa = kv_get("partner", None) if cfg.get("partner_url") and cfg.get("partner_code") else None
+    if pa and cats.get("duo", True) and today.day <= 3 and dt.datetime.now().hour >= 9:
+        prev = (today.replace(day=1) - dt.timedelta(days=1)).replace(day=1)
+        mkey = prev.strftime("%Y-%m")
+        theirs = (pa.get("months") or {}).get(mkey)
+        if theirs is not None and kv_get("crown_sent") != mkey:
+            mine = monthly_minutes(3).get(mkey)
+            if mine is not None and (mine or theirs):
+                kv_set("crown_sent", mkey)
+                me = (cfg.get("user_name") or "").strip() or "Du"
+                names = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September",
+                         "Oktober", "November", "Dezember"]
+                win = me if mine >= theirs else (pa.get("name") or "Partner")
+                alert("duo", f"👑 {win} holt sich die {names[prev.month - 1]}-Krone",
+                      f"{me} {mine / 60:.1f} Std · {pa.get('name') or 'Partner'} {theirs / 60:.1f} Std", "#/freunde")
 
 
 def month_minutes(start, end):
@@ -1803,6 +1988,8 @@ def shared_data(cfg, games):
         "partner": kv_get("partner", None) if (cfg.get("partner_url") and cfg.get("partner_code")) else None,
         "me_name": (cfg.get("user_name") or "").strip(),
         "me_duo": me_duo(cfg) if (cfg.get("partner_url") and cfg.get("partner_code")) else None,
+        "greets": kv_get("greets", []) or [], "push_topic": (cfg.get("push_topic") or "").strip() or None, "partner_url": (cfg.get("partner_url") or "").strip() or None,
+        "ui": kv_get("ui", {}) or {}, "ghist": game_history(),
         "trophies": read_json(EXTRAS_PATH, {}).get("trophies") or [],
         "free_games": read_json(EXTRAS_PATH, {}).get("free") or [],
         "snotes": kv_get("snotes", {}),
@@ -1970,6 +2157,9 @@ def scheduler():
             if cfg.get("partner_code") and cur_play != partner_state.get("play"):
                 partner_state["play"] = cur_play
                 cloud_state["pending"] = True  # „spielt gerade“ zügig an den Partner geben
+            if cfg.get("partner_url") and time.time() - partner_state.get("greet_t", 0) > 55:
+                partner_state["greet_t"] = time.time()
+                threading.Thread(target=poll_greets, args=(cfg,), daemon=True).start()
             if cfg.get("partner_url") and time.time() - partner_state["last"] > 290:
                 threading.Thread(target=fetch_partner, args=(cfg,), daemon=True).start()
         except Exception as e:
