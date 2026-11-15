@@ -875,6 +875,15 @@ body::after{content:"";position:fixed;right:-15vw;bottom:-25vh;width:60vw;height
 .hstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));max-width:420px;flex-wrap:nowrap}
 .hstat{min-width:0}.hstat b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hstat span{white-space:nowrap}
 @media(max-width:640px){.hero{min-height:440px}.hstat{padding:10px 12px}.hstat b{font-size:20px}}
+.nlist{display:grid;gap:6px}.nlist .nrow{margin:0}
+.nrow{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;background:#ffffff07;border:1px solid #ffffff0e;cursor:pointer;transition:background .2s,opacity .2s}
+.nrow:hover{background:#ffffff0d}.nrow.off{opacity:.55}
+.nrow .ni{width:26px;text-align:center;font-size:18px;flex:none}.nrow .nt{flex:1;min-width:0}
+.nrow .nt b{display:block;font-size:14px}.nrow .nt small{font-size:12px;color:var(--muted)}
+.nrow select{padding:3px 6px;border-radius:8px;font-size:12px;width:auto}
+.sw{appearance:none;-webkit-appearance:none;width:44px;height:26px;border-radius:99px;background:#ffffff22;position:relative;flex:none;cursor:pointer;transition:background .25s;margin:0}
+.sw::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .25s cubic-bezier(.3,1.4,.5,1)}
+.sw:checked{background:var(--acc)}.sw:checked::after{transform:translateX(18px)}
 </style>
 </head>
 <body>
@@ -1062,7 +1071,7 @@ async function loadCloud(force){
       const m = meta[norm(e.key)]; return !(m && m.updated && Date.parse(m.updated) >= e.ts) && Date.now()-e.ts < 30*86400e3; }));
   }
   const snap = S.snap, meta = {...(snap.meta||{})};
-  let goals = snap.goals || {}; const kvs = {year_overrides: snap.year_overrides || {}, wrapped: snap.wrapped_archive || {}, notpc: snap.notpc || {}, snotes: snap.snotes || {}, covers: snap.covers || {}, paid: snap.paid || {}};
+  let goals = snap.goals || {}; const kvs = {year_overrides: snap.year_overrides || {}, wrapped: snap.wrapped_archive || {}, notpc: snap.notpc || {}, snotes: snap.snotes || {}, covers: snap.covers || {}, paid: snap.paid || {}, notify: snap.notify || null};
   for (const e of edits()){
     if (e.kind === "kv"){ if (e.key === "goals") goals = e.value; else kvs[e.key] = e.value; continue; }
     const k = norm(e.key); meta[k] = {...(meta[k]||{}), ...pick(e,["status","rating","note","tier","hide"]), updated:new Date(e.ts).toISOString()};
@@ -1070,7 +1079,7 @@ async function loadCloud(force){
   const p = S.period === "all" ? null : (snap.periods||{})[S.period];
   S.data = {last_sync:snap.last_sync, sources:snap.sources||{}, games:snap.games||[], meta, hltb:snap.hltb||{},
     sessions:snap.sessions||[], csessions:snap.csessions||[], status_log:snap.status_log||[], goals, steam:snap.steam||{}, prefs:snap.prefs||{},
-    year_overrides: kvs.year_overrides, wrapped_archive: kvs.wrapped, notpc: kvs.notpc, snotes: kvs.snotes, covers: kvs.covers, paid: kvs.paid, wl_deals: snap.wl_deals || {},
+    year_overrides: kvs.year_overrides, wrapped_archive: kvs.wrapped, notpc: kvs.notpc, snotes: kvs.snotes, covers: kvs.covers, paid: kvs.paid, notify: kvs.notify, push_ready: !!snap.push_ready, wl_deals: snap.wl_deals || {},
     values: snap.values || {}, values_at: snap.values_at, xcovers: snap.xcovers || {},
     tracking_since: snap.tracking_since, health: snap.health || [],
     trophies: snap.trophies || [], free_games: snap.free_games || [],
@@ -3411,6 +3420,7 @@ function cloudMenu(){
       <div><small>Letzter Abgleich am PC</small><b>${S.data.last_sync?new Date(S.data.last_sync).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"}):"–"}</b></div>
       <div><small>Deine Änderungen</small><b>${!q.length ? "✓ alle beim PC angekommen" : `${waiting ? waiting + " noch nicht gesendet · " : ""}${sent ? sent + " beim PC ausstehend" : ""}`}</b></div></div>
     <p class="help">Deine Änderungen gehen sofort verschlüsselt an GitHub. Ist dein PC an, holt er sie innerhalb von 2 Minuten ab und lädt den neuen Stand hoch. Bis dahin siehst du sie hier schon. Ist der PC aus, warten sie dort sicher.</p>
+    <div class="secttl" style="margin-top:14px">🔔 Benachrichtigungen</div><div id="notifyBox">${notifyBlock()}</div>
     <div class="secttl" style="margin-top:14px">Systemcheck am PC</div>${healthBlock()}
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
       <button class="btn limeb" onclick="S.snap=null;$('#settings').close();loadCloud(true)">Neu laden</button>
@@ -3418,6 +3428,47 @@ function cloudMenu(){
       <button class="btn ghost" onclick="if(confirm('Abmelden? Das Passwort wird von diesem Gerät gelöscht.')){store.del('gr_pass');store.del('gr_blob');location.reload()}">Abmelden</button></div>`;
   if (!$("#settings").open) $("#settings").showModal();
 }
+
+/* ================= Benachrichtigungen (PC und Handy) ================= */
+const NCATS = [["lows","🔥","Tiefstpreis auf der Wunschliste","so günstig wie nie bei Steam"],["sales","🏷️","Neues Angebot auf der Wunschliste","sobald Steam einen Rabatt startet"],
+  ["release","🗓️","Release-Tag","wenn ein Wunsch heute erscheint"],["free","🎁","Gratis-Spiele","neue Gratis-Aktionen bei Epic"],
+  ["weekly","📊","Wochen-Recap","montags ab 9 Uhr"],["monthly","🎬","Monats-Wrapped","am 1. mit Link zur Story"],
+  ["pause","☕","Pausen-Erinnerung","nach langem Spielen am Stück"],["health","🩺","Probleme","wenn etwas am PC nicht läuft"]];
+function notifyBlock(){
+  const P = S.data.notify || {cats:{}, win:true, phone:true}, C = P.cats || {};
+  const sw = (on, js) => `<input type="checkbox" class="sw" ${on?"checked":""} onchange="${js}">`;
+  const hours = (v, id) => `<select id="${id}" onchange="setQuiet()">${Array.from({length:24},(_,h)=>`<option value="${h}" ${h===v?"selected":""}>${h} Uhr</option>`).join("")}</select>`;
+  const q = P.quiet || null, ph = P.pause_h || 0;
+  return `<div class="nlist">
+      <label class="nrow"><span class="ni">💻</span><span class="nt"><b>Windows-Hinweise</b><small>am PC, solange Gaming Recap läuft</small></span>${sw(P.win!==false, "setNotify('win',this.checked)")}</label>
+      <label class="nrow"><span class="ni">📱</span><span class="nt"><b>Push aufs Handy</b><small>${S.data.push_ready ? "über die App ntfy" : "noch nicht eingerichtet – am PC unter „Push aufs Handy“"}</small></span>${sw(P.phone!==false, "setNotify('phone',this.checked)")}</label>
+    </div>
+    <div class="secttl" style="margin-top:14px">Worüber möchtest du informiert werden?</div>
+    <div class="nlist">${NCATS.map(([k,ic,l,d])=>`<label class="nrow ${C[k]===false?"off":""}"><span class="ni">${ic}</span><span class="nt"><b>${l}</b><small>${d}${k==="pause"?` · nach <select onclick="event.stopPropagation()" onchange="setNotify('pause_h',Number(this.value))">${[[0,"aus"],[1,"1 Std"],[2,"2 Std"],[3,"3 Std"],[4,"4 Std"],[5,"5 Std"]].map(([v,t])=>`<option value="${v}" ${v===ph?"selected":""}>${t}</option>`).join("")}</select>`:""}</small></span>${sw(C[k]!==false, `setNotify('cats.${k}',this.checked)`)}</label>`).join("")}</div>
+    <div class="secttl" style="margin-top:14px">Nachtruhe fürs Handy</div>
+    <div class="nlist"><label class="nrow"><span class="ni">🌙</span><span class="nt"><b>Nachts keine Push-Nachrichten</b><small>werden gesammelt und morgens nachgeschickt</small></span>${sw(!!q, "setQuiet(this.checked)")}</label>
+      ${q?`<div class="nrow" style="cursor:default"><span class="ni"></span><span class="nt"><small>von</small></span>${hours(q[0],"qFrom")}<small style="margin:0 4px">bis</small>${hours(q[1],"qTo")}</div>`:""}</div>
+    <p class="help">${CLOUD?"Änderungen gehen an deinen PC und gelten, sobald er sie abgeholt hat (meist in 2 Minuten).":"Gilt sofort. Auch in der Handy-App änderbar."}</p>`;
+}
+async function saveNotify(P){
+  try { await saveKv("notify", P); S.data.notify = P; toast("Gespeichert"); } catch(e){ toast("Speichern fehlgeschlagen"); }
+  const box = $("#notifyBox"); if (box) box.innerHTML = notifyBlock();
+}
+window.setNotify = (path, val) => {
+  const P = JSON.parse(JSON.stringify(S.data.notify || {cats:{}, win:true, phone:true}));
+  P.cats = P.cats || {};
+  if (path.startsWith("cats.")) P.cats[path.slice(5)] = val; else P[path] = val;
+  for (const [k] of NCATS) if (!(k in P.cats)) P.cats[k] = true;
+  saveNotify(P);
+};
+window.setQuiet = on => {
+  const P = JSON.parse(JSON.stringify(S.data.notify || {cats:{}, win:true, phone:true}));
+  if (on === false) delete P.quiet;
+  else if (on === true) P.quiet = [22, 8];
+  else { const a = Number($("#qFrom").value), b = Number($("#qTo").value); if (a === b){ toast("Start und Ende müssen verschieden sein"); return; } P.quiet = [a, b]; }
+  P.cats = P.cats || {}; for (const [k] of NCATS) if (!(k in P.cats)) P.cats[k] = true;
+  saveNotify(P);
+};
 
 /* ================= Einstellungen (PC) ================= */
 async function post(url, body){
@@ -3526,15 +3577,11 @@ window.openSettings = async () => {
       <div class="inl"><input type="text" id="push_topic" value="${esc(c.push_topic||"")}" autocomplete="off" style="flex:1">
         <button class="btn ghost small" type="button" onclick="$('#push_topic').value='gr-'+crypto.getRandomValues(new Uint32Array(3)).join('').slice(0,22)">Erzeugen</button>
         <button class="btn ghost small" type="button" onclick="post('/api/push/test',{topic:$('#push_topic').value}).then(()=>toast('Test gesendet')).catch(e=>alert(e.message))">Test senden</button></div>
-      <label class="check" style="margin-top:10px"><input type="checkbox" id="notify_free" ${c.notify_free!==false?"checked":""}> Gratis-Spiele bei Epic melden</label>
-      <label class="check" style="margin-top:8px"><input type="checkbox" id="notify_release" ${c.notify_release!==false?"checked":""}> Release-Tag von Wunschlisten-Spielen melden</label>
     </fieldset>
+    <fieldset><legend>🔔 Benachrichtigungen</legend><div id="notifyBox">${notifyBlock()}</div></fieldset>
     <fieldset><legend>🔔 Extras & Hinweise</legend>
       ${c.autostart_supported?`<label class="check" style="margin-bottom:10px"><input type="checkbox" id="autostartChk" ${c.autostart?"checked":""} onchange="setAutostart(this)"> Mit Windows starten (minimiert) – damit keine Tage fehlen</label>`:""}
       <label class="check"><input type="checkbox" id="steam_extras" ${c.steam_extras?"checked":""}> Steam-Erfolge, Wunschliste, Preise und Freunde laden</label>
-      <label class="check" style="margin-top:10px"><input type="checkbox" id="notify_sales" ${c.notify_sales?"checked":""}> Windows-Hinweis bei Angeboten auf der Wunschliste</label>
-      <label class="check" style="margin-top:10px"><input type="checkbox" id="notify_weekly" ${c.notify_weekly?"checked":""}> Wochen-Recap jeden Montag und Monats-Wrapped am 1.</label>
-      <label>Pausen-Erinnerung nach … Stunden am Stück (0 = aus)</label><input type="number" id="pause_hours" min="0" max="24" step="0.5" value="${c.pause_hours||0}">
       <label>Leistung deines PCs beim Zocken (Watt, für die Stromrechnung)</label><input type="number" id="watts" min="50" max="2000" value="${c.watts||350}">
       <label>Strompreis (€ pro kWh)</label><input type="number" id="kwh_price" min="0" max="5" step="0.01" value="${c.kwh_price||0.35}">
     </fieldset>
@@ -3558,8 +3605,8 @@ window.openSettings = async () => {
         playnite_export:v("playnite_export"), gh_repo:v("gh_repo"), igdb_client_id:v("igdb_client_id"), igdb_client_secret:v("igdb_client_secret"), itad_key:v("itad_key"), sgdb_key:v("sgdb_key"), gh_token:v("gh_token"), cloud_pass:v("cloud_pass"),
         cloud_enabled:ch("cloud_enabled"), tracker:ch("tracker"), hltb:ch("hltb"), lan:ch("lan"), sync_hours:Number(v("sync_hours"))||6,
         backlog_stores:[...document.querySelectorAll(".blstore:checked")].map(e=>e.value),
-        steam_extras:ch("steam_extras"), notify_sales:ch("notify_sales"), notify_weekly:ch("notify_weekly"), push_topic:v("push_topic"), notify_free:ch("notify_free"), notify_release:ch("notify_release"),
-        pause_hours:Number(v("pause_hours"))||0, watts:Number(v("watts"))||350, kwh_price:Number(v("kwh_price"))||0.35});
+        steam_extras:ch("steam_extras"), push_topic:v("push_topic"),
+        watts:Number(v("watts"))||350, kwh_price:Number(v("kwh_price"))||0.35});
       $("#settings").close(); toast("Gespeichert"); setTimeout(load,400);
     } catch(e){ alert("Speichern fehlgeschlagen: " + e.message); $("#saveBtn").disabled = false; }
   };
