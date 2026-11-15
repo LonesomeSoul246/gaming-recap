@@ -669,6 +669,156 @@ html,body{background:radial-gradient(1200px 520px at 50% -120px,#242B37 0%,#1012
 .seg{overflow-x:auto;scrollbar-width:none;max-width:100%}.seg::-webkit-scrollbar{display:none}.seg button{white-space:nowrap;flex:none}
 @media(max-width:640px){.shead{flex-direction:column;align-items:stretch}.sbars{width:100%;height:46px}}
 @media(min-width:1000px){.deskNav{background:transparent;border:0;top:90px;bottom:auto}.hero .num{font-size:clamp(84px,11vw,150px)}.hero{min-height:300px}}
+/* ===================== v4.2 ===================== */
+/* PC: volle Breite */
+@media(min-width:1000px){main{max-width:1720px;margin-left:236px;margin-right:auto}}
+@media(min-width:1300px){
+  .x12{grid-column:span 12}.x8{grid-column:span 8}.x7{grid-column:span 7}.x6{grid-column:span 6}.x5{grid-column:span 5}.x4{grid-column:span 4}.x3{grid-column:span 3}
+  .ohero{order:-2}.ospot{order:-1}
+  #detail{max-width:1140px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:18px}
+  .rc{width:112px}.rc.live{width:136px}
+  .cmpw{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:0 28px}
+}
+.bento>.banner{grid-column:1/-1;margin-top:0}
+.spot{display:flex;flex-direction:column}.spot #spot{flex:1}
+/* Zuletzt gespielt: Markierung nur, wenn das Spiel gerade läuft */
+.rc.live{width:120px}
+.rc.live .poster{box-shadow:0 0 0 2px var(--cyan),0 0 30px #14F0C866;animation:liveGlow 2s ease-in-out infinite}
+.rc.live span{color:var(--cyan);font-weight:800}
+.rc .lv{display:inline-flex;align-items:center;gap:5px}.rc .lv i{width:7px;height:7px;border-radius:50%;background:var(--cyan);animation:pulse2 1.4s infinite}
+@keyframes liveGlow{50%{box-shadow:0 0 0 3px var(--cyan),0 0 44px #14F0C899}}
+/* Bibliothekswert */
+.valtop{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.valtop>div{border-radius:18px;padding:14px 16px;background:#ffffff08;border:1px solid #ffffff10;position:relative;overflow:hidden}
+.valtop small{display:block;font-size:11px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted)}
+.valtop b{display:block;font-size:clamp(22px,3.2vw,40px);font-weight:900;letter-spacing:-1px;line-height:1.1;margin-top:4px;white-space:nowrap}
+.valtop span{font-size:12.5px;color:var(--muted)}.valtop b i{font-style:normal}
+.valtop>div::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c)}
+.vbars{display:grid;gap:9px;margin:4px 0 16px}
+.pbar .v{white-space:nowrap}
+.vbar{display:grid;grid-template-columns:110px 1fr 90px;gap:10px;align-items:center;font-size:13px;font-weight:700}
+.vbar .trk{height:12px;border-radius:99px;background:#ffffff10;overflow:hidden}.vbar .trk>div{height:100%;border-radius:99px;transition:width 1.3s cubic-bezier(.2,.8,.2,1)}
+.vbar em{font-style:normal;text-align:right;color:var(--muted)}
+.vstores{display:flex;height:16px;border-radius:99px;overflow:hidden;margin:6px 0 10px}.vstores i{transition:flex 1.2s}
+.vsleg{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted)}.vsleg span{display:inline-flex;align-items:center;gap:6px}.vsleg i{width:9px;height:9px;border-radius:3px}
+.vcols{display:grid;grid-template-columns:1.2fr 1fr;gap:22px}
+@media(max-width:760px){.vcols{grid-template-columns:1fr}.valtop{grid-template-columns:1fr}.vbar{grid-template-columns:90px 1fr 76px}}
+.vexp{display:flex;gap:10px;margin-top:6px}.vexp .poster{flex:1;max-width:84px;border-radius:10px;cursor:pointer;position:relative}
+.vexp .poster em{position:absolute;left:4px;right:4px;bottom:4px;font-style:normal;font-size:10.5px;font-weight:900;text-align:center;background:#000c;border-radius:6px;padding:2px}
+/* Rhythmus-Heatmap */
+.rhy{display:grid;grid-template-columns:24px repeat(24,1fr);gap:3px;margin-top:12px}
+.rhy span{font-size:10px;color:var(--muted);display:flex;align-items:center}
+.rhy i{aspect-ratio:1;border-radius:4px;background:#ffffff0a;animation:pop .4s backwards;animation-delay:var(--d)}
+.rhyh{display:grid;grid-template-columns:24px repeat(24,1fr);gap:3px;font-size:9.5px;color:var(--muted);margin-top:4px}
+.rhs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}.rhs div{background:#ffffff08;border-radius:12px;padding:8px 10px}
+.rhs b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rhs small{font-size:11px;color:var(--muted)}
+/* Cover-Auswahl */
+.cvgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-top:12px}
+.cvgrid button{all:unset;cursor:pointer;border-radius:12px;overflow:hidden;aspect-ratio:2/3;background:#ffffff0a;transition:transform .2s,box-shadow .2s}
+.cvgrid button:hover{transform:translateY(-3px);box-shadow:0 0 0 2px var(--acc)}.cvgrid img{width:100%;height:100%;object-fit:cover;display:block}
+.dhead .poster{position:relative}
+.cvbtn{all:unset;cursor:pointer;position:absolute;right:6px;bottom:6px;width:30px;height:30px;border-radius:50%;background:#000b;display:grid;place-items:center;font-size:14px;opacity:.85;transition:transform .2s}
+.cvbtn:hover{transform:scale(1.12)}
+/* Mehr Bewegung */
+.grid>*{animation:fanIn .5s backwards;animation-delay:var(--i,0ms)}
+.tilt{transition:transform .18s ease-out;transform-style:preserve-3d;will-change:transform}
+.tilt::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(circle at var(--gx,50%) var(--gy,50%),#ffffff38,transparent 55%);opacity:0;transition:opacity .25s}
+.tilt.hov::after{opacity:1}
+.trk>div,.gbar>div,.vbar .trk>div{position:relative;overflow:hidden}
+.trk>div::after,.gbar>div::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,#ffffff40 50%,transparent 70%);transform:translateX(-100%);animation:shine 3.2s ease-in-out infinite;animation-delay:1.4s}
+@keyframes shine{60%,100%{transform:translateX(100%)}}
+.card h3{position:relative}
+.card.reveal.in h3::after{content:"";display:block;height:2px;width:28px;margin-top:8px;border-radius:2px;background:var(--acc);animation:lineIn .8s cubic-bezier(.2,.8,.2,1) both .2s}
+@keyframes lineIn{from{width:0}}
+body::after{content:"";position:fixed;right:-15vw;bottom:-25vh;width:60vw;height:60vh;z-index:-1;pointer-events:none;opacity:.22;filter:blur(90px);
+  background:radial-gradient(50% 50% at 50% 50%,#14F0C855,transparent 70%),radial-gradient(40% 40% at 30% 60%,#A97BFF55,transparent 70%);animation:aurora 28s ease-in-out infinite alternate-reverse}
+.lr{transition:background .2s,transform .2s}.lr:hover{transform:translateX(4px)}
+
+/* ===================== Wrapped 2.0 ===================== */
+.wslide{transition:opacity .6s ease,transform .8s cubic-bezier(.2,.8,.2,1),filter .6s ease,clip-path .9s cubic-bezier(.6,0,.2,1)}
+.wslide.tr-left.enter{opacity:1;filter:none;transform:translateX(100%)}
+.wslide.tr-up.enter{opacity:1;filter:none;transform:translateY(100%)}
+.wslide.tr-rot.enter{transform:rotate(8deg) scale(1.3);opacity:0;filter:blur(8px)}
+.wslide.tr-circle.enter{opacity:1;filter:none;transform:none;clip-path:circle(0% at 50% 50%)}
+.wslide.tr-circle{clip-path:circle(150% at 50% 50%)}
+.wslide.leave{z-index:0}.wslide:not(.leave){z-index:1}
+.wwall{position:absolute;inset:-25% -30%;display:flex;flex-direction:column;justify-content:center;gap:14px;transform:rotate(-9deg);z-index:0;pointer-events:none;opacity:.55}
+.wwall .row{display:flex;gap:14px;width:max-content;animation:wmar 38s linear infinite}
+.wwall .row:nth-child(2n){animation-direction:reverse;animation-duration:46s}
+.wwall .poster{width:clamp(96px,20cqw,180px);border-radius:16px;box-shadow:0 14px 30px #0008}
+@keyframes wmar{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.wshade{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(90% 70% at 50% 50%,#101216cc 0%,#101216ee 60%,#101216 100%)}
+.wshade.soft{background:linear-gradient(180deg,#10121655 0%,#101216cc 55%,#101216f5 100%)}
+.wfull{position:absolute;inset:-6%;background-size:cover;background-position:center;z-index:0;animation:kenburns 18s ease-in-out infinite alternate;pointer-events:none}
+.wslide>*:not(.wblob):not(.wmosaic):not(.wback):not(.wwall):not(.wshade):not(.wfull):not(.wrain){position:relative;z-index:2}
+.wpop{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:18px}
+.wpop .poster{border-radius:10px;opacity:0;animation:wpopIn .55s cubic-bezier(.3,1.6,.5,1) forwards;animation-delay:var(--d);transform:scale(0) rotate(var(--r))}
+@keyframes wpopIn{to{opacity:1;transform:scale(1) rotate(var(--r))}}
+.wdeal{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px;perspective:900px}
+.wdeal>div{position:relative;opacity:0;animation:wdealIn .8s cubic-bezier(.2,.9,.25,1.1) forwards;animation-delay:var(--d)}
+.wdeal .poster{border-radius:14px;box-shadow:0 18px 40px #000a}
+.wdeal .rk{position:absolute;left:-6px;top:-14px;font-size:clamp(40px,12cqw,72px);font-weight:900;line-height:1;color:#fff;text-shadow:0 4px 18px #000c;-webkit-text-stroke:2px #101216}
+.wdeal b{display:block;font-size:13px;margin-top:8px;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.wdeal span{font-size:12px;opacity:.75;font-weight:800}
+@keyframes wdealIn{from{opacity:0;transform:translateY(80px) rotateX(50deg) rotate(-8deg)}to{opacity:1;transform:none}}
+.wfan2{position:relative;height:clamp(170px,44cqw,260px);margin:22px auto 0;width:100%}
+.wfan2 .poster{position:absolute;left:50%;bottom:0;width:clamp(96px,26cqw,150px);border-radius:14px;box-shadow:0 16px 40px #000a;transform-origin:50% 120%;
+  opacity:0;animation:wfanOut .9s cubic-bezier(.2,.9,.25,1.1) forwards;animation-delay:var(--d);margin-left:calc(clamp(96px,26cqw,150px)/-2)}
+@keyframes wfanOut{from{opacity:0;transform:rotate(0) translateY(60px)}to{opacity:1;transform:rotate(calc(var(--i)*13deg)) translateX(calc(var(--i)*14px))}}
+.wpb{display:grid;gap:14px;margin-top:20px}
+.wpb .lab{display:flex;justify-content:space-between;font-weight:800;font-size:15px;margin-bottom:6px}.wpb .lab span{opacity:.75}
+.wpb .bar{height:clamp(52px,13cqw,74px);border-radius:16px;background:#ffffff12;overflow:hidden}
+.wpb .fill{height:100%;width:0;display:flex;gap:4px;border-radius:16px;overflow:hidden;transition:width 1.6s cubic-bezier(.2,.8,.2,1);border:2px solid var(--c);box-sizing:border-box;background:var(--c)}
+.wpb .fill .poster{height:100%;width:auto;aspect-ratio:2/3;flex:none;border-radius:0;box-shadow:none}
+.wclock{width:min(70cqw,300px);aspect-ratio:1;margin:16px auto 6px;position:relative}
+.wclock svg{width:100%;height:100%;overflow:visible}
+.wclock line{stroke-linecap:round;stroke-dasharray:var(--l) 400;stroke-dashoffset:var(--l);animation:draw 1s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:var(--d)}
+.wclock .ctr{position:absolute;inset:0;display:grid;place-items:center;text-align:center;font-size:clamp(34px,10cqw,52px)}
+.wstamp{position:absolute;right:-8%;top:8%;padding:6px 14px;border:4px solid #FFB547;color:#FFB547;font-weight:900;letter-spacing:2px;font-size:clamp(16px,5cqw,24px);border-radius:10px;transform:rotate(14deg) scale(3);opacity:0;
+  animation:wstampIn .5s cubic-bezier(.3,1.5,.5,1) forwards;animation-delay:1.3s;background:#101216cc}
+@keyframes wstampIn{to{transform:rotate(14deg) scale(1);opacity:1}}
+.wrec{position:relative;width:min(50cqw,240px);margin:10px auto 18px}
+.wrec .poster{border-radius:18px;box-shadow:0 30px 70px #000c;transform:rotate(-5deg);animation:wflip 1s cubic-bezier(.2,.8,.2,1) both .3s}
+.wring{width:min(52cqw,220px);aspect-ratio:1;border-radius:50%;margin:14px auto;display:grid;place-items:center;background:conic-gradient(var(--c) calc(var(--p)*1%),#ffffff14 0);animation:wspin 1.3s cubic-bezier(.2,.8,.2,1) both .3s}
+.wring>div{width:78%;aspect-ratio:1;border-radius:50%;background:#101216;display:grid;place-items:center;font-size:clamp(46px,15cqw,80px);font-weight:900;letter-spacing:-2px}
+.wcheck{position:relative}.wcheck::after{content:"✓";position:absolute;right:-6px;top:-6px;width:28px;height:28px;border-radius:50%;background:#14F0C8;color:#0A1C2A;font-weight:900;display:grid;place-items:center;
+  transform:scale(0);animation:wpopIn2 .4s cubic-bezier(.3,1.6,.5,1) forwards;animation-delay:calc(var(--d) + .35s)}
+@keyframes wpopIn2{to{transform:scale(1)}}
+.wpod{display:grid;gap:10px;margin-top:18px}
+.wpod>div{display:grid;grid-template-columns:30px 44px 1fr auto;gap:12px;align-items:center;padding:8px 12px;border-radius:14px;background:#ffffff0c;opacity:0;animation:win .6s forwards;animation-delay:var(--d)}
+.wpod>div.me{background:linear-gradient(90deg,#33C3FF33,#A97BFF22);box-shadow:0 0 0 2px #33C3FF}
+.wpod img,.wpod .av{width:44px;height:44px;border-radius:50%;object-fit:cover}
+.wpod i{font-style:normal;font-weight:900;opacity:.7}.wpod b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wpod span{font-weight:800;opacity:.85}
+.wcol9{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:min(62cqw,330px);margin:12px auto 4px;transform:rotate(-3deg)}
+.wcol9 .poster{border-radius:10px;opacity:0;animation:wpopIn .5s cubic-bezier(.3,1.6,.5,1) forwards;animation-delay:var(--d);--r:0deg}
+.whero1{position:relative;width:min(56cqw,290px);margin:8px auto 14px}
+.whero1 .poster{border-radius:22px;box-shadow:0 0 0 3px #FFB547,0 40px 90px #000d}
+.whero1::before{content:"";position:absolute;inset:-30%;background:conic-gradient(from 0deg,#33C3FF,#A97BFF,#FFB547,#14F0C8,#33C3FF);filter:blur(50px);opacity:.55;animation:spin 8s linear infinite;z-index:-1;border-radius:50%}
+.wbig{font-size:clamp(80px,30cqw,190px);font-weight:900;letter-spacing:-.06em;line-height:.85;background:linear-gradient(120deg,#fff 30%,#33C3FF 60%,#A97BFF);-webkit-background-clip:text;background-clip:text;color:transparent}
+.wglass{background:#10121699;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid #ffffff1a;border-radius:24px;padding:22px 24px}
+.wrain{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.wrain .poster{position:absolute;top:-30%;width:clamp(60px,14cqw,110px);border-radius:10px;opacity:.5;animation:wfall linear infinite;animation-duration:var(--t);animation-delay:var(--d)}
+@keyframes wfall{to{transform:translateY(190cqh) rotate(var(--r))}}
+@media(min-width:1000px){.wpop{grid-template-columns:repeat(8,1fr)}.wdeal{gap:20px}}
+
+.wwall .poster,.wpb .fill .poster{flex:none;max-width:none}
+.wwall .row{max-width:none}
+@media(max-width:699px){.wdeal{grid-template-columns:repeat(2,minmax(0,118px));justify-content:center;gap:14px 18px}.wpop .poster:nth-child(n+19){display:none}}
+@media(min-width:700px){
+  .wslide>.wrec,.wslide>.whero1{width:min(28cqw,290px)!important}
+  .wslide>.wcol9{width:min(32cqw,340px)!important}
+  .wslide>.wring{width:min(28cqw,240px)!important}
+  .wslide>.wclock{width:min(34cqw,320px)!important}
+  .wslide>.wdeal{max-width:760px!important}
+}
+.wslide>.wwall,.wslide>.wfull,.wslide>.wrain{position:absolute!important;z-index:0!important}
+.wslide>.wshade{position:absolute!important;z-index:1!important}
+.wdeal .rk{z-index:3}
+.wshade{background:radial-gradient(90% 70% at 50% 50%,#10121699 0%,#101216cc 65%,#101216f0 100%)}
+.wrain .poster{opacity:.75}
+@media(min-width:700px){.wslide>.wcol9{width:min(22cqw,240px)!important;margin-top:6px}.wslide .wlist{display:grid;grid-template-columns:1fr 1fr;column-gap:30px}.wslide .wlist div{padding:5px 0;font-size:17px}}
+.wslide>.wshade,.wslide>.wwall,.wslide>.wfull,.wslide>.wrain{max-width:none!important;width:auto!important;margin:0!important}
 </style>
 </head>
 <body>
@@ -856,7 +1006,7 @@ async function loadCloud(force){
       const m = meta[norm(e.key)]; return !(m && m.updated && Date.parse(m.updated) >= e.ts) && Date.now()-e.ts < 30*86400e3; }));
   }
   const snap = S.snap, meta = {...(snap.meta||{})};
-  let goals = snap.goals || {}; const kvs = {year_overrides: snap.year_overrides || {}, wrapped: snap.wrapped_archive || {}, notpc: snap.notpc || {}, snotes: snap.snotes || {}};
+  let goals = snap.goals || {}; const kvs = {year_overrides: snap.year_overrides || {}, wrapped: snap.wrapped_archive || {}, notpc: snap.notpc || {}, snotes: snap.snotes || {}, covers: snap.covers || {}};
   for (const e of edits()){
     if (e.kind === "kv"){ if (e.key === "goals") goals = e.value; else kvs[e.key] = e.value; continue; }
     const k = norm(e.key); meta[k] = {...(meta[k]||{}), ...pick(e,["status","rating","note","tier","hide"]), updated:new Date(e.ts).toISOString()};
@@ -864,7 +1014,8 @@ async function loadCloud(force){
   const p = S.period === "all" ? null : (snap.periods||{})[S.period];
   S.data = {last_sync:snap.last_sync, sources:snap.sources||{}, games:snap.games||[], meta, hltb:snap.hltb||{},
     sessions:snap.sessions||[], csessions:snap.csessions||[], status_log:snap.status_log||[], goals, steam:snap.steam||{}, prefs:snap.prefs||{},
-    year_overrides: kvs.year_overrides, wrapped_archive: kvs.wrapped, notpc: kvs.notpc, snotes: kvs.snotes,
+    year_overrides: kvs.year_overrides, wrapped_archive: kvs.wrapped, notpc: kvs.notpc, snotes: kvs.snotes, covers: kvs.covers,
+    values: snap.values || {}, values_at: snap.values_at, xcovers: snap.xcovers || {},
     tracking_since: snap.tracking_since, health: snap.health || [],
     trophies: snap.trophies || [], free_games: snap.free_games || [],
     playing:[], can_edit:false, period: p ? p.info : {period:"all"}, period_minutes: p ? p.pm : null};
@@ -1028,7 +1179,10 @@ function buildGroups(){
     // IGDB hat bei manchen Spielen unsinnige Werte (Community-Angaben): über 300 Std ignorieren, außer selbst eingetragen
     if (g.hltb && !g.hltb.manual){ const cap = v => v && v > 300*60 ? null : v; g.hltb = {...g.hltb, main: cap(g.hltb.main), plus: cap(g.hltb.plus), comp: g.hltb.comp && g.hltb.comp > 600*60 ? null : g.hltb.comp}; }
     const hImg = g.hltb && g.hltb.image ? [g.hltb.image] : [];
+    const man = ((d.covers||{})[g.key]), xc = (d.xcovers||{})[g.key];
     g.covers = coverOrder(recs.flatMap(r=>r.covers||[]), hImg);
+    if (xc) g.covers.push(xc);
+    if (man) g.covers = [man, ...g.covers.filter(u=>u!==man)];
     g.banners = coverOrder(recs.flatMap(r=>r.banners||[]), hImg).concat(g.covers.filter(c=>!c.includes("library_600x900")));
     g.genres = [...g.genres]; g.features = [...g.features]; g.devsList = [...g.devsList];
     g.meta = d.meta[g.key] || {};
@@ -1109,6 +1263,21 @@ function afterRender(){
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ e.target.classList.add("in"); animate(e.target); io.unobserve(e.target);} }), {threshold:.1});
   document.querySelectorAll(".reveal").forEach(el=>io.observe(el));
   document.querySelectorAll(".heatwrap").forEach(el=>el.scrollLeft = el.scrollWidth);
+  document.querySelectorAll(".grid").forEach(gr=>[...gr.children].slice(0,48).forEach((c,i)=>c.style.setProperty("--i", (i*22)+"ms")));
+  if (HOVER) document.querySelectorAll(".grid .poster, .rc .poster, .freet .poster, .vexp .poster, .minis .poster").forEach(el=>el.classList.add("tilt"));
+}
+// Cover kippen am PC leicht mit der Maus mit
+const HOVER = matchMedia("(hover:hover) and (pointer:fine)").matches && !matchMedia("(prefers-reduced-motion: reduce)").matches;
+if (HOVER){
+  let cur = null;
+  document.addEventListener("pointermove", e => {
+    const t = e.target.closest && e.target.closest(".tilt");
+    if (cur && cur !== t){ cur.style.transform = ""; cur.classList.remove("hov"); cur = null; }
+    if (!t) return;
+    const r = t.getBoundingClientRect(), x = (e.clientX - r.left)/r.width, y = (e.clientY - r.top)/r.height;
+    t.style.transform = `perspective(600px) rotateY(${(x-.5)*14}deg) rotateX(${(.5-y)*14}deg) translateY(-4px) scale(1.03)`;
+    t.style.setProperty("--gx", x*100+"%"); t.style.setProperty("--gy", y*100+"%"); t.classList.add("hov"); cur = t;
+  }, {passive:true});
 }
 function animate(root){
   root.querySelectorAll("[data-count]").forEach(el=>{
@@ -1233,7 +1402,7 @@ function heroCard(c){
   const {played,total,plats} = c;
   const mosa = played.slice(0,16).map(g=>`<div class="poster">${img(g.covers,g.title)}</div>`);
   const fun = FUN[Math.floor(Date.now()/864e5) % FUN.length];
-  return `<section class="card hero reveal"><div class="hmosaic">${[...mosa,...mosa].join("")}</div>
+  return `<section class="card hero x8 ohero reveal"><div class="hmosaic">${[...mosa,...mosa].join("")}</div>
     <svg class="wave" viewBox="0 0 360 70" aria-hidden="true"><path d="M0 45 C 40 10, 80 70, 120 40 S 200 10, 240 40 S 320 70, 360 35" fill="none" stroke="#0A1C2A" stroke-width="7" stroke-linecap="round"/></svg><div class="eyebrow">${periodLabel()}</div>
     <div class="num" data-count="${Math.round(total/60)}" data-pre="${S.est?"~":""}">0</div><div class="unit">Stunden gezockt${S.est?" (geschätzt)":""}.</div>
     <div class="sub">Das sind <b>${num(total/1440,1)} Tage</b> am Stück – oder <b>${num(total/fun[0], total/fun[0]<10?1:0)}</b> ${fun[1]}.</div>
@@ -1247,20 +1416,25 @@ function lrow(g, sub, right, n){
     <div class="lrm"><b>${esc(g.title)}</b><span>${sub||""}</span></div><em>${right||""}</em></div>`;
 }
 function recentRail(){
-  const rec = [...S.groups].filter(g=>g.last && g.minutes>0).sort((a,b)=>b.last-a.last).slice(0,12);
+  const live = new Map((S.data.playing||[]).map(p=>[norm(titleOf(p.key)||p.title), p]).concat((S.data.playing||[]).map(p=>[p.key, p])));
+  const isLive = g => live.get(g.key);
+  const rec = [...S.groups].filter(g=>(g.last && g.minutes>0) || isLive(g)).sort((a,b)=>(!!isLive(b)-!!isLive(a)) || (b.last||0)-(a.last||0)).slice(0,16);
   if (!rec.length) return "";
   const ago = d => { const t = (Date.now()-d)/864e5; return t<1?"heute":t<2?"gestern":t<7?`vor ${Math.floor(t)} Tagen`:fdate(d); };
-  return `<section class="card reveal"><h3>Zuletzt gespielt</h3><div class="recent">${rec.map((g,i)=>`<button class="rc ${i?"":"first"}" onclick="openGame('${esc(g.key)}')" style="--d:${i*60}ms">
-    <div class="poster">${img(g.covers,g.title)}</div><b>${esc(g.title)}</b><span>${ago(g.last)}</span></button>`).join("")}</div></section>`;
+  return `<section class="card reveal"><h3>Zuletzt gespielt</h3><div class="recent">${rec.map((g,i)=>{ const p = isLive(g);
+    return `<button class="rc ${p?"live":""}" onclick="openGame('${esc(g.key)}')" style="--d:${i*50}ms">
+    <div class="poster">${img(g.covers,g.title)}</div><b>${esc(g.title)}</b>${p?`<span class="lv"><i></i>Läuft · <em class="livet" data-since="${p.since}" style="font-style:normal">${liveDur(p.since)}</em></span>`:`<span>${ago(g.last)}</span>`}</button>`; }).join("")}</div></section>`;
 }
+function liveDur(since){ const m = Math.max(0, Math.floor((Date.now()/1000 - since)/60)); return `${Math.floor(m/60)}:${String(m%60).padStart(2,"0")}`; }
+setInterval(()=>document.querySelectorAll(".livet").forEach(el=>el.textContent = liveDur(Number(el.dataset.since))), 20000);
 function topCard(c){
   const t5 = c.played.slice(0,5);
-  return `<section class="card s7 reveal"><h3>Top 5 <span class="h3s">${esc(scopeLabel())}</span></h3>${t5.map((g,i)=>lrow(g, Object.entries(g.plats).filter(x=>x[1]>0).map(x=>x[0]).join(" · "), hrs(val(g)), i+1)).join("")}
+  return `<section class="card s7 x5 reveal"><h3>Top 5 <span class="h3s">${esc(scopeLabel())}</span></h3>${t5.map((g,i)=>lrow(g, Object.entries(g.plats).filter(x=>x[1]>0).map(x=>x[0]).join(" · "), hrs(val(g)), i+1)).join("")}
     <button class="btn ghost small" style="margin-top:12px" onclick="S.lib.view='grid';S.lib.sort='time';location.hash='#/spiele'">Alle Spiele</button></section>`;
 }
 function platCard(c){
   const {plats, total} = c;
-  return `<section class="card s5 reveal"><h3>Nach Plattform</h3>
+  return `<section class="card s5 x3 reveal"><h3>Nach Plattform</h3>
     <div class="stack">${plats.map(([p,v])=>`<i style="flex:${v};background:${pcolor(p)}" title="${esc(p)}"></i>`).join("")}</div>
     ${plats.map(([p,v])=>`<div class="pbar"><span class="dot" style="background:${pcolor(p)}"></span><span class="nm">${esc(p)}</span>
     <span class="v" style="margin-left:auto">${hrs(v)} <small style="color:var(--muted)">${num(v/total*100)} %</small></span></div>`).join("")}</section>`;
@@ -1269,7 +1443,7 @@ function platCard(c){
 function funSpot(c){
   const FL = facts(c.played, c.total, c.plats); for (const k in FX) delete FX[k]; FL.forEach((x,i)=>FX[i]=x);
   if (!FL.length) return "";
-  return `<section class="card s6 reveal spot"><h3>Schon gewusst?</h3><div id="spot" class="spotin"></div>
+  return `<section class="card x4 ospot reveal spot"><h3>Schon gewusst?</h3><div id="spot" class="spotin"></div>
     <div class="spotnav"><button class="btn ghost small" onclick="location.hash='#/statistik';S.stat='facts'">Alle Fun Facts</button><span id="spotdots"></span></div></section>`;
 }
 function startSpot(){
@@ -1284,7 +1458,7 @@ function startSpot(){
 }
 function backlogMini(){
   const bl = backlogStats(); if (!bl.total) return "";
-  return `<section class="card s6 reveal"><h3>Dein PC-Backlog</h3><div class="bhero">
+  return `<section class="card x4 reveal"><h3>Dein PC-Backlog</h3><div class="bhero">
       <div class="ring" style="--p:${bl.pct}"><div><div><b>${num(bl.pct)}%</b><br><span>geschafft</span></div></div></div>
       <div><div class="bhero nums" style="margin-bottom:12px"><div><b>${bl.open}</b><span>offen</span></div><div><b>${bl.done}</b><span>durch</span></div>${bl.rest?`<div><b>${num(bl.rest/60)}</b><span>Std Story</span></div>`:""}</div>
       <button class="btn limeb" onclick="openPicker()">🎲 Was spiele ich als Nächstes?</button></div></div></section>`;
@@ -1298,8 +1472,8 @@ function renderOverviewInner(){
   const c = ovCtx();
   let h = playingBanner() + periodChips() + periodNotice();
   if (!c.played.length){ $("#view").innerHTML = h + emptyState(); return; }
-  h += `<div class="bento">` + heroCard(c) + `</div>` + saleBanner() + `<div class="bento" style="margin-top:14px">`
-    + recentRail() + topCard(c) + platCard(c) + funSpot(c) + backlogMini() + `</div>`;
+  h += `<div class="bento">` + heroCard(c) + funSpot(c) + saleBanner()
+    + recentRail() + topCard(c) + platCard(c) + backlogMini() + `</div>`;
   $("#view").innerHTML = h;
   setTimeout(startSpot, 50);
 }
@@ -1328,6 +1502,79 @@ function renderStats(){
   if (S.stat === "facts") return renderFacts(head);
   renderActivity(head);
 }
+/* Bibliothekswert: IsThereAnyDeal (Normalpreis, heute, Tiefstpreis), sonst Steam-Store */
+function libValue(){
+  const V = (S.data||{}).values || {}, out = [];
+  for (const g of S.groups){
+    if (!g.pc || !g.owned) continue;
+    const v = V[g.key]; let r = null, c = null, l = null, src = null;
+    if (v && (v[0] || v[2])){ [r, c, l] = v; src = "itad"; if (!r) r = Math.max(c||0, l||0); }
+    else if (g.price && !g.price.free && g.price.orig){ r = g.price.orig; c = g.price.price != null ? g.price.price : g.price.orig; src = "steam"; }
+    if (!r) continue;
+    if (c == null) c = r;
+    l = l == null ? c : Math.min(l, c);
+    const pcRecs = g.recs.filter(x=>x.device==="PC").sort((a,b)=>(b.minutes||0)-(a.minutes||0));
+    out.push({g, r, c, l, src, store: (pcRecs[0]||{}).store || "PC"});
+  }
+  const sum = (k, list) => (list||out).reduce((s,x)=>s+x[k],0);
+  const shame = out.filter(x=>!x.g.minutes);
+  const stores = {}; for (const x of out) stores[x.store] = (stores[x.store]||0) + x.r;
+  return {list:out, r:sum("r"), c:sum("c"), l:sum("l"), itad: out.some(x=>x.src==="itad"), shame, shameR: sum("r", shame), shameL: sum("l", shame),
+    stores: Object.entries(stores).sort((a,b)=>b[1]-a[1]), at: (S.data||{}).values_at};
+}
+function valueCard(){
+  const V = libValue(); if (!V.list.length) return "";
+  const top = [...V.list].sort((a,b)=>b.r-a.r).slice(0,5);
+  const bar = (l, v, col, txt) => `<div class="vbar"><span>${l}</span><span class="trk"><div style="width:0;background:${col}" data-w="${Math.max(1,v/V.r*100)}%"></div></span><em>${txt}</em></div>`;
+  const eur = c => `<i data-count="${Math.round(c/100)}">0</i> €`;
+  return `<section class="card s12 x8 reveal"><h3>💰 Bibliothekswert <span class="h3s">${V.list.length} PC-Spiele</span></h3>
+    <div class="valtop">
+      <div style="--c:#33C3FF"><small>Normalpreis</small><b>${eur(V.r)}</b><span>wenn du alles zum vollen Preis kaufst</span></div>
+      <div style="--c:#14F0C8"><small>Heute</small><b>${eur(V.c)}</b><span>${V.r>V.c?`${num((1-V.c/V.r)*100)} % unter Normalpreis`:"gerade keine Rabatte"}</span></div>
+      <div style="--c:#A97BFF"><small>Zum Bestpreis</small><b>${V.itad?eur(V.l):"–"}</b><span>${V.itad?"jeweils der tiefste Preis aller Zeiten":"IsThereAnyDeal-Key fehlt (Einstellungen)"}</span></div>
+    </div>
+    <div class="vcols"><div>
+      <div class="vbars">${bar("Normalpreis",V.r,"#33C3FF",euro(V.r))}${bar("Heute",V.c,"#14F0C8",euro(V.c))}${V.itad?bar("Bestpreis",V.l,"#A97BFF",euro(V.l)):""}${V.shame.length?bar("Pile of Shame",V.shameR,"#FFB547",euro(V.shameR)):""}</div>
+      <div class="secttl" style="margin-top:4px">Nach Store</div>
+      <div class="vstores">${V.stores.map(([k,v])=>`<i style="flex:${v};background:${pcolor(k)}" title="${esc(k)}"></i>`).join("")}</div>
+      <div class="vsleg">${V.stores.map(([k,v])=>`<span><i style="background:${pcolor(k)}"></i>${esc(k)} ${euro(v)}</span>`).join("")}</div>
+      ${V.stores.some(([k])=>k==="Epic Games")?`<p class="help" style="margin-bottom:0">Epic-Spiele sind meist Gratis-Aktionen – geschenkt im Wert von ${euro((V.stores.find(([k])=>k==="Epic Games")||[0,0])[1])}.</p>`:""}
+    </div><div>
+      <div class="secttl" style="margin-top:0">Die teuersten</div>
+      <div class="vexp">${top.map(x=>`<div class="poster" onclick="openGame('${esc(x.g.key)}')">${img(x.g.covers,x.g.title)}<em>${euro(x.r)}</em></div>`).join("")}</div>
+      ${V.shame.length?`<p style="margin:14px 0 0"><b>📦 ${V.shame.length} Spiele nie gestartet</b> – zusammen ${euro(V.shameR)} Normalpreis${V.itad?`, zum Bestpreis ${euro(V.shameL)}`:""}.</p>`:""}
+      <button class="btn ghost small" style="margin-top:14px" onclick="openValue()">Alle Preise ansehen</button>
+    </div></div></section>`;
+}
+window.openValue = (sort) => {
+  const V = libValue(); sort = sort || "r";
+  const list = [...V.list].sort((a,b)=> sort==="h" ? (b.g.minutes ? b.r/b.g.minutes : 0) - (a.g.minutes ? a.r/a.g.minutes : 0) : sort==="cut" ? (b.r-b.l)-(a.r-a.l) : b[sort]-a[sort]);
+  $("#infoBody").innerHTML = `<button class="ibtn dclose" onclick="$('#info').close()">✕</button>
+    <div class="eyebrow">Bibliothekswert</div><div class="h1" style="font-size:clamp(30px,6vw,44px);margin:6px 0 4px">${euro(V.r)}</div>
+    <p class="help" style="margin-top:0">${V.itad?"Preise von IsThereAnyDeal (Deutschland, alle offiziellen Stores)":"Preise aus dem Steam-Store – für alle Stores und Tiefstpreise den IsThereAnyDeal-Key eintragen"}${V.at?`, Stand ${fdate(new Date(V.at*1000))}`:""}. Was du wirklich bezahlt hast, weiß kein Store.</p>
+    <div class="seg" style="margin-top:6px">${[["r","Normalpreis"],["c","Heute"],["l","Bestpreis"],["cut","Größte Ersparnis"]].map(([k,l])=>`<button class="${sort===k?"on":""}" onclick="openValue('${k}')">${l}</button>`).join("")}</div>
+    ${list.slice(0,150).map(x=>gRow(x.g, euro(sort==="cut"?x.r-x.l:x[sort==="cut"?"r":sort]), `${esc(x.store)} · normal ${euro(x.r)} · heute ${euro(x.c)}${x.src==="itad"?` · Bestpreis ${euro(x.l)}`:""}`)).join("")}`;
+  if (!$("#info").open) $("#info").showModal();
+};
+/* Rhythmus: Wochentag × Uhrzeit */
+function rhythmCard(){
+  const from = periodStart(), M = Array.from({length:7},()=>new Array(24).fill(0)); let n = 0;
+  for (const [k,s,sec,dev,ap] of allSessions()){
+    if (ap || (from && s < from)) continue; n++;
+    let t = s; const end = s + sec;
+    while (t < end){ const x = new Date(t*1000), h = x.getHours(), wd = (x.getDay()+6)%7; x.setMinutes(60,0,0); const nt = Math.min(end, x.getTime()/1000); M[wd][h] += (nt-t)/60; t = nt; }
+  }
+  if (n < 5) return "";
+  let mx = 0, bw = 0, bh = 0; M.forEach((r,w)=>r.forEach((v,h)=>{ if (v > mx){ mx = v; bw = w; bh = h; } }));
+  const st = sessionStats(from), WDN = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+  const wdT = M.map(r=>r.reduce((a,b)=>a+b,0)), bd = wdT.indexOf(Math.max(...wdT));
+  return `<section class="card s6 x4 reveal"><h3>🕒 Wann du spielst <span class="h3s">${esc(scopeLabel())}</span></h3>
+    <div class="eyebrow" style="opacity:.8">Lieblingszeit</div><div class="mid" style="margin:4px 0 2px">${WD[bw]}, ${bh} Uhr</div>
+    <div class="rhy">${M.map((r,w)=>`<span>${WD[w]}</span>${r.map((v,h)=>`<i style="--d:${(w*24+h)*4}ms;${v?`background:color-mix(in srgb,var(--cyan) ${Math.round(18+v/mx*82)}%,#181B21)`:""}" title="${WDN[w]} ${h} Uhr: ${hrs(v)}"></i>`).join("")}`).join("")}</div>
+    <div class="rhyh"><span></span>${Array.from({length:24},(_,h)=>`<span>${h%6===0?h:""}</span>`).join("")}</div>
+    <div class="rhs"><div><small>Lieblingstag</small><b>${WDN[bd]}</b></div><div><small>Längste Session</small><b>${st.longest?hrs(st.longest[2]/60):"–"}</b></div><div><small>Ø Session</small><b>${hrs(st.avg)}</b></div></div>
+    <p class="help" style="margin-bottom:0">Aus ${n} Sessions mit bekannter Uhrzeit.</p></section>`;
+}
 function renderFacts(head){
   const c = ovCtx();
   let h = head + periodChips();
@@ -1336,14 +1583,14 @@ function renderFacts(head){
   h += `<div class="bento">`;
   const devs = ["PC","PlayStation","Xbox","Nintendo"].filter(k=>devT[k]);
   const pcShare = (devT.PC||0)/total*100;
-  h += `<section class="card lime s5 reveal"><h3>PC vs. Konsole</h3>
+  h += `<section class="card lime s5 x4 reveal"><h3>PC vs. Konsole</h3>
     <div class="big"><span data-count="${Math.round(pcShare)}">0</span>%</div>
     <div style="font-weight:800;font-size:18px;margin-bottom:8px">${pcShare>=50?"PC-Gamer durch und durch.":"Die Couch gewinnt."}</div>
     ${devs.map(k=>`<div class="devrow"><span class="lbl">${k}</span><span class="trk"><div style="width:0" data-w="${devT[k]/total*100}%"></div></span><span class="v">${hrs(devT[k])}</span></div>`).join("")}</section>`;
   const gen = {};
   for (const g of played) for (const x of g.genres) gen[x] = (gen[x]||0) + (g.devs.PC||0);
   const gl = Object.entries(gen).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,6);
-  if (gl.length) h += `<section class="card violetc s7 reveal"><h3>Deine Gamer-DNA</h3>
+  if (gl.length) h += `<section class="card violetc s7 x4 reveal"><h3>Deine Gamer-DNA</h3>
       <div class="eyebrow" style="opacity:.8">Lieblingsgenre</div><div class="mid" style="margin:4px 0 14px">${esc(gl[0][0])}</div>
       ${gl.slice(1).map(([n,v])=>`<div class="pbar"><span class="nm">${esc(n)}</span><span class="trk"><div style="width:0;background:var(--violet)" data-w="${v/gl[0][1]*100}%"></div></span><span class="v">${hrs(v)}</span></div>`).join("")}
       <div class="minis">${played.filter(g=>g.genres.includes(gl[0][0])).slice(0,5).map(g=>`<div class="poster">${img(g.covers,g.title)}</div>`).join("")}</div>
@@ -1353,12 +1600,12 @@ function renderFacts(head){
   const dl = Object.entries(dec).sort((a,b)=>a[0]-b[0]);
   if (dl.length){
     const mx = Math.max(...dl.map(x=>x[1])), best = dl.find(x=>x[1]===mx)[0];
-    h += `<section class="card cyanc s6 reveal"><h3>Deine Ära</h3><div class="mid">${String(best).slice(2)}er</div>
+    h += `<section class="card cyanc s6 x4 reveal"><h3>Deine Ära</h3><div class="mid">${String(best).slice(2)}er</div>
       <div style="font-weight:700;margin-top:4px">Am liebsten spielst du Spiele aus den ${best}ern.</div>
       <div class="minis">${played.filter(g=>g.year && Math.floor(g.year/10)*10==best).slice(0,5).map(g=>`<div class="poster">${img(g.covers,g.title)}</div>`).join("")}</div>
       <div class="cols">${dl.map(([k,v])=>`<div class="c"><div style="height:0;background:var(--cyan)" data-h="${Math.max(3,v/mx*100)}%"></div><span>${String(k).slice(2)}er</span></div>`).join("")}</div></section>`;
   }
-  h += compareCard().replace('class="card reveal"','class="card s6 reveal"');
+  h += rhythmCard() + valueCard() + compareCard().replace('class="card reveal"','class="card s12 x12 reveal"');
   const FL = facts(played,total,c.plats); for (const k in FX) delete FX[k]; FL.forEach((x,i)=>FX[i]=x);
   const ACC = ["#33C3FF","#14F0C8","#A97BFF"];
   h += `<section class="card reveal"><h3>Fun Facts <span class="h3s">antippen für Details</span></h3><div class="facts">${FL.map((x,i)=>
@@ -1454,10 +1701,11 @@ function facts(played,total,plats){
   if (S.period==="all"){
     const pr = (S.data.steam||{}).prices || {};
     const owned = S.groups.filter(g=>g.appid && pr[g.appid]);
-    const worth = owned.reduce((s,g)=>s+(pr[g.appid].orig||0),0);
-    if (worth > 0) add("Kontowert", euro(worth), `für ${owned.length} Steam-Spiele zum heutigen Normalpreis`,
-      () => `<p class="help">Normalpreise laut Steam-Store (Deutschland), Stand ${S.data.steam.at?fdate(new Date(S.data.steam.at*1000)):"letzter Abgleich"}. Was du wirklich bezahlt hast, weiß Steam nicht.</p>`
-        + [...owned].sort((a,b)=>pr[b.appid].orig-pr[a.appid].orig).slice(0,15).map(g=>gRow(g, euro(pr[g.appid].orig))).join(""), "heute", "💰");
+    const LV = libValue();
+    if (LV.r > 0) add("Bibliothekswert", euro(LV.r), `${LV.list.length} PC-Spiele zum Normalpreis${LV.itad?` – zum Bestpreis ${euro(LV.l)}`:""}`,
+      () => `<p class="help">Heute: <b>${euro(LV.c)}</b>${LV.itad?` · Bestpreis: <b>${euro(LV.l)}</b>`:""}. Was du wirklich bezahlt hast, weiß kein Store.</p>`
+        + [...LV.list].sort((a,b)=>b.r-a.r).slice(0,15).map(x=>gRow(x.g, euro(x.r), x.src==="itad"?`Bestpreis ${euro(x.l)}`:"")).join("")
+        + `<button class="btn ghost small" style="margin-top:12px" onclick="openValue()">Alle Preise</button>`, "heute", "💰");
     const vals = owned.filter(g=>pr[g.appid].orig>0 && g.minutes>=120).map(g=>[g, pr[g.appid].orig/100/(g.minutes/60)]).sort((a,b)=>a[1]-b[1]);
     if (vals.length >= 3){
       const dl = list => () => `<p class="help">Heutiger Normalpreis geteilt durch deine Spielzeit (ab 2 Std).</p>` + list.map(([g,v])=>gRow(g, `${euro(v*100)}/Std`, `${euro(pr[g.appid].orig)} · ${hrs(g.minutes)}`)).join("");
@@ -1530,7 +1778,7 @@ function facts(played,total,plats){
     if (tds.length) add("Lieblingsstudio", tds[0][0], `${hrs(tds[0][1])} in deren Spielen`,
       () => barRows(tds.slice(0,8).map(([k,v])=>[k,v]), total) + `<div class="secttl" style="margin-top:14px">${esc(tds[0][0])}</div>` + dvG[tds[0][0]].sort((a,b)=>val(b)-val(a)).map(g=>gRow(g, hrs(val(g)))).join(""), null, "🏢");
     const bl = backlogStats();
-    if (bl.unplayed) add("Pile of Shame", `${bl.unplayed} Spiele`, "auf dem PC noch nie gestartet",
+    if (bl.unplayed) add("Pile of Shame", `${bl.unplayed} Spiele`, `auf dem PC noch nie gestartet${LV.shameR?` – ${euro(LV.shameR)} wert`:""}`,
       () => blGames().filter(g=>g.status==="ungespielt").slice(0,40).map(g=>gRow(g, g.critic?mcBadge(g.critic):"", g.recs.map(r=>r.store).join(" / "))).join(""), "heute", "📦");
   }
   return f;
@@ -1580,11 +1828,11 @@ function compareCard(){
   if (A[py] && A[cy]) pairs.push([cy, py, A[cy], A[py], (n - new Date(n.getFullYear(),0,1))/(365*864e5)]);
   if (!pairs.length) return "";
   const top = a => Object.entries(a.games||{}).sort((x,y)=>y[1][0]-x[1][0])[0];
-  return `<section class="card reveal"><h3>📊 Vergleich</h3>${pairs.map(([l1,l2,a,b,frac])=>{ const t1 = tot(a), t2 = tot(b), pace = frac > 0 ? t1/frac : t1, d = t2 ? (pace/t2-1)*100 : 0;
+  return `<section class="card reveal"><h3>📊 Vergleich</h3><div class="cmpw">${pairs.map(([l1,l2,a,b,frac])=>{ const t1 = tot(a), t2 = tot(b), pace = frac > 0 ? t1/frac : t1, d = t2 ? (pace/t2-1)*100 : 0;
     const g1 = top(a), g2 = top(b);
     return `<div class="cmpp"><div><small>${esc(l1)} bisher</small><b>${hrs(t1)}</b><span>${g1 && S.gmap.get(g1[0]) ? "meist " + esc(S.gmap.get(g1[0]).title) : ""}</span></div>
       <div class="vs" style="color:${d>=0?"var(--lime)":"#FFB547"}">${d>=0?"▲":"▼"} ${num(Math.abs(d))} %<small>auf Kurs</small></div>
-      <div><small>${esc(l2)}</small><b>${hrs(t2)}</b><span>${g2 && S.gmap.get(g2[0]) ? "meist " + esc(S.gmap.get(g2[0]).title) : ""}</span></div></div>`; }).join("")}
+      <div><small>${esc(l2)}</small><b>${hrs(t2)}</b><span>${g2 && S.gmap.get(g2[0]) ? "meist " + esc(S.gmap.get(g2[0]).title) : ""}</span></div></div>`; }).join("")}</div>
     <p class="help">„Auf Kurs“: hochgerechnet aufs ganze ${pairs.length>1?"Jahr bzw. den ganzen Monat":"Zeitraum"}.</p></section>`;
 }
 function healthBlock(){
@@ -2409,85 +2657,135 @@ function wrapSlidesInner(D){
   const L = [], label = D.label;
   const cover = g => `<div class="poster">${img(g.covers,g.title)}</div>`;
   const blobs = (...c) => c.map((col,i)=>`<div class="wblob" style="background:${col};width:${60+i*14}cqw;height:${60+i*14}cqw;left:${[-20,40,-10,50][i%4]}%;top:${[-10,30,60,-20][i%4]}%;animation-delay:${-i*3}s"></div>`).join("");
-  const mosaic = list => `<div class="wmosaic">${[...list, ...list, ...list].slice(0,40).map(cover).join("")}</div>`;
-  const back = g => { const u = g && (g.banners||[]).concat(g.covers||[]).find(Boolean); return u ? `<div class="wback" style="background-image:url('${esc(u)}')"></div>` : ""; };
-  const topCovers = D.rows.slice(0,14).map(x=>x.g);
-  L.push({bg:"#14122A", html:`${mosaic(topCovers)}${blobs("#7C8CFF","#A97BFF")}
-    <div class="k w-in">Gaming Recap</div><div class="xl w-in d1" style="${D.big.length>5?"font-size:clamp(56px,22cqw,120px)":""}">${esc(D.big)}</div><div class="h w-in d2 split">${esc(D.title)}</div>
+  const uniq = list => [...new Set(list.filter(Boolean))];
+  const allG = uniq(D.rows.map(x=>x.g));
+  // Laufende Cover-Wand in mehreren Reihen
+  const wall = (list, rows=4) => { list = list.length ? list : allG; if (!list.length) return "";
+    const per = Math.max(6, Math.ceil(list.length/rows));
+    return `<div class="wwall">${Array.from({length:rows},(_,r)=>{ const row = Array.from({length:per},(_,i)=>list[(r*per+i*(r+1))%list.length]);
+      return `<div class="row">${[...row,...row].map(cover).join("")}</div>`; }).join("")}</div><div class="wshade"></div>`; };
+  const full = g => { const u = g && ((g.banners||[]).concat(g.covers||[])).find(Boolean); return u ? `<div class="wfull" style="background-image:url('${esc(u)}')"></div><div class="wshade soft"></div>` : ""; };
+  const rain = list => list.length ? `<div class="wrain">${list.slice(0,14).map((g,i)=>`<div class="poster" style="left:${(i*37)%92}%;--t:${9+(i%5)*2}s;--d:${-i*1.3}s;--r:${(i%2?1:-1)*(20+i*7)}deg">${img(g.covers,g.title)}</div>`).join("")}</div><div class="wshade"></div>` : "";
+  const TR = ["zoom","left","circle","up","rot"]; let ti = 0;
+  const push = o => { o.tr = o.tr || TR[ti++ % TR.length]; L.push(o); };
+  const top = allG.slice(0,24);
+
+  // 1 Intro: Cover-Wand
+  push({bg:"#101216", tr:"zoom", html:`${wall(top, 4)}
+    <div class="k w-in">Gaming Recap</div><div class="wbig w-in d1" style="${D.big.length>5?"font-size:clamp(56px,20cqw,120px)":""}">${esc(D.big)}</div><div class="h w-in d2 split">${esc(D.title)}</div>
     <p class="w-in d3">${D.info && D.info.estimated ? "Teils geschätzt aus deinen Spieldaten. " : ""}Tippe rechts für weiter, links für zurück. Gedrückt halten pausiert.</p>`});
-  if (!D.total){ L.push({bg:"#181B21", html:`<div class="h">Noch keine Spielzeit ${D.yr?"in diesem Jahr":""} erfasst.</div><p>Schau wieder vorbei, wenn ein paar Abgleiche gelaufen sind.</p>`}); return L; }
+  if (!D.total){ push({bg:"#181B21", html:`<div class="h">Noch keine Spielzeit ${D.yr?"in diesem Jahr":""} erfasst.</div><p>Schau wieder vorbei, wenn ein paar Abgleiche gelaufen sind.</p>`}); return L; }
+
+  // 2 Stunden: fallende Cover im Hintergrund, Zahl im Glas
   const fun = FUN[Math.floor(Math.random()*FUN.length)];
-  L.push({bg:"#16122A", html:`${blobs("#A97BFF","#3d7bff","#7C8CFF")}<div class="k w-in">${esc(D.lead)}</div>
+  push({bg:"#121522", html:`${rain(top)}${blobs("#33C3FF66","#A97BFF55")}
+    <div class="wglass"><div class="k w-in">${esc(D.lead)}</div>
     <div class="xl w-in d1" data-count="${Math.round(D.total/60)}" data-pre="${D.info&&D.info.estimated?"~":""}">0</div><div class="h w-in d2 split">Stunden gezockt.</div>
-    <p class="w-in d3">Das sind <b>${num(D.total/1440,1)} Tage</b> am Stück.</p><p class="w-in d4">Oder <b>${num(D.total/fun[0], D.total/fun[0]<10?1:0)} ${fun[1]}</b>.</p>`});
-  L.push({bg:"#181420", html:`${blobs("#FFB547","#7C8CFF")}<div class="k w-in">Gespielt</div><div class="xl w-in d1" data-count="${D.rows.length}">0</div><div class="h w-in d2 split">verschiedene Spiele.</div>
-    <p class="w-in d3">${D.rows.filter(x=>x.m>=600).length} davon mit mehr als 10 Stunden, auf ${D.plat.length} Plattformen.</p>
-    <div class="wpost w-in d4">${D.rows.slice(5,9).map(x=>cover(x.g)).join("")}</div>`});
-  const devs = ["PC","PlayStation","Xbox","Nintendo"].filter(k=>D.dev[k]);
-  let acc = 0; const cols = {PC:"#33C3FF",PlayStation:"#3d7bff",Xbox:"#14F0C8",Nintendo:"#ff3b3b"};
-  const grad = devs.map(k=>{ const a = acc; acc += D.dev[k]/D.total*100; return `${cols[k]} ${a}% ${acc}%`; }).join(",");
-  const topDev = devs.sort((a,b)=>D.dev[b]-D.dev[a])[0];
-  L.push({bg:"#0F1826", html:`${blobs(cols[topDev]+"88","#A97BFF")}<div class="k w-in">Wo du spielst</div>
+    <p class="w-in d3">Das sind <b>${num(D.total/1440,1)} Tage</b> am Stück – oder <b>${num(D.total/fun[0], D.total/fun[0]<10?1:0)} ${fun[1]}</b>.</p></div>`});
+
+  // 3 Anzahl Spiele: Cover ploppen auf
+  const many = allG.slice(0, 24);
+  push({bg:"#14122A", html:`${blobs("#7C8CFF66","#FFB54744")}<div class="k w-in">Gespielt</div><div class="xl w-in d1" data-count="${D.rows.length}">0</div>
+    <div class="h w-in d2 split">verschiedene Spiele.</div><p class="w-in d3">${D.rows.filter(x=>x.m>=600).length} davon mit mehr als 10 Stunden, auf ${D.plat.length} Plattformen.</p>
+    <div class="wpop">${many.map((g,i)=>`<div class="poster" style="--d:${1.1+i*.07}s;--r:${((i*53)%13)-6}deg">${img(g.covers,g.title)}</div>`).join("")}</div>`});
+
+  // 4 Plattformen: Balken aus Covern
+  const cols = {PC:"#33C3FF",PlayStation:"#3d7bff",Xbox:"#14F0C8",Nintendo:"#ff3b3b"};
+  const devs = ["PC","PlayStation","Xbox","Nintendo"].filter(k=>D.dev[k]).sort((a,b)=>D.dev[b]-D.dev[a]), topDev = devs[0];
+  push({bg:"#0F1622", html:`${blobs(cols[topDev]+"66","#A97BFF44")}<div class="k w-in">Wo du spielst</div>
     <div class="h w-in d1 split">${topDev==="PC"?"Am liebsten am PC.":topDev==="PlayStation"?"Team PlayStation.":topDev==="Xbox"?"Team Xbox.":"Team Nintendo."}</div>
-    <div class="wdonut" style="background:conic-gradient(${grad})"><div style="background:#0F1826">${num(D.dev[topDev]/D.total*100)}%</div></div>
-    <div class="wlegend w-in d3">${devs.map(k=>`<span><i style="background:${cols[k]}"></i>${k} ${hrs(D.dev[k])}</span>`).join("")}</div>`});
-  const genTop = D.gen.length ? D.rows.find(x=>x.g.genres.includes(D.gen[0][0])) : null;
-  if (D.gen.length) L.push({bg:"#0E1D1C", fg:"#F1F5FA", html:`${back(genTop&&genTop.g)}${blobs("#14F0C8","#3d7bff")}<div class="k w-in">Deine Gamer-DNA</div><div class="h w-in d1" style="font-size:clamp(40px,13cqw,72px)">${esc(D.gen[0][0])}</div>
-    <p class="w-in d2">Dein Lieblingsgenre am PC mit ${hrs(D.gen[0][1])}.</p><div class="wlist w-in d3">${D.gen.slice(1,5).map(([n,v],i)=>`<div><i>${i+2}</i>${esc(n)}<span>${hrs(v)}</span></div>`).join("")}</div>
-    <div class="wpost w-in d4">${D.rows.filter(x=>x.g.genres.includes(D.gen[0][0])).slice(0,4).map(x=>cover(x.g)).join("")}</div>`});
+    <div class="wpb">${devs.map((k,i)=>{ const gs = D.rows.filter(x=>x.devs[k]).sort((a,b)=>b.devs[k]-a.devs[k]).slice(0,10).map(x=>x.g);
+      return `<div class="w-in d${Math.min(5,i+2)}"><div class="lab">${k}<span>${hrs(D.dev[k])} · ${num(D.dev[k]/D.total*100)} %</span></div>
+        <div class="bar"><div class="fill" style="--c:${cols[k]}" data-w="${Math.max(8, D.dev[k]/D.dev[topDev]*100)}%">${gs.map(cover).join("")}</div></div></div>`; }).join("")}</div>`});
+
+  // 5 Genre: Cover-Fächer
+  if (D.gen.length){
+    const gg = D.rows.filter(x=>x.g.genres.includes(D.gen[0][0])).slice(0,5).map(x=>x.g);
+    push({bg:"#0E1B1D", html:`${full(gg[0])}${blobs("#14F0C855")}<div class="k w-in">Deine Gamer-DNA</div><div class="h w-in d1" style="font-size:clamp(40px,13cqw,76px)">${esc(D.gen[0][0])}</div>
+      <p class="w-in d2">Dein Lieblingsgenre am PC mit ${hrs(D.gen[0][1])}. Danach: ${D.gen.slice(1,4).map(x=>esc(x[0])).join(", ")}.</p>
+      <div class="wfan2">${gg.map((g,i)=>`<div class="poster" style="--i:${i-(gg.length-1)/2};--d:${.9+i*.12}s">${img(g.covers,g.title)}</div>`).join("")}</div>`});
+  }
+
+  // 6 Lieblingsreihe
   const fr = franchises(D.rows.map(x=>x.g), g=>{ const r = D.rows.find(y=>y.g===g); return r ? r.m : 0; })[0];
-  if (fr && fr.games.length >= 2) L.push({bg:"#16122A", html:`${back(fr.games[0])}${blobs("#A97BFF","#7C8CFF")}<div class="k w-in">Deine Lieblingsreihe</div>
-    <div class="h w-in d1" style="font-size:clamp(36px,11cqw,64px)">${esc(fr.name)}</div><p class="w-in d2">${fr.games.length} Teile, zusammen ${hrs(fr.minutes)}.</p>
-    <div class="wpost w-in d3">${fr.games.slice(0,4).map(cover).join("")}</div>`});
-  const cons = D.rows.filter(x=>(x.devs.PlayStation||0)+(x.devs.Xbox||0)>0).sort((a,b)=>((b.devs.PlayStation||0)+(b.devs.Xbox||0))-((a.devs.PlayStation||0)+(a.devs.Xbox||0)))[0];
-  if (cons && D.dev.PC) L.push({bg:"#0F1826", html:`${back(cons.g)}${blobs("#3d7bff","#14F0C8")}<div class="k w-in">Konsolen-Krone</div>
-    <div class="wtop1" style="margin-top:6px"><div class="w-in d1">${cover(cons.g)}</div></div>
-    <div class="h w-in d2" style="text-align:center;font-size:clamp(28px,9cqw,46px)">${esc(cons.g.title)}</div>
-    <p class="w-in d3" style="text-align:center">${hrs((cons.devs.PlayStation||0)+(cons.devs.Xbox||0))} auf der Couch.</p>`});
+  if (fr && fr.games.length >= 2) push({bg:"#16122A", html:`${wall(fr.games, 3)}<div class="k w-in">Deine Lieblingsreihe</div>
+    <div class="h w-in d1" style="font-size:clamp(36px,11cqw,68px)">${esc(fr.name)}</div><p class="w-in d2">${fr.games.length} Teile, zusammen ${hrs(fr.minutes)}.</p>
+    <div class="wfan2">${fr.games.slice(0,5).map((g,i,arr)=>`<div class="poster" style="--i:${i-(arr.length-1)/2};--d:${.9+i*.12}s">${img(g.covers,g.title)}</div>`).join("")}</div>`});
+
+  // 7 Konsolen-Krone: großes Bild
+  const conM = x => (x.devs.PlayStation||0)+(x.devs.Xbox||0)+(x.devs.Nintendo||0);
+  const cons = D.rows.filter(x=>conM(x)>0).sort((a,b)=>conM(b)-conM(a))[0];
+  if (cons && D.dev.PC) push({bg:"#0F1826", html:`${full(cons.g)}<div class="k w-in">Konsolen-Krone 👑</div>
+    <div class="wrec"><div class="w-in d1">${cover(cons.g)}</div></div>
+    <div class="h w-in d2" style="text-align:center;font-size:clamp(28px,9cqw,50px)">${esc(cons.g.title)}</div>
+    <p class="w-in d3" style="text-align:center">${hrs(conM(cons))} auf der Couch.</p>`});
+
+  // 8 Plätze 2–5: Karten werden ausgeteilt
   if (D.rows.length > 1){
-    const n = Math.min(5, D.rows.length), mx = D.rows[1].m;
-    L.push({bg:"#16122A", html:`${blobs("#7C8CFF","#A97BFF")}<div class="k w-in">Deine Top ${n}</div><div class="h w-in d1 split">Fast ganz oben …</div>
-      ${D.rows.slice(1,n).reverse().map((x,i)=>`<div class="wrow w-in d${i+2}"><div class="r">${n-i}</div>${cover(x.g)}<b>${esc(x.g.title)}</b><span>${hrs(x.m)}</span></div>`).join("")}`});
+    const n = Math.min(5, D.rows.length);
+    push({bg:"#13121F", html:`${blobs("#7C8CFF55","#A97BFF44")}<div class="k w-in">Deine Top ${n}</div><div class="h w-in d1 split">Fast ganz oben …</div>
+      <div class="wdeal">${D.rows.slice(1,n).map((x,i)=>`<div style="--d:${.8+i*.25}s"><span class="rk">${i+2}</span>${cover(x.g)}<b>${esc(x.g.title)}</b><span>${hrs(x.m)}</span></div>`).join("")}</div>`});
   }
+
+  // 9 Nummer eins: Vollbild, leuchtendes Cover, Konfetti
   const t = D.rows[0];
-  L.push({bg:"#101216", cls:"wtop1", confetti:true, html:`${back(t.g)}${blobs("#7C8CFF","#FFB547","#A97BFF")}<div class="k w-in" style="text-align:center">Trommelwirbel … deine Nummer eins</div>
-    <div class="wflip">${cover(t.g)}</div><div class="h w-in d4" style="text-align:center;font-size:clamp(28px,9cqw,48px)">${esc(t.g.title)}</div>
-    <p class="w-in d5" style="text-align:center"><b>${hrs(t.m)}</b> · ${num(t.m/D.total*100)} % deiner Zeit</p>`});
+  push({bg:"#101216", tr:"circle", confetti:true, html:`${full(t.g)}<div class="k w-in" style="text-align:center">Trommelwirbel … deine Nummer eins</div>
+    <div class="whero1 wflip">${cover(t.g)}</div><div class="h w-in d4" style="text-align:center;font-size:clamp(28px,9cqw,52px)">${esc(t.g.title)}</div>
+    <p class="w-in d5" style="text-align:center"><b data-count="${Math.round(t.m/60)}">0</b> <b>Stunden</b> · ${num(t.m/D.total*100)} % deiner Zeit</p>`});
+
+  // 10 Dein Typ: 24-Stunden-Uhr
   if (D.st.ss.length >= 3){
-    const mx = Math.max(...D.st.hours,1);
-    L.push({bg:"#16122A", html:`${blobs("#2A1F55","#A97BFF","#14F0C8")}<div class="k w-in">Dein Typ</div><div class="h w-in d1" style="font-size:clamp(38px,12.5cqw,70px)">${esc(D.st.type)}</div>
-      <p class="w-in d2">${num(D.st.night*100)} % deiner PC-Zeit lag zwischen 22 und 5 Uhr.</p>
-      <div class="cols thin w-in d3" style="height:150px">${D.st.hours.map((v,i)=>`<div class="c"><div style="height:${Math.max(2,v/mx*100)}%;background:#fff"></div><span style="color:#fff">${i%6===0?i:""}</span></div>`).join("")}</div>`});
-    const lg = D.st.longest;
-    const lgG = S.gmap.get(lg[0]);
-    L.push({bg:"#33C3FF", fg:"#0A1C2A", html:`${blobs("#FFB547","#7C8CFF")}<div class="k w-in">Rekorde</div>
-      ${lgG?`<div class="minis w-in d1" style="margin:0 0 6px"><div class="poster" style="width:70px">${img(lgG.covers,lgG.title)}</div></div>`:""}
-      <div class="h w-in d1">${hrs(lg[2]/60)} am Stück.</div><p class="w-in d2">Deine längste Session: ${esc(titleOf(lg[0]))} am ${fdate(new Date(lg[1]*1000))}.</p>
-      <div class="h w-in d3" style="margin-top:26px">${D.st.best} Tage in Folge.</div><p class="w-in d4">Deine längste Serie.${D.bestMonth?` Stärkster Monat: <b>${new Date(Number(D.bestMonth[0].split("-")[0]), Number(D.bestMonth[0].split("-")[1]),1).toLocaleDateString("de-DE",{month:"long"})}</b> mit ${hrs(D.bestMonth[1])}.`:""}</p>`});
+    const mx = Math.max(...D.st.hours,1), em = {Nachteule:"🦉", Frühaufsteher:"🌅", Mittagszocker:"☀️", "Feierabend-Gamer":"🛋️"}[D.st.type] || "🎮";
+    const lines = D.st.hours.map((v,h)=>{ const a = (h/24)*2*Math.PI - Math.PI/2, r0 = 38, len = 4 + v/mx*56, x1 = 100+Math.cos(a)*r0, y1 = 100+Math.sin(a)*r0, x2 = 100+Math.cos(a)*(r0+len), y2 = 100+Math.sin(a)*(r0+len);
+      const col = (h>=22||h<5) ? "#A97BFF" : (h>=17) ? "#33C3FF" : (h>=11) ? "#14F0C8" : "#FFB547";
+      return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${col}" stroke-width="6" style="--l:${len.toFixed(1)};--d:${.6+h*.04}s"/>`; }).join("");
+    const lbl = [0,6,12,18].map(h=>{ const a = (h/24)*2*Math.PI - Math.PI/2; return `<text x="${(100+Math.cos(a)*24).toFixed(1)}" y="${(104+Math.sin(a)*24).toFixed(1)}" fill="#ffffff88" font-size="9" font-weight="800" text-anchor="middle">${h}</text>`; }).join("");
+    push({bg:"#14122A", html:`${blobs("#A97BFF55","#14F0C833")}<div class="k w-in">Dein Typ</div><div class="h w-in d1" style="font-size:clamp(38px,12.5cqw,72px)">${esc(D.st.type)}</div>
+      <div class="wclock w-in d2"><svg viewBox="0 0 200 200">${lines}${lbl}</svg><div class="ctr">${em}</div></div>
+      <p class="w-in d3" style="text-align:center">${num(D.st.night*100)} % deiner Zeit lag zwischen 22 und 5 Uhr.</p>`});
+    // 11 Rekorde
+    const lg = D.st.longest, lgG = lg && S.gmap.get(lg[0]);
+    if (lg) push({bg:"#101216", html:`${full(lgG)}<div class="k w-in">Rekorde</div>
+      ${lgG?`<div class="wrec">${cover(lgG)}<div class="wstamp">REKORD</div></div>`:""}
+      <div class="h w-in d2">${hrs(lg[2]/60)} am Stück.</div><p class="w-in d3">${esc(titleOf(lg[0]))} am ${fdate(new Date(lg[1]*1000))}.</p>
+      <p class="w-in d4"><b>${D.st.best} Tage in Folge</b> gezockt.${D.bestMonth?` Stärkster Monat: <b>${new Date(Number(D.bestMonth[0].split("-")[0]), Number(D.bestMonth[0].split("-")[1]),1).toLocaleDateString("de-DE",{month:"long"})}</b> mit ${hrs(D.bestMonth[1])}.`:""}</p>`});
   }
+
+  // 12 Geschmack: Wertungs-Ring
   const ratedW = D.rows.filter(x=>x.g.critic);
   if (ratedW.length >= 5){
     const avg = ratedW.reduce((s,x)=>s+x.g.critic*x.m,0)/ratedW.reduce((s,x)=>s+x.m,0);
-    const bestW = [...ratedW].sort((a,b)=>b.g.critic-a.g.critic)[0];
-    L.push({bg:"#121A1F", html:`${back(bestW.g)}${blobs("#14F0C8","#33C3FF")}<div class="k w-in">Dein Geschmack</div>
-      <div class="xl w-in d1" data-count="${Math.round(avg)}">0</div><div class="h w-in d2 split">Punkte im Schnitt.</div>
-      <p class="w-in d3">So bewertet die Fachpresse, was du spielst – gewichtet nach deiner Zeit (${ratedW.length} bewertete Spiele).</p>
-      ${[...ratedW].sort((a,b)=>b.g.critic-a.g.critic||b.m-a.m).slice(0,4).map((x,i)=>`<div class="wrow w-in d${Math.min(5,i+3)}"><div class="r">${i+1}</div>${cover(x.g)}<b>${esc(x.g.title)}</b><span>${mcBadge(x.g.critic)}</span></div>`).join("")}`});
+    const best = [...ratedW].sort((a,b)=>b.g.critic-a.g.critic||b.m-a.m).slice(0,4);
+    push({bg:"#0F1A1E", html:`${wall(best.map(x=>x.g).concat(ratedW.slice(0,12).map(x=>x.g)), 3)}<div class="k w-in">Dein Geschmack</div>
+      <div class="wring w-in d1" style="--p:${avg};--c:${avg>=75?"#14F0C8":avg>=60?"#FFB547":"#FF6B8B"}"><div data-count="${Math.round(avg)}">0</div></div>
+      <div class="h w-in d2 split" style="text-align:center;font-size:clamp(28px,9cqw,48px)">Punkte im Schnitt.</div>
+      <p class="w-in d3" style="text-align:center">So bewertet die Fachpresse, was du spielst – gewichtet nach deiner Zeit. Ganz oben: <b>${esc(best[0].g.title)}</b> (${best[0].g.critic}).</p>`});
   }
-  if (D.done.length) L.push({bg:"#16122A", confetti:true, html:`${blobs("#A97BFF","#7C8CFF")}<div class="k w-in">Backlog</div><div class="xl w-in d1" data-count="${D.done.length}">0</div>
-    <div class="h w-in d2 split">Spiele durchgespielt.</div><div class="wpost w-in d3">${D.done.slice(0,4).map(cover).join("")}</div>
+
+  // 13 Backlog: durchgespielt mit Haken
+  if (D.done.length) push({bg:"#12122A", confetti:true, html:`${blobs("#14F0C844","#7C8CFF55")}<div class="k w-in">Backlog</div><div class="xl w-in d1" data-count="${D.done.length}">0</div>
+    <div class="h w-in d2 split">Spiele durchgespielt.</div>
+    <div class="wpop" style="grid-template-columns:repeat(${Math.min(6, Math.max(3, D.done.length))},1fr)">${D.done.slice(0,12).map((g,i)=>`<div class="poster wcheck" style="--d:${1+i*.12}s;--r:0deg">${img(g.covers,g.title)}</div>`).join("")}</div>
     ${D.added?`<p class="w-in d4">Dazugekommen sind ${D.added}. ${D.added > D.done.length ? "Der Stapel wächst … 😅" : "Der Stapel schrumpft! 💪"}</p>`:""}`});
-  if (D.achN) L.push({bg:"#181420", fg:"#F1F5FA", html:`${blobs("#7C8CFF","#FFB547")}<div class="k w-in">Steam-Erfolge</div><div class="xl w-in d1" data-count="${D.achN}">0</div>
-    <div class="h w-in d2 split">freigeschaltet.</div>${D.rare?`<p class="w-in d3">Dein seltenster: <b>${esc(D.rare.r[0])}</b>. Den haben nur ${num(D.rare.r[1],1)} % aller Spieler.</p>`:""}`});
-  if (D.rank) L.push({bg:"#0E1D1C", html:`${blobs("#14F0C8","#33C3FF")}<div class="k w-in">Unter Freunden</div><div class="xl w-in d1">#${D.rank}</div>
-    <div class="h w-in d2 split">von ${D.friends+1}.</div><p class="w-in d3">${D.rank===1?"Niemand in deiner Steam-Freundesliste hat mehr gezockt. 👑":"Gemessen an den Steam-Stunden deiner Freunde."}</p>`});
-  if (D.bd.length) L.push({bg:"#0E1D1C", confetti:true, html:`${blobs("#14F0C8","#33C3FF")}<div class="k w-in">Abzeichen</div><div class="h w-in d1 split">${D.bd.length} freigeschaltet.</div>
-    <div class="w-in d2" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:10px">${D.bd.slice(0,15).map((b,i)=>`<div class="w-in" style="text-align:center;width:72px;animation-delay:${.6+i*.08}s"><div style="font-size:40px">${b.e}</div><div style="font-size:11.5px;font-weight:700;opacity:.85">${esc(b.n)}</div></div>`).join("")}</div>`});
-  L.push({bg:"#14122A", final:true, html:`${mosaic(topCovers)}${blobs("#7C8CFF","#A97BFF","#FFB547")}<div class="k w-in">Das war ${label}</div>
-    <div class="wlist w-in d1" style="margin-top:12px"><div><i>⏱</i>${num(Math.round(D.total/60))} Stunden</div><div><i>🎮</i>${D.rows.length} Spiele</div>
+
+  // 14 Freunde: Rangliste mit Avataren
+  if (D.rank){
+    const fr2 = (S.data.steam||{}).friends || [];
+    const mySteam = S.groups.reduce((s,g)=>s+g.recs.filter(r=>r.store==="Steam").reduce((a,r)=>a+(r.minutes||0),0),0);
+    const list = [...fr2.map(f=>({...f, me:false})), {name:"Du", minutes:mySteam, me:true}].sort((a,b)=>b.minutes-a.minutes);
+    const i0 = list.findIndex(x=>x.me), show = list.slice(Math.max(0, Math.min(i0-2, list.length-5)), Math.max(0, Math.min(i0-2, list.length-5))+5);
+    push({bg:"#0E1D1C", html:`${blobs("#14F0C855","#33C3FF44")}<div class="k w-in">Unter Freunden</div><div class="xl w-in d1">#${D.rank}</div>
+      <div class="h w-in d2 split">von ${D.friends+1}.</div>
+      <div class="wpod">${show.map((f,i)=>`<div class="${f.me?"me":""}" style="--d:${1+i*.15}s"><i>${list.indexOf(f)+1}</i>${f.me?`<div class="fav av" style="width:44px;height:44px">🎮</div>`:avatar(f,44)}<b>${esc(f.name)}</b><span>${hrs(f.minutes)}</span></div>`).join("")}</div>`});
+  }
+
+  // 15 Abschluss: 3×3-Collage
+  push({bg:"#101216", tr:"zoom", final:true, html:`${wall(top, 4)}<div class="k w-in" style="text-align:center">Das war ${esc(label)}</div>
+    <div class="wcol9">${allG.slice(0,9).map((g,i)=>`<div class="poster" style="--d:${.3+i*.08}s">${img(g.covers,g.title)}</div>`).join("")}</div>
+    <div class="wlist w-in d3" style="margin-top:10px"><div><i>⏱</i>${num(Math.round(D.total/60))} Stunden</div><div><i>🎮</i>${D.rows.length} Spiele</div>
       <div><i>🏆</i><span style="margin:0;font-size:19px;opacity:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.g.title)}</span></div>
-      ${D.st.ss.length>=3?`<div><i>🦉</i>${esc(D.st.type)}</div>`:""}${D.gen.length?`<div><i>🧬</i>${esc(D.gen[0][0])}</div>`:""}${D.done.length?`<div><i>🏁</i>${D.done.length} durchgespielt</div>`:""}${D.bd.length?`<div><i>🎖️</i>${D.bd.length} Abzeichen</div>`:""}</div>
-    <div class="wbtns w-in d2"><button class="btn" data-act="share">📤 Bild teilen</button><button class="btn ghost" data-act="again">↺ Nochmal</button></div>`});
+      ${D.st.ss.length>=3?`<div><i>🦉</i>${esc(D.st.type)}</div>`:""}${D.gen.length?`<div><i>🧬</i>${esc(D.gen[0][0])}</div>`:""}${D.done.length?`<div><i>🏁</i>${D.done.length} durchgespielt</div>`:""}</div>
+    <div class="wbtns w-in d4"><button class="btn" data-act="share">📤 Bild teilen</button><button class="btn ghost" data-act="again">↺ Nochmal</button></div>`});
   return L;
 }
 function confetti(){
@@ -2542,7 +2840,7 @@ function wShow(){
   const prev = slot.querySelector(".wslide:not(.leave)");
   if (prev){ prev.classList.add("leave"); setTimeout(()=>prev.remove(), 600); }
   const el = document.createElement("div");
-  el.className = `wslide enter ${sl.cls||""}`; el.style.background = sl.bg; el.style.color = sl.fg || "#fff"; el.innerHTML = sl.html;
+  el.className = `wslide enter ${sl.tr?"tr-"+sl.tr:""} ${sl.cls||""}`; el.style.background = sl.bg; el.style.color = sl.fg || "#fff"; el.innerHTML = sl.html;
   slot.appendChild(el); splitWords(el);
   requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.remove("enter")));
   document.querySelectorAll(".wbars i b").forEach((b,i)=>b.style.width = i < W.i ? "100%" : "0");
@@ -2589,8 +2887,7 @@ async function shareWrapped(){
   const line = (a, b) => { txt(a, y, 34, 800, "#ffffffaa"); txt(b, y+64, fit(b, 900, 60), 900); y += 160; };
   if (D.st.ss.length >= 3) line("MEIN TYP", D.st.type);
   if (D.gen.length) line("LIEBLINGSGENRE", D.gen[0][0]);
-  if (y < 1700 && D.bd.length) line("ABZEICHEN", `${D.bd.length} freigeschaltet`);
-  if (D.bd.length){ x.font = `64px ${F}`; x.fillText(D.bd.slice(0,10).map(b=>b.e).join(" "), 90, Math.min(y+40, 1790)); }
+  if (y < 1700 && D.rows[0]) line("NUMMER EINS", D.rows[0].g.title);
   txt("🎮 Gaming Recap", 1870, 34, 800, "#ffffffbb");
   const file = await new Promise(r=>c.toBlob(b=>r(new File([b], `gaming-recap-${D.mode.replace(":","-")}-${D.year}.png`, {type:"image/png"})), "image/png"));
   try {
@@ -2651,7 +2948,10 @@ window.openGame = key => {
     ${g.ach && g.ach.t ? `<div class="secttl">Steam-Erfolge</div><div class="goal"><div class="gtop"><span>${g.ach.d} von ${g.ach.t}</span><span>${num(g.ach.d/g.ach.t*100)} %</span></div>
       <div class="gbar" style="background:#ffffff14"><div style="width:${g.ach.d/g.ach.t*100}%;background:var(--lime)"></div></div>
       ${g.ach.r?`<p class="help">Seltenster: <b>${esc(g.ach.r[0])}</b> – nur ${num(g.ach.r[1],1)} % haben ihn.</p>`:""}</div>` : ""}
-    ${g.price && g.price.orig ? `<div class="secttl">Preis</div><p style="margin:4px 0">${euro(g.price.orig)} im Steam-Store${g.price.discount?` (gerade -${g.price.discount} %)`:""}${g.minutes>=60?` · <b>${euro(g.price.orig/(g.minutes/60))} pro Stunde</b>`:""}</p>` : ""}
+    ${(()=>{ const v = ((S.data.values||{})[g.key]); if (!v || !(v[0]||v[2])) return "";
+      return `<div class="secttl">Preis (alle Stores)</div><div class="hl"><div><small>Normal</small><b>${euro(v[0])}</b></div><div><small>Heute</small><b>${euro(v[1])}</b></div><div><small>Bestpreis</small><b>${euro(v[2])}</b></div></div>`
+        + (g.minutes>=60 && v[0] ? `<p class="help">${euro(v[0]/(g.minutes/60))} pro Spielstunde zum Normalpreis.</p>` : ""); })()}
+    ${g.price && g.price.orig && !((S.data.values||{})[g.key]) ? `<div class="secttl">Preis</div><p style="margin:4px 0">${euro(g.price.orig)} im Steam-Store${g.price.discount?` (gerade -${g.price.discount} %)`:""}${g.minutes>=60?` · <b>${euro(g.price.orig/(g.minutes/60))} pro Stunde</b>`:""}</p>` : ""}
     ${g.appid ? `<a class="btn ghost small" style="margin-top:10px" href="https://store.steampowered.com/app/${esc(g.appid)}/" target="_blank" rel="noopener">Im Steam-Store ↗</a>` : ""}`;
   const right = `${g.pc && !g.hidden && g.owned && !consoleOnly(g) ? `<div class="secttl">Backlog-Status ${g.isAuto?"<span style='text-transform:none;letter-spacing:0'>(automatisch erkannt)</span>":""}</div>
       <div class="sgrid">${STATUS.map(s=>`<button style="color:${s.c}" class="${g.status===s.k?"on":""}" onclick="setStatus('${esc(g.key)}','${s.k}')"><span style="color:var(--ink)">${s.e} ${s.l}</span></button>`).join("")}
@@ -2669,7 +2969,7 @@ window.openGame = key => {
     <button class="btn ghost small" style="margin-top:14px" onclick="setHide('${esc(g.key)}', ${g.hide?"false":"true"})">${g.hide?"👁 Wieder in der Statistik zeigen":"🙈 Kein Spiel / aus der Statistik ausblenden"}</button>`;
   $("#detailBody").innerHTML = `<button class="ibtn dclose" onclick="$('#detail').close()">✕</button>
     <div class="dban">${img(g.banners,g.title)}</div>
-    <div class="dhead"><div class="poster">${img(g.covers,g.title)}</div>
+    <div class="dhead"><div class="poster">${img(g.covers,g.title)}<button class="cvbtn" title="Bild ändern" onclick="coverPick('${esc(g.key)}')">🖼</button></div>
       <div><h2>${esc(g.title)}</h2><div class="tagrow">${devs.map(d=>`<span class="tag"><i style="background:${DEV_COLORS[d]}"></i>${d}</span>`).join("")}</div></div></div>
     <div class="dstats"><div><b>${g.minutes?hrs(g.minutes):"–"}</b><span>gespielt</span></div><div><b>${g.last?fdate(g.last):"–"}</b><span>zuletzt</span></div>
       <div><b>${g.critic||"–"}</b><span>Fachpresse</span></div><div><b>${g.hltb&&g.hltb.main?hrs(g.hltb.main):"–"}</b><span>Story</span></div></div>
@@ -2689,6 +2989,33 @@ async function saveMeta(key, patch){
   S.data.meta[m.key] = {status:m.status, rating:m.rating, note:m.note, tier:m.tier, hide:m.hide, updated:m.updated};
   buildGroups();
 }
+window.coverPick = async (key, q) => {
+  const g = S.gmap.get(key); if (!g) return;
+  const man = (S.data.covers||{})[key];
+  $("#infoBody").innerHTML = `<button class="ibtn dclose" onclick="$('#info').close()">✕</button>
+    <div class="eyebrow">Bild ändern</div><h2 style="margin:6px 0 4px">${esc(g.title)}</h2>
+    ${LOCAL ? `<div class="inl"><input type="text" id="cvq" value="${esc(q||g.title)}" style="flex:1"><button class="btn ghost small" onclick="coverPick('${esc(key)}', $('#cvq').value)">Suchen</button></div>
+      <div class="cvgrid" id="cvres"><p class="help">Suche bei SteamGridDB …</p></div>` : `<p class="help">Die Bildersuche gibt es am PC. Hier kannst du einen Bildlink einfügen.</p>`}
+    <div class="secttl" style="margin-top:16px">Oder Bildlink einfügen</div>
+    <div class="inl"><input type="url" id="cvurl" placeholder="https://…" style="flex:1"><button class="btn ghost small" onclick="setCover('${esc(key)}', $('#cvurl').value)">Übernehmen</button></div>
+    <p class="help">Hochformat (z. B. 600×900) sieht am besten aus. Rechtsklick auf ein Bild › „Bildadresse kopieren“.</p>
+    ${man ? `<button class="btn ghost small" onclick="setCover('${esc(key)}', null)">↺ Wieder automatisch</button>` : ""}`;
+  if (!$("#info").open) $("#info").showModal();
+  if (!LOCAL) return;
+  try {
+    const r = await fetch("/api/covers/search?q=" + encodeURIComponent(q||g.title)); const j = await r.json();
+    if (!r.ok) throw new Error(j.error || "Fehler");
+    $("#cvres").innerHTML = j.covers.length ? j.covers.map(([u,t])=>`<button onclick="setCover('${esc(key)}','${esc(u)}')"><img loading="lazy" src="${esc(t)}" alt=""></button>`).join("")
+      + `<p class="help" style="grid-column:1/-1">Gefunden als „${esc(j.name||"")}“ – falsches Spiel? Suchbegriff oben ändern.</p>` : `<p class="help">Nichts gefunden – anderen Suchbegriff probieren.</p>`;
+  } catch(e){ $("#cvres").innerHTML = `<p class="help">${esc(e.message)}${/Key/.test(e.message)?" Trag ihn unter Einstellungen › Zugänge › Preise & Cover ein.":""}</p>`; }
+};
+window.setCover = async (key, url) => {
+  url = url ? String(url).trim() : null;
+  if (url && !/^https:\/\/\S+$/.test(url)){ toast("Bitte einen https-Link einfügen"); return; }
+  const all = {...((S.data||{}).covers||{})}; if (url) all[key] = url; else delete all[key];
+  try { await saveKv("covers", all); S.data.covers = all; } catch(e){ toast("Speichern fehlgeschlagen"); return; }
+  $("#info").close(); buildGroups(); openGame(key); quietRoute(); toast(url ? "Bild gespeichert" : "Wieder automatisch");
+};
 window.setStatus = async (key, st) => { await saveMeta(key,{status:st}); openGame(key); route(); };
 window.setAutostart = async el => {
   try { const r = await post("/api/autostart", {on: el.checked}); el.checked = !!r.autostart; toast(r.autostart ? "Startet ab jetzt mit Windows" : "Autostart aus"); }
@@ -2852,7 +3179,7 @@ window.openSettings = async () => {
         <p class="help">Einmal am Tag wird ein verschlüsseltes Backup (Status, Tier-Liste, Ziele, Korrekturen, Sessions, Verlauf) ins Repository gelegt${cl.backup_day?` – zuletzt am ${esc(cl.backup_day)}`:""}. Wiederherstellen ergänzt nur Fehlendes, es wird nichts überschrieben.</p>`:""}
     </fieldset>
 
-    <details class="adv"><summary>⚙️ Zugänge & Erweitert <span class="help">(Playnite, IGDB, Steam, PlayStation, Xbox, Sonstiges)</span></summary>
+    <details class="adv"><summary>⚙️ Zugänge & Erweitert <span class="help">(Playnite, IGDB, Preise &amp; Cover, Steam, PlayStation, Xbox, Sonstiges)</span></summary>
     <fieldset><legend>🖥️ Playnite (alle PC-Launcher)</legend>
       <div class="src">${c.playnite_found?`<span class="ok">●</span> Playnite gefunden`:`<span class="bad">✕</span> Playnite nicht gefunden – <a href="https://playnite.link" target="_blank" rel="noopener">playnite.link</a>`}</div>
       <div class="src">${c.extension_installed?`<span class="ok">●</span> Erweiterung installiert`:`<span class="bad">✕</span> Erweiterung fehlt`}</div>
@@ -2870,6 +3197,16 @@ window.openSettings = async () => {
         <li>„Register Your Application“: Name z. B. <code>Gaming Recap Marvin</code>, OAuth Redirect URL <code>http://localhost</code>, Kategorie „Application Integration“, Client-Typ „Confidential“.</li>
         <li>Client-ID kopieren, „New Secret“ klicken, Secret kopieren, beides hier eintragen.</li></ol>
         Offizielle, kostenlose Schnittstelle. Ohne Zugang kannst du Spieldauern pro Spiel selbst eintragen.</div>
+    </fieldset>
+    <fieldset><legend>💰 Preise & 🖼️ Cover</legend>
+      <label>IsThereAnyDeal-API-Key (Bibliothekswert, Tiefstpreise)</label><input type="password" id="itad_key" placeholder="${ph2(c.itad_key_set)}" autocomplete="off">
+      <div class="help"><ol><li>Auf <a href="https://isthereanydeal.com" target="_blank" rel="noopener">isthereanydeal.com</a> ein kostenloses Konto anlegen.</li>
+        <li><a href="https://isthereanydeal.com/apps/my/" target="_blank" rel="noopener">isthereanydeal.com/apps/my</a> öffnen, „Register app“ (Name z. B. <code>Gaming Recap</code>).</li>
+        <li>Den angezeigten <b>API Key</b> kopieren und hier einfügen.</li></ol></div>
+      <label>SteamGridDB-API-Key (fehlende Cover)</label><input type="password" id="sgdb_key" placeholder="${ph2(c.sgdb_key_set)}" autocomplete="off">
+      <div class="help"><ol><li>Auf <a href="https://www.steamgriddb.com" target="_blank" rel="noopener">steamgriddb.com</a> anmelden (geht mit Steam).</li>
+        <li><a href="https://www.steamgriddb.com/profile/preferences/api" target="_blank" rel="noopener">Profil › Einstellungen › API</a> öffnen und „Generate API Key“ klicken.</li>
+        <li>Key kopieren und hier einfügen.</li></ol>Beide Dienste sind kostenlos. Die Keys bleiben auf deinem PC.</div>
     </fieldset>
     <fieldset><legend>Steam</legend>
       <label>Steam Web-API-Key</label><input type="password" id="steam_api_key" placeholder="${ph2(c.steam_api_key_set)}" autocomplete="off">
@@ -2937,7 +3274,7 @@ window.openSettings = async () => {
     try {
       const v = id => $("#"+id).value, ch = id => $("#"+id).checked;
       await post("/api/config", {steam_api_key:v("steam_api_key"), steam_id:v("steam_id"), psn_npsso:v("psn_npsso"), xbox_api_key:v("xbox_api_key"), xbox_api_key_clear: !!($("#xbox_api_key_clear")||{}).checked,
-        playnite_export:v("playnite_export"), gh_repo:v("gh_repo"), igdb_client_id:v("igdb_client_id"), igdb_client_secret:v("igdb_client_secret"), gh_token:v("gh_token"), cloud_pass:v("cloud_pass"),
+        playnite_export:v("playnite_export"), gh_repo:v("gh_repo"), igdb_client_id:v("igdb_client_id"), igdb_client_secret:v("igdb_client_secret"), itad_key:v("itad_key"), sgdb_key:v("sgdb_key"), gh_token:v("gh_token"), cloud_pass:v("cloud_pass"),
         cloud_enabled:ch("cloud_enabled"), tracker:ch("tracker"), hltb:ch("hltb"), lan:ch("lan"), sync_hours:Number(v("sync_hours"))||6,
         backlog_stores:[...document.querySelectorAll(".blstore:checked")].map(e=>e.value),
         steam_extras:ch("steam_extras"), notify_sales:ch("notify_sales"), notify_weekly:ch("notify_weekly"), push_topic:v("push_topic"), notify_free:ch("notify_free"), notify_release:ch("notify_release"),
