@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#08080c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Recap">
+<meta name="referrer" content="no-referrer">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<title>Gaming Recap</title>
+<style>
+:root{
+  --bg:#08080c; --ink:#f6f4ff; --muted:#a19eb6; --line:#ffffff14; --glass:#ffffff0b; --panel:#15141c;
+  --lime:#c8f135; --pink:#ff4fa3; --violet:#7a5cff; --cyan:#2ee6d6; --orange:#ff8a3d; --blue:#3d7bff; --yellow:#ffd23f;
+  --r:28px; --font:"Segoe UI Variable Display","Segoe UI",system-ui,-apple-system,"SF Pro Display",Roboto,sans-serif;
+  --top:env(safe-area-inset-top,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--font)}
+body{min-height:100vh;overflow-x:hidden}
+a{color:var(--cyan)}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+input,select,textarea{font:inherit;color:var(--ink);background:#ffffff0f;border:1px solid var(--line);border-radius:14px;padding:11px 14px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--violet)}
+select option{background:#15141c}
+code{background:#ffffff12;padding:1px 6px;border-radius:6px;font-size:.92em}
+
+/* ---------- Kopf & Navigation ---------- */
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;padding:calc(12px + var(--top)) 18px 12px;
+  background:linear-gradient(#08080cf5,#08080cc0 70%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.logo{font-weight:900;font-size:22px;letter-spacing:-.5px;white-space:nowrap}
+.logo b{background:linear-gradient(90deg,var(--lime),var(--cyan) 45%,var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+.spacer{flex:1}
+.sync{font-size:12px;color:var(--muted);text-align:right;line-height:1.2}
+.ibtn{width:40px;height:40px;border-radius:50%;background:var(--glass);border:1px solid var(--line);display:grid;place-items:center;flex:none;position:relative}
+.ibtn:hover{border-color:#ffffff40}
+.ibtn svg{width:19px;height:19px}
+.ibtn .badge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:9px;background:var(--pink);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;padding:0 4px}
+.spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.deskNav{display:none;gap:4px;background:var(--glass);border:1px solid var(--line);border-radius:999px;padding:4px;margin-left:18px}
+.deskNav a{padding:8px 16px;border-radius:999px;color:var(--muted);text-decoration:none;font-weight:600}
+.deskNav a.on{background:var(--ink);color:var(--bg)}
+.tabbar{position:fixed;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));z-index:30;display:flex;
+  background:#17161fe8;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--line);border-radius:24px;padding:5px}
+.tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 0;border-radius:18px;
+  color:var(--muted);text-decoration:none;font-size:10.5px;font-weight:700}
+.tabbar a svg{width:22px;height:22px}
+.tabbar a.on{color:var(--bg);background:var(--ink)}
+@media(min-width:1000px){.tabbar{display:none}.deskNav{display:flex}}
+.playing{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:18px;background:#c8f13518;border:1px solid #c8f13544;margin-bottom:14px;font-weight:700}
+.playing i{width:10px;height:10px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 0 #c8f135aa;animation:pulse 1.6s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 10px #c8f13500}100%{box-shadow:0 0 0 0 #c8f13500}}
+
+main{max-width:1240px;margin:0 auto;padding:4px 16px 120px}
+@media(min-width:1000px){main{padding:8px 28px 60px}}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase;opacity:.75}
+.h1{font-size:clamp(30px,7vw,52px);font-weight:900;letter-spacing:-1.5px;line-height:1;margin:6px 0 18px}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 0 14px}
+.chips::-webkit-scrollbar{display:none}
+.chip{white-space:nowrap;padding:9px 16px;border-radius:999px;background:var(--glass);border:1px solid var(--line);font-weight:600;font-size:14px}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip small{opacity:.6;margin-left:4px}
+
+/* ---------- Bento ---------- */
+.bento{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+.card{grid-column:span 12;border-radius:var(--r);padding:24px;position:relative;overflow:hidden;background:var(--panel);border:1px solid var(--line)}
+@media(min-width:1000px){.s7{grid-column:span 7}.s5{grid-column:span 5}.s6{grid-column:span 6}.s4{grid-column:span 4}.s8{grid-column:span 8}.s3{grid-column:span 3}}
+@media(min-width:640px) and (max-width:999px){.m6{grid-column:span 6}}
+.card h3{margin:0 0 16px;font-size:13px;font-weight:800;letter-spacing:2px;text-transform:uppercase;opacity:.8}
+.reveal{opacity:0;transform:translateY(24px) scale(.98);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+
+.hero{min-height:360px;display:flex;flex-direction:column;justify-content:flex-end;padding:30px;border:0;
+  background:radial-gradient(60% 80% at 15% 20%,#ff4fa3 0,transparent 60%),radial-gradient(50% 70% at 85% 10%,#7a5cff 0,transparent 60%),
+  radial-gradient(60% 80% at 70% 100%,#ff8a3d 0,transparent 60%),#2a0f3a;background-size:140% 140%;animation:mesh 14s ease-in-out infinite alternate}
+@keyframes mesh{0%{background-position:0% 0%}100%{background-position:100% 100%}}
+.hero .num{font-size:clamp(84px,24vw,210px);font-weight:900;line-height:.85;letter-spacing:-.06em;margin:10px 0 2px}
+.hero .unit{font-size:clamp(22px,5vw,34px);font-weight:800;letter-spacing:-.5px}
+.hero .sub{margin-top:10px;font-size:16px;opacity:.9;max-width:560px}
+.hstats{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+.hstat{background:#0000002e;backdrop-filter:blur(6px);border-radius:18px;padding:10px 16px}
+.hstat b{font-size:22px;font-weight:900;display:block;line-height:1.1}
+.hstat span{font-size:12px;opacity:.8}
+
+.topg{min-height:340px;padding:0;display:flex;align-items:flex-end;border:0;cursor:pointer}
+.topg .bgimg{position:absolute;inset:0}
+.topg .bgimg img,.topg .bgimg .ph{width:100%;height:100%;object-fit:cover}
+.topg::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#08080c 5%,#08080caa 45%,transparent 80%)}
+.topg .in{position:relative;z-index:1;padding:26px;width:100%}
+.topg .rank1{position:absolute;right:16px;top:-6px;z-index:1;font-size:150px;font-weight:900;line-height:1;color:transparent;-webkit-text-stroke:2px #ffffffaa;letter-spacing:-8px}
+.topg .t{font-size:clamp(26px,5vw,40px);font-weight:900;letter-spacing:-1px;line-height:1.05;margin:6px 0 8px}
+
+.lime{background:var(--lime);color:#111;border:0}
+.pinkc{background:var(--pink);color:#160411;border:0}
+.cyanc{background:var(--cyan);color:#04201d;border:0}
+.violetc{background:var(--violet);color:#fff;border:0}
+.orangec{background:var(--orange);color:#200c00;border:0}
+.yellowc{background:var(--yellow);color:#1d1600;border:0}
+.big{font-size:clamp(56px,12vw,96px);font-weight:900;letter-spacing:-.05em;line-height:.9}
+.mid{font-size:clamp(34px,7vw,52px);font-weight:900;letter-spacing:-1.5px;line-height:1}
+.devrow{display:flex;align-items:center;gap:10px;margin-top:12px;font-weight:700}
+.devrow .lbl{width:100px}
+.devrow .trk{flex:1;height:14px;border-radius:999px;background:#00000022;overflow:hidden}
+.devrow .trk div{height:100%;border-radius:999px;background:#111;transition:width 1.2s cubic-bezier(.2,.7,.2,1)}
+.devrow .v{width:80px;text-align:right}
+
+.rail{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:6px 0 4px;scroll-snap-type:x mandatory}
+.rail::-webkit-scrollbar{display:none}
+.rk{flex:none;display:flex;align-items:flex-end;scroll-snap-align:start;cursor:pointer;padding-bottom:46px}
+.rk .n{font-size:120px;font-weight:900;line-height:.8;color:#08080c;-webkit-text-stroke:2.5px #ffffffcc;letter-spacing:-10px;margin-right:-12px;position:relative;z-index:0;padding-bottom:2px}
+.rk .p{width:130px;position:relative;z-index:1}
+@media(min-width:1000px){.rk .p{width:150px}}
+.poster{aspect-ratio:2/3;border-radius:16px;overflow:hidden;background:#1d1c26;position:relative;box-shadow:0 10px 30px #0008}
+.poster img,.poster .ph{width:100%;height:100%;object-fit:cover;display:block}
+.poster .ph{display:flex}
+.rk .meta{position:absolute;top:100%;left:0;right:0;font-size:13px;margin-top:8px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rk .meta span{display:block;color:var(--muted);font-weight:600}
+.ph{display:flex;align-items:flex-end;padding:12px;font-weight:900;font-size:16px;line-height:1.1;color:#fff;letter-spacing:-.3px}
+
+.pbar{display:flex;align-items:center;gap:12px;padding:9px 0}
+.pbar .dot{width:12px;height:12px;border-radius:50%;flex:none}
+.pbar .nm{width:110px;font-weight:700;flex:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pbar .trk{flex:1;height:10px;border-radius:999px;background:#ffffff10;overflow:hidden}
+.pbar .trk div{height:100%;border-radius:999px;transition:width 1.2s cubic-bezier(.2,.7,.2,1)}
+.pbar .v{width:76px;text-align:right;font-weight:700;font-size:14px}
+.inv .trk{background:#00000020}.inv .trk div{background:#160411}
+
+.cols{display:flex;align-items:flex-end;gap:10px;height:170px;margin-top:10px}
+.cols .c{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;min-width:0}
+.cols .c div{width:100%;border-radius:12px 12px 4px 4px;background:#04201d;transition:height 1.2s cubic-bezier(.2,.7,.2,1);min-height:4px}
+.cols .c span{font-size:12px;font-weight:800}
+.cols.thin{gap:3px}.cols.thin .c div{border-radius:6px 6px 2px 2px}.cols.thin .c span{font-size:10px}
+
+.facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.fact{border-radius:22px;padding:18px;min-height:140px;display:flex;flex-direction:column}
+.fact small{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;opacity:.75}
+.fact b{font-size:28px;font-weight:900;letter-spacing:-.8px;line-height:1.05;margin:auto 0 4px;word-break:break-word}
+.fact span{font-size:13px;opacity:.85}
+
+.ring{--p:0;width:150px;height:150px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:conic-gradient(var(--lime) calc(var(--p)*1%),#ffffff1a 0)}
+.ring>div{width:118px;height:118px;border-radius:50%;background:var(--panel);display:grid;place-items:center;text-align:center}
+.violetc .ring>div{background:var(--violet)}
+.ring b{font-size:34px;font-weight:900;line-height:1}
+.ring span{font-size:11px;opacity:.75;font-weight:700}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 22px;border-radius:999px;font-weight:800;font-size:15px;background:var(--ink);color:var(--bg)}
+.btn.ghost{background:var(--glass);color:var(--ink);border:1px solid var(--line)}
+.btn.limeb{background:var(--lime);color:#111}
+.btn.small{padding:9px 14px;font-size:13.5px}
+.btn:disabled{opacity:.5}
+.notice{border-radius:20px;padding:14px 18px;background:#ffffff0d;border:1px solid var(--line);margin-bottom:14px;font-size:14px}
+.stat3{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(min-width:1000px){.stat3{grid-template-columns:repeat(4,1fr)}}
+.tile{border-radius:22px;padding:18px;background:var(--panel);border:1px solid var(--line)}
+.tile small{display:block;font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.tile b{display:block;font-size:30px;font-weight:900;letter-spacing:-1px;margin-top:6px;line-height:1.05}
+.tile span{font-size:13px;color:var(--muted)}
+
+/* ---------- Heatmap ---------- */
+.heatwrap{overflow-x:auto;scrollbar-width:thin;padding-bottom:6px}
+.heat{display:grid;grid-template-rows:repeat(7,13px);grid-auto-flow:column;grid-auto-columns:13px;gap:3px;width:max-content}
+.heat i{border-radius:3px;background:#ffffff0d}
+.heat i.l1{background:#c8f13540}.heat i.l2{background:#c8f13570}.heat i.l3{background:#c8f135a8}.heat i.l4{background:#c8f135}
+.heat i.x{background:transparent}
+.months{display:grid;grid-auto-flow:column;grid-auto-columns:16px;font-size:11px;color:var(--muted);width:max-content;margin-bottom:6px}
+@media(min-width:1000px){.heat{grid-template-rows:repeat(7,17px);grid-auto-columns:17px;gap:4px}.months{grid-auto-columns:21px}}
+.legend{display:flex;gap:4px;align-items:center;font-size:11px;color:var(--muted);margin-top:8px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+/* ---------- Bibliothek ---------- */
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.toolbar input{flex:1;min-width:180px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+@media(min-width:1000px){.grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:20px}}
+@media(max-width:480px){.grid{grid-template-columns:repeat(2,1fr);gap:10px}}
+.gcard{cursor:pointer}
+.gcard .poster::after{content:"";position:absolute;inset:50% 0 0;background:linear-gradient(0deg,#000d,transparent)}
+.gcard .ov{position:absolute;left:12px;right:12px;bottom:10px;z-index:1}
+.gcard .ov b{display:block;font-size:20px;font-weight:900;letter-spacing:-.5px}
+.gcard .dev{position:absolute;top:10px;right:10px;z-index:1;display:flex;gap:4px}
+.gcard .dev i{width:10px;height:10px;border-radius:50%;box-shadow:0 0 0 2px #0008}
+.gcard .nm{margin-top:8px;font-weight:700;font-size:14px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.gcard .poster{transition:transform .2s}
+.gcard:hover .poster{transform:translateY(-4px)}
+
+/* ---------- Backlog ---------- */
+.bl-layout{display:block}
+.bl-aside .card{margin-bottom:14px}
+.bl-filters{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 0 14px}
+.bl-filters::-webkit-scrollbar{display:none}
+@media(min-width:1000px){
+  .bl-layout{display:grid;grid-template-columns:330px 1fr;gap:24px;align-items:start}
+  .bl-aside{position:sticky;top:84px}
+  .bl-filters{flex-direction:column;overflow:visible;gap:4px}
+  .bl-filters .chip{border-radius:14px;display:flex;justify-content:space-between;background:transparent;border-color:transparent}
+  .bl-filters .chip.on{background:var(--ink)}
+  .bl-filters .chip:not(.on):hover{background:var(--glass)}
+}
+.bhero{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.bhero .nums{display:flex;gap:22px;flex-wrap:wrap}
+.bhero .nums b{font-size:34px;font-weight:900;display:block;line-height:1}
+.bhero .nums span{font-size:12px;opacity:.75;font-weight:700}
+.brow{display:grid;grid-template-columns:52px 1fr auto;align-items:center;gap:14px;padding:10px;border-radius:18px;cursor:pointer}
+.brow:hover{background:#ffffff08}
+.brow .poster{width:52px;border-radius:10px;box-shadow:none}
+.brow .ph,.rk .ph{font-size:0}
+.brow .mid2{min-width:0}
+.brow .mid2 b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brow .mid2 span{font-size:13px;color:var(--muted)}
+.brow .cd{display:none;color:var(--muted);font-size:14px;font-weight:600;text-align:right}
+.bhead{display:none}
+@media(min-width:1000px){
+  .brow{grid-template-columns:52px 1fr 150px 90px 90px 90px}
+  .brow .cd{display:block}
+  .bhead{display:grid;grid-template-columns:52px 1fr 150px 90px 90px 90px;gap:14px;padding:0 10px 8px;font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
+  .bhead span:nth-child(n+4){text-align:right}
+}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;font-size:12.5px;font-weight:800;white-space:nowrap;justify-self:start}
+.pill.auto{outline:1.5px dashed #ffffff55;outline-offset:-1.5px}
+
+/* ---------- Dialoge ---------- */
+dialog{border:0;padding:0;background:#121119;color:var(--ink);max-width:640px;width:100%;border-radius:30px;max-height:92vh;overflow:hidden}
+dialog::backdrop{background:#000b;backdrop-filter:blur(4px)}
+@media(max-width:640px){dialog{margin:auto 0 0;border-radius:30px 30px 0 0;max-height:94vh;max-width:100%}}
+@media(min-width:1000px){#detail{max-width:900px}}
+dialog[open]{animation:up .35s cubic-bezier(.2,.7,.2,1)}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.dscroll{overflow:auto;max-height:inherit;overscroll-behavior:contain}
+.dclose{position:absolute;top:14px;right:14px;z-index:3;background:#000a}
+.dban{height:200px;position:relative}
+@media(min-width:1000px){.dban{height:260px}}
+.dban img,.dban .ph{width:100%;height:100%;object-fit:cover}
+.dban::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#121119,transparent 70%)}
+.dhead{display:flex;gap:16px;align-items:flex-end;margin:-80px 22px 0;position:relative;z-index:1}
+.dhead .poster{width:110px;flex:none}
+.dhead h2{margin:0 0 6px;font-size:26px;font-weight:900;letter-spacing:-.6px;line-height:1.1}
+.dbody{padding:18px 22px 26px}
+.dgrid{display:block}
+@media(min-width:1000px){.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:28px}}
+.kv{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0}
+.kv div{background:#ffffff08;border-radius:16px;padding:12px}
+.kv small{display:block;font-size:11px;color:var(--muted);font-weight:800;letter-spacing:1px;text-transform:uppercase}
+.kv b{font-size:16px}
+.hl{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
+.hl div{border-radius:16px;padding:12px;background:#2ee6d614;border:1px solid #2ee6d630}
+.hl small{display:block;font-size:11px;color:var(--cyan);font-weight:800;text-transform:uppercase;letter-spacing:1px}
+.hl b{font-size:18px}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin:8px 0 16px}
+.sgrid button{padding:11px 10px;border-radius:14px;background:#ffffff0b;border:2px solid transparent;font-weight:700;font-size:13.5px;text-align:left}
+.sgrid button.on{border-color:currentColor}
+.stars{display:flex;gap:4px;margin:6px 0 16px}
+.stars button{font-size:30px;line-height:1;color:#ffffff30}
+.stars button.on{color:var(--yellow)}
+textarea{width:100%;min-height:80px;resize:vertical}
+.secttl{font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:14px 0 6px}
+.tagrow{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:12.5px;padding:4px 10px;border-radius:999px;background:#ffffff10;font-weight:600}
+.tag i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.inl{display:flex;gap:8px;align-items:center}
+.inl input{width:110px}
+
+/* Segmente, Tier-Liste, Wunschliste, Abzeichen, Ziele, Freunde */
+.seg{display:inline-flex;gap:4px;background:var(--glass);border:1px solid var(--line);border-radius:999px;padding:4px;margin-bottom:16px;max-width:100%;overflow-x:auto;scrollbar-width:none}
+.seg button{padding:8px 16px;border-radius:999px;font-weight:700;color:var(--muted);white-space:nowrap}
+@media(max-width:480px){.seg button{padding:8px 12px;font-size:14px}}
+.seg button.on{background:var(--ink);color:var(--bg)}
+.tierrow{display:grid;grid-template-columns:60px 1fr;gap:10px;margin-bottom:10px;min-height:96px}
+.tierrow .tl{border-radius:16px;display:grid;place-items:center;font-size:30px;font-weight:900;color:#111}
+.tierrow .tz{display:flex;flex-wrap:wrap;gap:8px;padding:8px;border-radius:16px;background:#ffffff08;border:2px dashed transparent;align-content:flex-start;min-height:96px}
+.tierrow .tz.over,.tpool.over{border-color:var(--lime);background:#c8f13510}
+.titem{width:58px;cursor:grab;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.titem img{pointer-events:none;-webkit-user-drag:none}
+.titem .poster{border-radius:10px;box-shadow:none}
+.titem .ph{font-size:9px;padding:5px}
+@media(min-width:1000px){.titem{width:70px}.tierrow{grid-template-columns:76px 1fr;min-height:116px}.tierrow .tz{min-height:116px}}
+.tpool{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border-radius:16px;border:2px dashed var(--line);min-height:90px}
+.tpick{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px}
+.tpick button{width:46px;height:46px;border-radius:14px;font-size:20px;font-weight:900;color:#111;opacity:.45}
+.tpick button.on{opacity:1;outline:3px solid #fff;outline-offset:2px}
+.wlrow{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:center;padding:10px;border-radius:18px;text-decoration:none;color:inherit}
+.wlrow:hover{background:#ffffff08}
+.wlrow .poster{width:52px;border-radius:10px;box-shadow:none}
+.price{text-align:right;font-weight:800;white-space:nowrap}
+.price s{display:block;color:var(--muted);font-weight:600;font-size:12px}
+.disc{display:inline-block;background:var(--lime);color:#111;border-radius:8px;padding:2px 7px;font-weight:900;font-size:12.5px;margin-right:6px}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.bdg{border-radius:20px;padding:16px;background:#ffffff0a;border:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.bdg .e{font-size:34px;line-height:1}
+.bdg b{font-size:15px}
+.bdg span{font-size:12px;color:var(--muted)}
+.bdg.off .e{filter:grayscale(1);opacity:.35}
+.bdg.off b{color:var(--muted)}
+.bdg .pr{height:5px;border-radius:9px;background:#ffffff14;overflow:hidden;margin-top:auto}
+.bdg .pr div{height:100%;background:var(--lime)}
+.bdg.on{background:linear-gradient(150deg,#c8f13522,#2ee6d614);border-color:#c8f13555}
+.goal{margin:6px 0 14px}
+.goal .gtop{display:flex;justify-content:space-between;font-weight:700;margin-bottom:6px;gap:8px}
+.goal .gbar{height:12px;border-radius:999px;background:#00000030;overflow:hidden}
+.goal .gbar div{height:100%;border-radius:999px;background:#fff;transition:width 1.2s}
+.frow{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:8px 6px;border-radius:14px}
+.frow.me{background:#c8f13518}
+.frow img,.frow .av{width:44px;height:44px;border-radius:50%;object-fit:cover;background:#ffffff14;display:grid;place-items:center;font-weight:900}
+.frow b{display:block}.frow span{font-size:12.5px;color:var(--muted)}
+.mbar{display:flex;align-items:flex-end;gap:6px;height:140px;margin-top:10px}
+.mbar .c{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;height:100%;min-width:0}
+.mbar .pair{display:flex;gap:2px;align-items:flex-end;height:100%;width:100%}
+.mbar .pair div{flex:1;border-radius:5px 5px 2px 2px;min-height:2px;transition:height 1.2s}
+.mbar span{font-size:10.5px;color:var(--muted);font-weight:700}
+
+/* Wrapped-Story */
+#wrap{position:fixed;inset:0;z-index:100;background:#000;display:none;align-items:center;justify-content:center}
+#wrap.open{display:flex}
+.wstage{position:relative;width:100%;height:100%;max-width:480px;overflow:hidden;user-select:none;-webkit-user-select:none;container-type:inline-size}
+@media(min-width:700px){.wstage{height:min(100vh,900px);border-radius:28px;max-height:92vh}}
+.wbars{position:absolute;top:calc(10px + var(--top));left:12px;right:12px;display:flex;gap:4px;z-index:5}
+.wbars i{flex:1;height:3px;border-radius:3px;background:#ffffff40;overflow:hidden}
+.wbars i b{display:block;height:100%;width:0;background:#fff}
+.wclose{position:absolute;top:calc(22px + var(--top));right:12px;z-index:6;background:#0005;border:0;color:#fff}
+.wslide *{max-width:100%}
+.wslide{position:absolute;inset:0;padding:calc(70px + var(--top)) 28px 40px;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+.wslide .k{font-size:13px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;opacity:.8}
+.wslide .h{font-size:clamp(34px,12cqw,60px);font-weight:900;letter-spacing:-2px;line-height:.95;margin:10px 0}
+.wslide .xl{font-size:clamp(70px,28cqw,150px);font-weight:900;letter-spacing:-.06em;line-height:.85;margin:6px 0}
+.wslide p{font-size:18px;line-height:1.4;margin:8px 0;opacity:.92}
+.w-in{opacity:0;transform:translateY(26px);animation:win .7s cubic-bezier(.2,.7,.2,1) forwards}
+.w-in.d1{animation-delay:.25s}.w-in.d2{animation-delay:.55s}.w-in.d3{animation-delay:.9s}.w-in.d4{animation-delay:1.3s}.w-in.d5{animation-delay:1.8s}
+@keyframes win{to{opacity:1;transform:none}}
+.wpost{display:flex;gap:10px;align-items:flex-end;margin-top:16px}
+.wpost .poster{flex:1;border-radius:12px}
+.wtop1 .poster{width:62%;margin:10px auto 16px;border-radius:20px;box-shadow:0 30px 80px #000a}
+.wlist div{display:flex;align-items:center;gap:12px;padding:8px 0;font-size:19px;font-weight:800}
+.wlist i{font-style:normal;width:36px;font-size:28px;font-weight:900;opacity:.6}
+.wlist span{margin-left:auto;font-size:15px;opacity:.8;font-weight:700}
+.wbtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;position:relative;z-index:7}
+
+/* Picker */
+#picker{max-width:520px}
+.pk{padding:26px;text-align:center;background:radial-gradient(80% 60% at 50% 0%,#7a5cff55,transparent),#121119}
+.pk .slot{width:200px;margin:18px auto}
+.pk .slot.pop{animation:pop .6s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{0%{transform:scale(.8)}100%{transform:scale(1)}}
+.pk h2{font-size:28px;font-weight:900;letter-spacing:-.8px;margin:0 0 4px;min-height:34px}
+.pk .why{color:var(--muted);min-height:20px}
+.pk .opts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:12px 0}
+.pk .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+
+/* Einstellungen & Sperrbildschirm */
+fieldset{border:1px solid var(--line);border-radius:20px;margin:0 0 14px;padding:14px 16px}
+legend{font-weight:900;padding:0 6px}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 5px;font-weight:600}
+fieldset input[type=text],fieldset input[type=password],fieldset input[type=number]{width:100%}
+.check{display:flex;gap:10px;align-items:center;color:var(--ink)}
+.help{font-size:13px;color:var(--muted);margin-top:8px}
+.help ol{margin:4px 0 0;padding-left:18px}
+.ok{color:var(--lime)}.bad{color:#ff6b6b}
+.src{display:flex;gap:10px;padding:5px 0;font-size:14px}
+.empty{text-align:center;padding:60px 20px}
+.empty .big{margin-bottom:10px}
+.more{margin:18px auto 0;display:flex}
+.lock{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.lock .card{max-width:440px;width:100%}
+.lock input[type=password]{width:100%;margin:14px 0 10px;font-size:17px}
+.urlbox{display:flex;gap:8px;align-items:center;background:#ffffff0b;border-radius:14px;padding:10px 12px;margin-top:8px;word-break:break-all;font-weight:700}
+</style>
+</head>
+<body>
+
+<header class="top" id="top">
+  <div class="logo">🎮 <b>RECAP</b></div>
+  <nav class="deskNav" id="deskNav"></nav>
+  <div class="spacer"></div>
+  <div class="sync" id="sync"></div>
+  <button class="ibtn" id="syncBtn" title="Jetzt aktualisieren"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
+  <button class="ibtn" id="setBtn" title="Einstellungen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+</header>
+
+<main id="view"></main>
+<nav class="tabbar" id="tabbar"></nav>
+
+<dialog id="detail"><div class="dscroll" id="detailBody"></div></dialog>
+<dialog id="picker"><div class="dscroll" id="pickerBody"></div></dialog>
+<dialog id="settings"><div class="dscroll"><div class="dbody" id="settingsBody"></div></div></dialog>
+
+<script>
+"use strict";
+/* ================= Modus ================= */
+// Lokal (PC oder Heim-WLAN): Daten kommen vom Server. Sonst: Handy-App auf GitHub Pages mit verschlüsselter Kopie.
+const LOCAL = ["localhost","127.0.0.1"].includes(location.hostname) || /^\d+\.\d+\.\d+\.\d+$/.test(location.hostname);
+const CLOUD = !LOCAL;
+
+/* ================= Konstanten ================= */
+const PLAT_COLORS = {"Steam":"#66c0f4","Epic Games":"#e9e9e9","Ubisoft":"#ff8a3d","EA":"#ff4f6d","GOG":"#b26bff",
+  "Xbox PC":"#9be15d","Battle.net":"#00b4ff","Amazon":"#ffb36b","itch.io":"#fa5c5c","Humble":"#d94848","Rockstar":"#fcaf17",
+  "PlayStation":"#3d7bff","Xbox":"#2ecc40","Andere":"#8a93a6"};
+const DEV_COLORS = {"PC":"#c8f135","PlayStation":"#3d7bff","Xbox":"#2ecc40"};
+const pcolor = p => PLAT_COLORS[p] || PLAT_COLORS.Andere;
+const STATUS = [
+  {k:"als_naechstes", l:"Als Nächstes", e:"🎯", c:"#c8f135", g:"open"},
+  {k:"angefangen",    l:"Angefangen",   e:"▶️", c:"#2ee6d6", g:"open"},
+  {k:"pausiert",      l:"Pausiert",     e:"⏸️", c:"#ffd23f", g:"open"},
+  {k:"ungespielt",    l:"Ungespielt",   e:"📦", c:"#a19eb6", g:"open"},
+  {k:"durchgespielt", l:"Durchgespielt",e:"🏁", c:"#7a5cff", g:"done"},
+  {k:"komplett",      l:"100 %",        e:"🏆", c:"#ff4fa3", g:"done"},
+  {k:"abgebrochen",   l:"Abgebrochen",  e:"🪦", c:"#ff8a3d", g:"out"},
+  {k:"endlos",        l:"Endlos / Multiplayer", e:"♾️", c:"#66c0f4", g:"out"},
+  {k:"ignoriert",     l:"Kein Interesse", e:"🙈", c:"#5b586b", g:"out"},
+];
+const SMAP = Object.fromEntries(STATUS.map(s=>[s.k,s]));
+const LOTR = 686;
+const WD = ["Mo","Di","Mi","Do","Fr","Sa","So"];
+const ICONS = {
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-6h6v6"/></svg>',
+  lib:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>',
+  back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 4h14v16l-7-4-7 4z"/></svg>',
+  act:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>',
+  wrap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg>',
+};
+const ROUTES = [["uebersicht","Übersicht","home"],["spiele","Spiele","lib"],["backlog","Backlog","back"],["aktivitaet","Aktivität","act"],["wrapped","Wrapped","wrap"]];
+
+/* ================= Helfer ================= */
+const S = {data:null, snap:null, period:"all", groups:[], gmap:new Map(),
+  lib:{q:"",dev:"",sort:"min",limit:60,played:false}, bl:{f:"open",sort:"added",limit:80}};
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const num = (n,d=0) => Number(n).toLocaleString("de-DE",{maximumFractionDigits:d,minimumFractionDigits:d});
+function hrs(min){ if (min < 60) return `${Math.round(min)} Min`; const h=min/60; return `${num(h, h<10?1:0)} Std`; }
+function pdate(s){ if(!s) return null; const d=new Date(String(s).replace(" ","T")); return isNaN(d)||d.getFullYear()<1990?null:d; }
+const fdate = d => d ? d.toLocaleDateString("de-DE",{day:"numeric",month:"short",year:"numeric"}) : "–";
+const norm = t => String(t||"").toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g,"").replace(/[™®©]/g,"").replace(/[^a-z0-9]+/g," ").trim();
+function hash(s){ let h=0; for (const c of String(s)) h=(h*31+c.charCodeAt(0))|0; return Math.abs(h); }
+const PH_GRADS = [["#ff4fa3","#7a5cff"],["#c8f135","#2ee6d6"],["#ff8a3d","#ff4fa3"],["#3d7bff","#2ee6d6"],["#7a5cff","#3d7bff"],["#ffd23f","#ff8a3d"]];
+function ph(title){ const [a,b]=PH_GRADS[hash(title)%PH_GRADS.length]; return `<div class="ph" style="background:linear-gradient(140deg,${a},${b})">${esc(title)}</div>`; }
+function img(srcs, title){
+  srcs = (srcs||[]).filter(Boolean);
+  if (!srcs.length) return ph(title);
+  return `<img loading="lazy" decoding="async" alt="" src="${esc(srcs[0])}" data-fb="${esc(srcs.slice(1).join("|"))}" data-t="${esc(title)}" onerror="imgFail(this)">`;
+}
+window.imgFail = el => {
+  const fb = (el.dataset.fb||"").split("|").filter(Boolean);
+  if (fb.length){ el.dataset.fb = fb.slice(1).join("|"); el.src = fb[0]; }
+  else el.outerHTML = ph(el.dataset.t||"");
+};
+const platLabel = r => r.device === "PC" ? r.store : r.device;
+const dayKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+function toast(msg){ const t=document.createElement("div"); t.textContent=msg;
+  t.style.cssText="position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#f6f4ff;color:#08080c;padding:12px 18px;border-radius:999px;font-weight:800;z-index:99;box-shadow:0 10px 30px #0008";
+  document.body.appendChild(t); setTimeout(()=>t.remove(),2600); }
+
+/* ================= Verschlüsselung (Handy-App) ================= */
+const enc = new TextEncoder();
+const b64d = s => Uint8Array.from(atob(s), c=>c.charCodeAt(0));
+function b64e(u8){ let s=""; for (let i=0;i<u8.length;i+=0x8000) s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000)); return btoa(s); }
+async function deriveKeys(pass, salt, it){
+  const base = await crypto.subtle.importKey("raw", enc.encode(pass), "PBKDF2", false, ["deriveBits"]);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt,iterations:it}, base, 512));
+  const ek = await crypto.subtle.importKey("raw", bits.slice(0,32), {name:"HMAC",hash:"SHA-256"}, false, ["sign"]);
+  const mk = await crypto.subtle.importKey("raw", bits.slice(32), {name:"HMAC",hash:"SHA-256"}, false, ["sign","verify"]);
+  return {ek, mk};
+}
+async function keystream(ek, nonce, len){
+  const n = Math.ceil(len/32), out = new Uint8Array(n*32);
+  for (let i=0;i<n;i+=1024){
+    const ps = [];
+    for (let j=i;j<Math.min(n,i+1024);j++){ const m=new Uint8Array(nonce.length+4); m.set(nonce); new DataView(m.buffer).setUint32(nonce.length,j); ps.push(crypto.subtle.sign("HMAC",ek,m)); }
+    (await Promise.all(ps)).forEach((r,k)=>out.set(new Uint8Array(r),(i+k)*32));
+  }
+  return out.subarray(0,len);
+}
+const concat = (...a) => { const o=new Uint8Array(a.reduce((s,x)=>s+x.length,0)); let p=0; a.forEach(x=>{o.set(x,p);p+=x.length}); return o; };
+async function decryptBlob(text, pass){
+  const d = JSON.parse(text), salt=b64d(d.salt), nonce=b64d(d.nonce), ct=b64d(d.ct), tag=b64d(d.tag);
+  const {ek, mk} = await deriveKeys(pass, salt, d.it||310000);
+  if (!await crypto.subtle.verify("HMAC", mk, tag, concat(salt,nonce,ct))) throw new Error("Falsches Passwort");
+  const ks = await keystream(ek, nonce, ct.length), pt = new Uint8Array(ct.length);
+  for (let i=0;i<ct.length;i++) pt[i] = ct[i]^ks[i];
+  let bytes = pt;
+  if (d.gz) bytes = new Uint8Array(await new Response(new Blob([pt]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer());
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+async function encryptObj(obj, pass){
+  const it = 310000, salt = crypto.getRandomValues(new Uint8Array(16)), nonce = crypto.getRandomValues(new Uint8Array(12));
+  const pt = enc.encode(JSON.stringify(obj)), {ek, mk} = await deriveKeys(pass, salt, it);
+  const ks = await keystream(ek, nonce, pt.length), ct = new Uint8Array(pt.length);
+  for (let i=0;i<pt.length;i++) ct[i] = pt[i]^ks[i];
+  const tag = new Uint8Array(await crypto.subtle.sign("HMAC", mk, concat(salt,nonce,ct)));
+  return JSON.stringify({v:1,it,gz:false,salt:b64e(salt),nonce:b64e(nonce),ct:b64e(ct),tag:b64e(tag)});
+}
+
+/* ================= Speicher (Handy) ================= */
+const store = {
+  get(k, d){ try { const v = localStorage.getItem(k) ?? sessionStorage.getItem(k); return v===null ? d : JSON.parse(v); } catch(e){ return d; } },
+  set(k, v, persist=true){ try { (persist?localStorage:sessionStorage).setItem(k, JSON.stringify(v)); } catch(e){} },
+  del(k){ try { localStorage.removeItem(k); sessionStorage.removeItem(k); } catch(e){} },
+};
+const pass = () => store.get("gr_pass", null);
+const edits = () => store.get("gr_edits", []);
+
+/* ================= Daten laden ================= */
+async function load(){
+  if (CLOUD) return loadCloud();
+  S.yearPM = undefined;
+  try { S.data = await (await fetch(`/api/data?period=${S.period}`)).json(); }
+  catch(e){ $("#view").innerHTML = `<div class="empty"><div class="big">📡</div><h2>Keine Verbindung</h2><p class="help">Läuft Gaming Recap noch auf deinem PC?</p></div>`; return; }
+  buildGroups(); header(); route();
+  if (S.data.syncing) setTimeout(load, 2500);
+}
+
+async function loadCloud(force){
+  if (!pass()) return lockScreen();
+  if (!S.snap || force){
+    let text = null;
+    try { const r = await fetch(`data.enc?t=${Date.now()}`, {cache:"no-store"}); if (r.ok) text = await r.text(); } catch(e){}
+    if (text) store.set("gr_blob", text); else text = store.get("gr_blob", null);
+    if (!text){ $("#view").innerHTML = `<div class="empty"><div class="big">☁️</div><h2>Noch keine Daten</h2><p class="help">Dein PC hat noch nichts hochgeladen. Prüfe in den Einstellungen am PC den Bereich „Handy-App“.</p></div>`; return; }
+    try { S.snap = await decryptBlob(text, pass()); }
+    catch(e){ store.del("gr_pass"); return lockScreen("Das Passwort passt nicht."); }
+    // Bereits vom PC übernommene Änderungen aus der Warteschlange entfernen
+    const meta = S.snap.meta || {};
+    store.set("gr_edits", edits().filter(e => {
+      if (e.kind === "kv") return !(S.snap.goals_updated && Date.parse(S.snap.goals_updated) >= e.ts);
+      const m = meta[norm(e.key)]; return !(m && m.updated && Date.parse(m.updated) >= e.ts) && Date.now()-e.ts < 30*86400e3; }));
+  }
+  const snap = S.snap, meta = {...(snap.meta||{})};
+  let goals = snap.goals || {};
+  for (const e of edits()){
+    if (e.kind === "kv"){ if (e.key === "goals") goals = e.value; continue; }
+    const k = norm(e.key); meta[k] = {...(meta[k]||{}), ...pick(e,["status","rating","note","tier"]), updated:new Date(e.ts).toISOString()};
+  }
+  const p = S.period === "all" ? null : (snap.periods||{})[S.period];
+  S.data = {last_sync:snap.last_sync, sources:snap.sources||{}, games:snap.games||[], meta, hltb:snap.hltb||{},
+    sessions:snap.sessions||[], status_log:snap.status_log||[], goals, steam:snap.steam||{}, prefs:snap.prefs||{},
+    playing:[], can_edit:false, period: p ? p.info : {period:"all"}, period_minutes: p ? p.pm : null};
+  S.yearPM = (snap.periods||{}).year ? snap.periods.year.pm : null; S.yearInfo = (snap.periods||{}).year ? snap.periods.year.info : null;
+  buildGroups(); header(); route(); flushEdits();
+}
+const pick = (o, ks) => Object.fromEntries(ks.filter(k=>k in o).map(k=>[k,o[k]]));
+
+function lockScreen(err){
+  $("#tabbar").style.display = "none"; $("#top").style.display = "none";
+  $("#view").innerHTML = `<div class="lock"><div class="card hero" style="min-height:0">
+    <div class="eyebrow">Gaming Recap</div><div class="mid" style="margin:8px 0 6px">Willkommen zurück.</div>
+    <div class="sub">Gib das Passwort ein, das du am PC für die Handy-App festgelegt hast.</div>
+    <input type="password" id="pw" placeholder="Passwort" autocomplete="current-password">
+    <label class="check" style="margin:0 0 16px"><input type="checkbox" id="remember" checked> Auf diesem Gerät merken</label>
+    ${err?`<div class="bad" style="margin-bottom:12px;font-weight:700">${esc(err)}</div>`:""}
+    <button class="btn" id="unlock">Entsperren</button></div></div>`;
+  const go = async () => {
+    const pw = $("#pw").value; if (!pw) return;
+    $("#unlock").disabled = true; $("#unlock").textContent = "Entschlüssle …";
+    store.set("gr_pass", pw, $("#remember").checked);
+    $("#tabbar").style.display = ""; $("#top").style.display = "";
+    S.snap = null; loadCloud(true);
+  };
+  $("#unlock").onclick = go; $("#pw").onkeydown = e => { if (e.key==="Enter") go(); };
+  $("#pw").focus();
+}
+
+/* ================= Gruppen bauen ================= */
+function autoStatus(g){
+  const c = (g.completion||"").toLowerCase();
+  if (c){
+    if (/not|nicht|ungespielt/.test(c)) return "ungespielt";
+    if (/plan|geplant|wunsch/.test(c)) return "als_naechstes";
+    if (/hold|pausiert|pause/.test(c)) return "pausiert";
+    if (/abandon|abgebrochen/.test(c)) return "abgebrochen";
+    if (/complet|abgeschlossen|100|komplett/.test(c)) return "komplett";
+    if (/beaten|beendet|durch|geschafft/.test(c)) return "durchgespielt";
+  }
+  const ft = g.features.map(x=>x.toLowerCase());
+  const mp = ft.some(x=>/multi|online|pvp|mmo/.test(x)), sp = ft.some(x=>/single|einzel/.test(x));
+  if ((mp && !sp) || g.genres.some(x=>/battle royale|mmo/i.test(x))) return "endlos";
+  if (c && /play|spiel/.test(c)) return "angefangen";
+  return g.pcMinutes > 0 ? "angefangen" : "ungespielt";
+}
+function coverOrder(urls, extra){
+  // Playnite-Cover (nur am PC erreichbar) > Steam > HowLongToBeat > Plattform-Bild
+  const pn=[], st=[], nat=[];
+  for (const u of urls){ if (u.startsWith("/api/img")) { if (LOCAL) pn.push(u); } else if (u.includes("steamstatic")) st.push(u); else nat.push(u); }
+  return [...new Set([...pn, ...st, ...(extra||[]), ...nat])];
+}
+function buildGroups(){
+  const d = S.data, pm = d.period_minutes, m = new Map();
+  for (const r of d.games){
+    const k = norm(r.title) || r.id;
+    let g = m.get(k);
+    if (!g){ g = {key:k, title:r.title, recs:[], minutes:0, pmin:0, pcMinutes:0, plats:{}, devs:{}, pc:false, genres:new Set(), features:new Set(),
+      devsList:new Set(), year:null, added:null, last:null, installed:false, hidden:true, completion:null, first:null}; m.set(k,g); }
+    g.recs.push(r);
+    const mins = r.minutes||0, pmins = pm ? (pm[r.id]||0) : mins;
+    g.minutes += mins; g.pmin += pmins;
+    const pl = platLabel(r);
+    g.plats[pl] = (g.plats[pl]||0) + pmins;
+    g.devs[r.device] = (g.devs[r.device]||0) + pmins;
+    if (r.device === "PC"){
+      g.pc = true; g.pcMinutes += mins;
+      if (!r.hidden) g.hidden = false;
+      (r.genres||[]).forEach(x=>g.genres.add(x)); (r.features||[]).forEach(x=>g.features.add(x));
+      (r.developers||[]).forEach(x=>g.devsList.add(x));
+      if (r.release_year && (!g.year || r.release_year < g.year)) g.year = r.release_year;
+      const a = pdate(r.added); if (a && (!g.added || a < g.added)) g.added = a;
+      if (r.installed) g.installed = true;
+      if (r.completion && !g.completion) g.completion = r.completion;
+    }
+    const l = pdate(r.last_played); if (l && (!g.last || l > g.last)) g.last = l;
+    const f = pdate(r.first_played); if (f && (!g.first || f < g.first)) g.first = f;
+  }
+  for (const g of m.values()){
+    const recs = [...g.recs].sort((a,b)=>(b.minutes||0)-(a.minutes||0));
+    const pcRec = recs.find(r=>r.device==="PC"); if (pcRec) g.title = pcRec.title; else g.title = recs[0].title;
+    g.hltb = (d.hltb||{})[g.key] || null;
+    const hImg = g.hltb && g.hltb.image ? [g.hltb.image] : [];
+    g.covers = coverOrder(recs.flatMap(r=>r.covers||[]), hImg);
+    g.banners = coverOrder(recs.flatMap(r=>r.banners||[]), hImg).concat(g.covers.filter(c=>!c.includes("library_600x900")));
+    g.genres = [...g.genres]; g.features = [...g.features]; g.devsList = [...g.devsList];
+    g.meta = d.meta[g.key] || {};
+    g.tier = g.meta.tier || null;
+    const sr = recs.find(r=>r.steam_appid); g.appid = sr ? sr.steam_appid : null;
+    const sx = d.steam || {};
+    g.ach = g.appid && sx.ach ? sx.ach[g.appid] || null : null;
+    g.price = g.appid && sx.prices ? sx.prices[g.appid] || null : null;
+    g.auto = autoStatus(g);
+    g.status = g.meta.status || g.auto;
+    g.isAuto = !g.meta.status;
+    g.remaining = remaining(g);
+  }
+  S.groups = [...m.values()];
+  for (const g of S.groups) for (const r of g.recs){ const k = norm(r.title); if (k && !m.has(k)) m.set(k, g); }
+  S.gmap = m;
+}
+function remaining(g){
+  if (!g.hltb || !g.hltb.main || !g.pc || SMAP[g.status].g !== "open") return null;
+  const main = g.hltb.main;
+  return g.status==="angefangen" || g.status==="pausiert" ? Math.max(main - g.pcMinutes, main*0.15) : main;
+}
+const val = g => g.pmin;
+
+/* ================= Kopfzeile ================= */
+function header(){
+  const d = S.data;
+  if (CLOUD){
+    const pend = edits().length;
+    $("#sync").innerHTML = d.last_sync ? `Stand vom PC<br>${new Date(d.last_sync).toLocaleString("de-DE",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}` : "";
+    $("#setBtn").innerHTML = $("#setBtn").innerHTML.replace(/<span class="badge">.*?<\/span>/,"") + (pend?`<span class="badge">${pend}</span>`:"");
+    $("#setBtn").onclick = cloudMenu; $("#syncBtn").onclick = () => { S.snap=null; loadCloud(true); toast("Aktualisiert"); };
+    return;
+  }
+  $("#sync").innerHTML = d.syncing ? "Aktualisiere …" : d.last_sync ? `Stand<br>${new Date(d.last_sync).toLocaleString("de-DE",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}` : "";
+  $("#syncBtn").firstElementChild.classList.toggle("spin", !!d.syncing);
+  $("#syncBtn").style.display = $("#setBtn").style.display = d.can_edit ? "" : "none";
+}
+
+/* ================= Router ================= */
+function cur(){ const h = location.hash.replace("#/",""); return ROUTES.some(r=>r[0]===h) ? h : "uebersicht"; }
+function nav(){
+  const c = cur();
+  $("#tabbar").innerHTML = ROUTES.map(([k,l,i])=>`<a href="#/${k}" class="${c===k?"on":""}">${ICONS[i]}${l}</a>`).join("");
+  $("#deskNav").innerHTML = ROUTES.map(([k,l])=>`<a href="#/${k}" class="${c===k?"on":""}">${l}</a>`).join("");
+}
+function route(){
+  nav();
+  if (!S.data) return;
+  ({uebersicht:renderOverview, spiele:renderLib, backlog:renderBacklog, aktivitaet:renderActivity, wrapped:renderWrapped})[cur()]();
+  afterRender();
+}
+window.addEventListener("hashchange", ()=>{ document.querySelectorAll("dialog[open]").forEach(d=>d.close()); if ($("#wrap") && $("#wrap").classList.contains("open")) closeWrapped(); route(); scrollTo(0,0); });
+function afterRender(){
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ e.target.classList.add("in"); animate(e.target); io.unobserve(e.target);} }), {threshold:.1});
+  document.querySelectorAll(".reveal").forEach(el=>io.observe(el));
+  document.querySelectorAll(".heatwrap").forEach(el=>el.scrollLeft = el.scrollWidth);
+}
+function animate(root){
+  root.querySelectorAll("[data-count]").forEach(el=>{
+    const to = Number(el.dataset.count), dec = Number(el.dataset.dec||0), t0 = performance.now(), dur = 1400;
+    const step = t => { const p = Math.min(1,(t-t0)/dur), e = 1-Math.pow(1-p,4); el.textContent = num(to*e, dec); if (p<1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  });
+  root.querySelectorAll("[data-w]").forEach(el=>requestAnimationFrame(()=>{ el.style.width = el.dataset.w; }));
+  root.querySelectorAll("[data-h]").forEach(el=>requestAnimationFrame(()=>{ el.style.height = el.dataset.h; }));
+}
+
+/* ================= Session-Auswertung ================= */
+function sessionStats(fromTs){
+  const ss = (S.data.sessions||[]).filter(s=>!fromTs || s[1] >= fromTs);
+  const perDay = {}, hours = new Array(24).fill(0), wd = new Array(7).fill(0), perGame = {};
+  let longest = null, total = 0;
+  for (const [k, s, sec] of ss){
+    const d = new Date(s*1000), min = sec/60;
+    total += min;
+    perDay[dayKey(d)] = (perDay[dayKey(d)]||0) + min;
+    wd[(d.getDay()+6)%7] += min;
+    perGame[k] = (perGame[k]||0) + min;
+    let t = s; const end = s + sec;
+    while (t < end){ const x = new Date(t*1000), h = x.getHours(); x.setMinutes(60,0,0); const nt = Math.min(end, x.getTime()/1000); hours[h] += (nt-t)/60; t = nt; }
+    if (!longest || sec > longest[2]) longest = [k, s, sec];
+  }
+  const days = Object.keys(perDay).sort();
+  let best = 0, run = 0, prev = null;
+  for (const dk of days){ const d = new Date(dk+"T12:00"); run = prev && (d-prev)/864e5 < 1.5 ? run+1 : 1; best = Math.max(best, run); prev = d; }
+  const set = new Set(days); let curStreak = 0; const t = new Date(); t.setHours(12,0,0,0);
+  if (!set.has(dayKey(t))) t.setDate(t.getDate()-1);
+  while (set.has(dayKey(t))){ curStreak++; t.setDate(t.getDate()-1); }
+  const win = {Nachteule:[22,23,0,1,2,3,4], Frühaufsteher:[5,6,7,8,9,10], Mittagszocker:[11,12,13,14,15,16], "Feierabend-Gamer":[17,18,19,20,21]};
+  const wsum = Object.fromEntries(Object.entries(win).map(([k,hs])=>[k, hs.reduce((s,h)=>s+hours[h],0)]));
+  const type = total ? Object.entries(wsum).sort((a,b)=>b[1]-a[1])[0][0] : null;
+  const since = ss.length ? ss[0][1] : null;
+  return {ss, perDay, hours, wd, perGame, longest, total, days, best, curStreak, type, night: total ? wsum.Nachteule/total : 0,
+    weekend: total ? (wd[5]+wd[6])/total : 0, since, avg: ss.length ? total/ss.length : 0};
+}
+function titleOf(k){ const g = S.gmap.get(k); return g ? g.title : k; }
+function weeklyPace(){
+  const ss = S.data.sessions||[]; if (!ss.length) return null;
+  const now = Date.now()/1000, first = ss[0][1];
+  if (now - first < 7*86400) return null;
+  const from = Math.max(first, now - 56*86400);
+  const min = ss.filter(s=>s[1]>=from).reduce((a,s)=>a+s[2]/60,0);
+  return min / ((now-from)/(7*86400));
+}
+
+/* ================= Übersicht ================= */
+function periodChips(){
+  const y = new Date().getFullYear();
+  return `<div class="chips">${[["all","Gesamt"],["year",String(y)],["month","Dieser Monat"],["week","Letzte 7 Tage"]]
+    .map(([k,l])=>`<button class="chip ${S.period===k?"on":""}" onclick="setPeriod('${k}')">${l}</button>`).join("")}</div>`;
+}
+window.setPeriod = p => { S.period = p; load(); };
+function periodStart(){ const n=new Date(); if (S.period==="year") return new Date(n.getFullYear(),0,1)/1000; if (S.period==="month") return new Date(n.getFullYear(),n.getMonth(),1)/1000; if (S.period==="week") return Date.now()/1000-7*86400; return 0; }
+function periodNotice(){
+  const p = S.data.period||{};
+  if (!p.period || p.period === "all") return "";
+  if (!p.tracking_since) return `<div class="notice">📈 Der Verlauf startet mit dem ersten Abgleich.</div>`;
+  if (!p.complete) return `<div class="notice">📈 Aufgezeichnet wird seit ${fdate(new Date(p.tracking_since))}. Die Plattformen liefern nur Gesamtzeiten, deshalb zählt dieser Zeitraum ab dann.</div>`;
+  return "";
+}
+function playingBanner(){
+  const p = S.data.playing||[];
+  return p.length ? `<div class="playing"><i></i>Läuft gerade: ${p.map(x=>esc(titleOf(x.key)||x.title)).join(", ")} · seit ${new Date(p[0].since*1000).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})} Uhr</div>` : "";
+}
+function emptyState(){
+  const d = S.data;
+  let inner;
+  if (d.syncing) inner = `<div class="big">⏳</div><h2>Lade deine Spiele …</h2><p class="help">Beim ersten Mal kann das eine Minute dauern.</p>`;
+  else if (S.period !== "all") inner = `<div class="big">🌙</div><h2>Noch nichts in diesem Zeitraum</h2><p class="help">Oder der Verlauf hat gerade erst begonnen.</p>`;
+  else if (d.can_edit) return setupChecklist();
+  else inner = `<div class="big">🎮</div><h2>Noch keine Daten</h2><p class="help">Richte Gaming Recap zuerst am PC ein.</p>`;
+  return `<div class="empty">${inner}</div>${sourcesBlock()}`;
+}
+
+function setupChecklist(){
+  const src = S.data.sources || {}, st = n => src[n] ? (src[n].ok ? "ok" : "bad") : "todo";
+  const steps = [
+    ["Playnite", "🖥️", "Playnite verbinden", "Sammelt alle PC-Launcher. Einstellungen › „Erweiterung installieren“, dann Playnite neu starten."],
+    ["Steam", "🎮", "Steam verbinden", "API-Key und Profil-Link eintragen. Bringt Erfolge, Wunschliste und Freunde mit."],
+    ["PlayStation", "🔵", "PS5 verbinden", "NPSSO-Token eintragen."],
+    ["Xbox", "🟢", "Xbox verbinden", "OpenXBL-Key eintragen."],
+    ["Handy-Cloud", "📱", "Handy-App einrichten", "GitHub-Repository und Passwort eintragen (Schritt 6 der Anleitung)."],
+  ];
+  return `<section class="card hero" style="min-height:0;margin-bottom:14px"><div class="eyebrow">Willkommen</div><div class="mid" style="margin:8px 0">Los geht's.</div>
+    <div class="sub">Verbinde deine Plattformen, dann füllt sich alles von selbst. Du kannst jederzeit weitere ergänzen.</div></section>
+    <section class="card">${steps.map(([k,e,t,d])=>{ const s = st(k); return `<div class="brow" style="grid-template-columns:44px 1fr auto;cursor:default">
+      <div style="font-size:30px;text-align:center">${e}</div><div class="mid2"><b>${t}</b><span style="white-space:normal">${s==="bad"?`<span class="bad">${esc(src[k].error)}</span>`:d}</span></div>
+      <span class="pill" style="${s==="ok"?"background:#c8f13522;color:var(--lime)":s==="bad"?"background:#ff6b6b22;color:#ff6b6b":"background:#ffffff10;color:var(--muted)"}">${s==="ok"?"✓ Verbunden":s==="bad"?"Fehler":"Offen"}</span></div>`; }).join("")}
+    <div style="margin-top:16px"><button class="btn limeb" onclick="openSettings()">Einstellungen öffnen</button></div></section>`;
+}
+function renderOverview(){
+  const played = S.groups.filter(g=>val(g)>0).sort((a,b)=>val(b)-val(a));
+  let h = playingBanner() + periodChips() + periodNotice();
+  if (!played.length){ $("#view").innerHTML = h + emptyState(); return; }
+  const total = played.reduce((s,g)=>s+val(g),0);
+  const devT = {}, platT = {};
+  for (const g of played){ for (const [k,v] of Object.entries(g.devs)) devT[k]=(devT[k]||0)+v; for (const [k,v] of Object.entries(g.plats)) if (v) platT[k]=(platT[k]||0)+v; }
+  const plats = Object.entries(platT).sort((a,b)=>b[1]-a[1]);
+  const lotr = total/LOTR;
+  const label = S.period==="all" ? "Insgesamt hast du" : S.period==="year" ? `${new Date().getFullYear()} hast du` : S.period==="month" ? "Diesen Monat hast du" : "In den letzten 7 Tagen hast du";
+
+  h += `<div class="bento">`;
+  h += `<section class="card hero reveal"><div class="eyebrow">${label}</div>
+    <div class="num" data-count="${Math.round(total/60)}">0</div><div class="unit">Stunden gezockt.</div>
+    <div class="sub">Das sind <b>${num(total/1440,1)} Tage</b> am Stück – oder <b>${num(lotr, lotr<10?1:0)}×</b> die Herr-der-Ringe-Trilogie in der Extended Edition.</div>
+    <div class="hstats"><div class="hstat"><b>${num(played.length)}</b><span>Spiele</span></div>
+      <div class="hstat"><b>${plats.length}</b><span>Plattformen</span></div>
+      <div class="hstat"><b>${hrs(total/played.length)}</b><span>Ø pro Spiel</span></div></div></section>`;
+
+  const t = played[0];
+  h += `<section class="card topg s7 reveal" onclick="openGame('${esc(t.key)}')">
+    <div class="bgimg">${img(t.banners, t.title)}</div><div class="rank1">#1</div>
+    <div class="in"><div class="eyebrow">Dein Spiel Nummer eins</div><div class="t">${esc(t.title)}</div>
+    <div><b style="font-size:20px">${hrs(val(t))}</b> · ${num(val(t)/total*100)} % deiner Zeit</div>
+    <div class="tagrow" style="margin-top:10px">${platTags(t.plats)}</div></div></section>`;
+
+  const devs = ["PC","PlayStation","Xbox"].filter(k=>devT[k]);
+  const pcShare = (devT.PC||0)/total*100;
+  h += `<section class="card lime s5 reveal"><h3>PC vs. Konsole</h3>
+    <div class="big"><span data-count="${Math.round(pcShare)}">0</span>%</div>
+    <div style="font-weight:800;font-size:18px;margin-bottom:8px">${pcShare>=50?"PC-Gamer durch und durch.":"Die Couch gewinnt."}</div>
+    ${devs.map(k=>`<div class="devrow"><span class="lbl">${k}</span><span class="trk"><div style="width:0" data-w="${devT[k]/total*100}%"></div></span><span class="v">${hrs(devT[k])}</span></div>`).join("")}</section>`;
+
+  const t10 = played.slice(0,10);
+  h += `<section class="card reveal"><h3>Deine Top ${t10.length}</h3><div class="rail">${t10.map((g,i)=>`
+    <div class="rk" onclick="openGame('${esc(g.key)}')"><div class="n">${i+1}</div><div class="p"><div class="poster">${img(g.covers,g.title)}</div>
+    <div class="meta">${esc(g.title)}<span>${hrs(val(g))}</span></div></div></div>`).join("")}</div></section>`;
+
+  h += `<section class="card s6 reveal"><h3>Nach Plattform</h3>${plats.map(([p,v])=>`
+    <div class="pbar"><span class="dot" style="background:${pcolor(p)}"></span><span class="nm">${esc(p)}</span>
+    <span class="trk"><div style="width:0;background:${pcolor(p)}" data-w="${v/plats[0][1]*100}%"></div></span><span class="v">${hrs(v)}</span></div>`).join("")}</section>`;
+
+  const gen = {};
+  for (const g of played) for (const x of g.genres) gen[x] = (gen[x]||0) + (g.devs.PC||0);
+  const gl = Object.entries(gen).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  if (gl.length) h += `<section class="card pinkc s6 reveal inv"><h3>Deine Gamer-DNA</h3>
+      <div class="eyebrow" style="opacity:.8">Lieblingsgenre</div><div class="mid" style="margin:4px 0 14px">${esc(gl[0][0])}</div>
+      ${gl.slice(1).map(([n,v])=>`<div class="pbar"><span class="nm">${esc(n)}</span><span class="trk"><div style="width:0" data-w="${v/gl[0][1]*100}%"></div></span><span class="v">${hrs(v)}</span></div>`).join("")}
+      <div class="help" style="color:#160411aa">Nur PC-Spiele, Genres aus Playnite.</div></section>`;
+
+  const dec = {};
+  for (const g of played) if (g.year) { const k = Math.floor(g.year/10)*10; dec[k]=(dec[k]||0)+val(g); }
+  const dl = Object.entries(dec).sort((a,b)=>a[0]-b[0]);
+  if (dl.length){
+    const mx = Math.max(...dl.map(x=>x[1])), best = dl.find(x=>x[1]===mx)[0];
+    h += `<section class="card cyanc s6 reveal"><h3>Deine Ära</h3><div class="mid">${String(best).slice(2)}er</div>
+      <div style="font-weight:700;margin-top:4px">Am liebsten spielst du Spiele aus den ${best}ern.</div>
+      <div class="cols">${dl.map(([k,v])=>`<div class="c"><div style="height:0" data-h="${Math.max(3,v/mx*100)}%"></div><span>${String(k).slice(2)}er</span></div>`).join("")}</div></section>`;
+  }
+
+  const bl = backlogStats();
+  if (bl.total){
+    const span = (1+(gl.length?1:0)+(dl.length?1:0))%2 ? 6 : 12;
+    h += `<section class="card s${span} reveal"><h3>Dein PC-Backlog</h3><div class="bhero">
+      <div class="ring" style="--p:${bl.pct}"><div><div><b>${num(bl.pct)}%</b><br><span>geschafft</span></div></div></div>
+      <div><div class="bhero nums" style="margin-bottom:12px"><div><b>${bl.open}</b><span>offen</span></div><div><b>${bl.done}</b><span>durch</span></div>${bl.rest?`<div><b>${num(bl.rest/60)}</b><span>Std Story offen</span></div>`:""}</div>
+      <button class="btn limeb" onclick="openPicker()">🎲 Was spiele ich als Nächstes?</button></div></div></section>`;
+  }
+
+  const bd = badges(), got = bd.filter(b=>b.got);
+  const nextB = bd.filter(b=>!b.got).sort((a,b)=>b.p-a.p).slice(0, Math.max(0, 6-got.length));
+  h += `<section class="card reveal"><h3>Abzeichen · ${got.length} von ${bd.length}</h3>${badgeGrid([...got.slice(0,6), ...nextB])}
+    <button class="btn ghost small" style="margin-top:14px" onclick="location.hash='#/wrapped'">Alle Abzeichen ansehen</button></section>`;
+  h += `<section class="card reveal"><h3>Fun Facts</h3><div class="facts">${facts(played,total,plats).map(([a,b,c],i)=>{
+      const cls = ["violetc","orangec","yellowc","cyanc","pinkc","lime"][i%6];
+      return `<div class="fact ${cls}"><small>${esc(a)}</small><b>${esc(b)}</b><span>${esc(c)}</span></div>`; }).join("")}</div></section>`;
+  h += `</div>` + sourcesBlock();
+  $("#view").innerHTML = h;
+}
+
+function facts(played,total,plats){
+  const f = [];
+  f.push(["Lieblingsplattform", plats[0][0], `${num(plats[0][1]/total*100)} % deiner Zeit`]);
+  const top3 = played.slice(0,3).reduce((s,g)=>s+val(g),0);
+  f.push(["Top 3", `${num(top3/total*100)} %`, "deiner Spielzeit gehen auf drei Spiele"]);
+  const st = sessionStats(periodStart());
+  if (st.ss.length >= 5){
+    f.push([st.type, `${num(st.night*100)} %`, "deiner PC-Zeit zwischen 22 und 5 Uhr"]);
+    if (st.longest) f.push(["Längste Session", hrs(st.longest[2]/60), `${titleOf(st.longest[0])} am ${fdate(new Date(st.longest[1]*1000))}`]);
+    if (st.best > 1) f.push(["Längste Serie", `${st.best} Tage`, "am Stück gezockt"]);
+  }
+  const c100 = played.filter(g=>val(g)>=6000).length;
+  f.push(["100-Stunden-Club", `${c100} ${c100===1?"Spiel":"Spiele"}`, c100 ? "Echte Langzeitbeziehungen" : "Noch kein Mitglied"]);
+  const tempo = tempoStats();
+  if (tempo) f.push(["Tempo", `${num(Math.abs(tempo.pct))} % ${tempo.pct<0?"schneller":"langsamer"}`, `als der HowLongToBeat-Schnitt (${tempo.n} Spiele)`]);
+  const sniff = played.filter(g=>val(g)<60).length;
+  if (sniff) f.push(["Schnupperer", `${sniff} ${sniff===1?"Spiel":"Spiele"}`, "unter einer Stunde angespielt"]);
+  const multi = played.filter(g=>Object.values(g.plats).filter(Boolean).length>1);
+  if (multi.length) f.push(["Plattform-Hopper", `${multi.length}×`, `z. B. ${multi[0].title}`]);
+  if (S.period==="all"){
+    const pr = (S.data.steam||{}).prices || {};
+    const owned = S.groups.filter(g=>g.appid && pr[g.appid]);
+    const worth = owned.reduce((s,g)=>s+(pr[g.appid].orig||0),0);
+    if (worth > 0) f.push(["Kontowert", euro(worth), `für ${owned.length} Steam-Spiele zum heutigen Normalpreis`]);
+    const vals = owned.filter(g=>pr[g.appid].orig>0 && g.minutes>=120).map(g=>[g, pr[g.appid].orig/100/(g.minutes/60)]).sort((a,b)=>a[1]-b[1]);
+    if (vals.length >= 3){ f.push(["Bester Deal", vals[0][0].title, `${euro(vals[0][1]*100)} pro Stunde`]); f.push(["Teuerster Spaß", vals[vals.length-1][0].title, `${euro(vals[vals.length-1][1]*100)} pro Stunde`]); }
+    const pcMin = played.reduce((s,g)=>s+(g.devs.PC||0),0), pf = S.data.prefs||{};
+    if (pcMin > 600){ const kwh = pcMin/60*(pf.watts||350)/1000; f.push(["Stromrechnung", euro(kwh*(pf.kwh_price||0.35)*100), `ca. ${num(kwh)} kWh am PC (${pf.watts||350} W angenommen)`]); }
+    const crit = S.groups.filter(g=>g.meta.rating && g.recs.some(r=>r.community));
+    if (crit.length >= 5){ const diff = crit.reduce((s,g)=>s+g.meta.rating*20-(g.recs.find(r=>r.community).community),0)/crit.length;
+      f.push(["Kritiker-Check", diff<0?"Strenger":"Milder", `als die Community, im Schnitt ${num(Math.abs(diff))} von 100 Punkten`]); }
+    const ach = Object.values((S.data.steam||{}).ach||{});
+    if (ach.length) f.push(["Steam-Erfolge", num(ach.reduce((s,a)=>s+a.d,0)), `freigeschaltet in ${ach.filter(a=>a.d).length} Spielen`]);
+    const oldest = played.filter(g=>g.year).sort((a,b)=>a.year-b.year)[0];
+    if (oldest) f.push(["Ältester Schinken", oldest.title, `erschienen ${oldest.year}`]);
+    const dv = {};
+    for (const g of played) for (const x of g.devsList) dv[x]=(dv[x]||0)+val(g);
+    const td = Object.entries(dv).sort((a,b)=>b[1]-a[1])[0];
+    if (td) f.push(["Lieblingsstudio", td[0], `${hrs(td[1])} in deren Spielen`]);
+    const bl = backlogStats();
+    if (bl.unplayed) f.push(["Pile of Shame", `${bl.unplayed} Spiele`, "auf dem PC noch nie gestartet"]);
+  }
+  return f;
+}
+function tempoStats(){
+  const done = S.groups.filter(g=>g.pc && SMAP[g.status].g==="done" && g.hltb && g.hltb.main && g.pcMinutes > 30);
+  if (done.length < 3) return null;
+  const r = done.map(g => g.pcMinutes / (g.status==="komplett" && g.hltb.comp ? g.hltb.comp : g.hltb.main)).sort((a,b)=>a-b);
+  return {pct: (r[Math.floor(r.length/2)] - 1) * 100, n: done.length};
+}
+function platTags(plats){
+  return Object.entries(plats).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1])
+    .map(([p,v])=>`<span class="tag"><i style="background:${pcolor(p)}"></i>${esc(p)} · ${hrs(v)}</span>`).join("");
+}
+function sourcesBlock(){
+  const s = Object.entries(S.data.sources||{});
+  if (!s.length) return "";
+  return `<div style="margin-top:22px;padding:0 6px"><div class="secttl">Quellen</div>${s.map(([n,v])=>`<div class="src">
+    <span class="${v.ok?"ok":"bad"}">${v.ok?"●":"✕"}</span><span><b>${esc(n)}</b> <span style="color:var(--muted)">${v.ok
+    ? [v.count!=null?`${num(v.count)} Spiele`:"", v.minutes?hrs(v.minutes):"", v.info||""].filter(Boolean).map(x=>"· "+esc(x)).join(" ") : `· ${esc(v.error)}`}</span></span></div>`).join("")}</div>`;
+}
+
+/* ================= Bibliothek ================= */
+const TIERS = [["S","#ff4f6d"],["A","#ff8a3d"],["B","#ffd23f"],["C","#c8f135"],["D","#2ee6d6"],["F","#7a5cff"]];
+const TCOL = Object.fromEntries(TIERS);
+function libSeg(){
+  const wl = ((S.data.steam||{}).wishlist||[]).length;
+  return `<div class="seg">${[["grid","Bibliothek"],["tier","Tier-Liste"],["wish",`Wunschliste${wl?` (${wl})`:""}`]]
+    .map(([k,l])=>`<button class="${(S.lib.view||"grid")===k?"on":""}" onclick="S.lib.view='${k}';renderLib();afterRender()">${l}</button>`).join("")}</div>`;
+}
+function renderLib(){
+  if (S.lib.view === "tier") return renderTier();
+  if (S.lib.view === "wish") return renderWish();
+  const L = S.lib, devCounts = {};
+  S.groups.forEach(g=>Object.keys(g.devs).forEach(d=>devCounts[d]=(devCounts[d]||0)+1));
+  $("#view").innerHTML = `<div class="eyebrow" style="margin-top:6px">Deine Bibliothek</div><div class="h1">${num(S.groups.length)} Spiele</div>${libSeg()}
+    <div class="chips">${[["","Alle"],["PC","PC"],["PlayStation","PlayStation"],["Xbox","Xbox"]].filter(([k])=>!k||devCounts[k])
+      .map(([k,l])=>`<button class="chip ${L.dev===k?"on":""}" onclick="S.lib.dev='${k}';S.lib.limit=60;route()">${l}<small>${k?devCounts[k]:S.groups.length}</small></button>`).join("")}</div>
+    <div class="toolbar"><input id="q" type="search" placeholder="Spiel suchen …" value="${esc(L.q)}">
+      <select id="sort">${[["min","Meiste Spielzeit"],["last","Zuletzt gespielt"],["name","Name A–Z"],["year","Neueste zuerst"],["added","Neu in der Bibliothek"],["hltb","Kürzeste (HLTB)"]]
+        .map(([k,l])=>`<option value="${k}" ${L.sort===k?"selected":""}>${l}</option>`).join("")}</select>
+      <label class="check" style="margin:0"><input type="checkbox" id="played" ${L.played?"checked":""}> nur gespielte</label></div>
+    <div class="grid" id="grid"></div><div id="moreWrap"></div>`;
+  $("#q").oninput = e => { L.q = e.target.value; L.limit = 60; libGrid(); };
+  $("#sort").onchange = e => { L.sort = e.target.value; libGrid(); };
+  $("#played").onchange = e => { L.played = e.target.checked; libGrid(); };
+  libGrid();
+}
+const hl = g => g.hltb && g.hltb.main ? g.hltb.main : Infinity;
+function libGrid(){
+  const L = S.lib, q = norm(L.q);
+  const list = S.groups.filter(g => (!L.dev || g.devs[L.dev]!==undefined) && (!q || g.key.includes(q)) && (!L.played || g.minutes>0));
+  list.sort({min:(a,b)=>b.minutes-a.minutes, last:(a,b)=>(b.last||0)-(a.last||0), name:(a,b)=>a.title.localeCompare(b.title,"de"),
+    year:(a,b)=>(b.year||0)-(a.year||0), added:(a,b)=>(b.added||0)-(a.added||0), hltb:(a,b)=>hl(a)-hl(b)}[L.sort]);
+  $("#grid").innerHTML = list.slice(0,L.limit).map(g=>`<div class="gcard" onclick="openGame('${esc(g.key)}')">
+    <div class="poster">${img(g.covers,g.title)}<div class="dev">${Object.keys(g.devs).map(d=>`<i style="background:${DEV_COLORS[d]}"></i>`).join("")}</div>
+    <div class="ov">${g.minutes?`<b>${hrs(g.minutes)}</b>`:""}</div></div><div class="nm">${esc(g.title)}</div></div>`).join("") || `<p class="help">Nichts gefunden.</p>`;
+  $("#moreWrap").innerHTML = list.length > L.limit ? `<button class="btn ghost more" onclick="S.lib.limit+=120;libGrid()">Mehr anzeigen (${list.length-L.limit})</button>` : "";
+}
+
+/* ================= Backlog ================= */
+const blGames = () => S.groups.filter(g=>g.pc && !g.hidden);
+function backlogStats(){
+  const b = blGames(); let open=0, done=0, unplayed=0, rest=0, known=0;
+  for (const g of b){ const gr = SMAP[g.status].g; if (gr==="open"){ open++; if (g.remaining!=null){ rest+=g.remaining; known++; } } if (gr==="done") done++; if (g.status==="ungespielt") unplayed++; }
+  return {total:b.length, open, done, unplayed, rest, known, pct: open+done ? done/(open+done)*100 : 0};
+}
+function pill(g){
+  const s = SMAP[g.status];
+  return `<span class="pill ${g.isAuto?"auto":""}" style="background:${s.c}22;color:${s.c}">${s.e} ${s.l}</span>`;
+}
+function forecast(st){
+  const pace = weeklyPace();
+  if (!st.rest) return "";
+  if (!pace) return `Prognose folgt, sobald der Tracker eine Woche gesammelt hat.`;
+  const d = new Date(Date.now() + st.rest/pace*7*864e5);
+  return `Bei deinem Tempo (${hrs(pace)} pro Woche) wärst du im <b>${d.toLocaleDateString("de-DE",{month:"long",year:"numeric"})}</b> durch – wenn du nur noch Backlog spielst.`;
+}
+function renderBacklog(){
+  const B = S.bl, all = blGames(), st = backlogStats();
+  if (!all.length){ $("#view").innerHTML = `<div class="empty"><div class="big">📚</div><h2>Noch keine PC-Spiele</h2><p class="help">Verbinde Playnite oder Steam in den Einstellungen.</p></div>`; return; }
+  const counts = {}; all.forEach(g=>counts[g.status]=(counts[g.status]||0)+1);
+  const filters = [["open","Alles offen",st.open],["done","Geschafft",st.done], ...STATUS.map(s=>[s.k,`${s.e} ${s.l}`,counts[s.k]||0]).filter(x=>x[2])];
+  $("#view").innerHTML = `<div class="eyebrow" style="margin-top:6px">PC-Backlog</div><div class="h1">${st.open} offen</div>
+  <div class="bl-layout"><aside class="bl-aside">
+    <section class="card violetc reveal"><div class="bhero">
+      <div class="ring" style="--p:${st.pct}"><div><div><b>${num(st.pct)}%</b><br><span>geschafft</span></div></div></div>
+      <div class="bhero nums"><div><b>${st.done}</b><span>durch</span></div><div><b>${st.unplayed}</b><span>nie gestartet</span></div>
+        ${st.rest?`<div><b>${num(st.rest/60)}</b><span>Std Story offen</span></div>`:""}</div></div>
+      <div style="opacity:.9;margin:14px 0 16px;font-size:14px">${forecast(st)}${st.rest&&st.known<st.open?` <span style="opacity:.75">(HowLongToBeat-Zeit für ${st.known} von ${st.open} Spielen bekannt)</span>`:""}</div>
+      <button class="btn" onclick="openPicker()">🎲 Was spiele ich als Nächstes?</button></section>
+    ${goalsCard()}
+    <div class="bl-filters">${filters.map(([k,l,c])=>`<button class="chip ${B.f===k?"on":""}" onclick="S.bl.f='${k}';S.bl.limit=80;route()">${l}<small>${c}</small></button>`).join("")}</div>
+  </aside><div>
+    <div class="toolbar"><select id="bsort">${[["added","Am längsten im Regal"],["short","Kürzeste zuerst (HLTB)"],["last","Zuletzt gespielt"],["min","Meiste Spielzeit"],["name","Name A–Z"],["rating","Beste Bewertung"]]
+      .map(([k,l])=>`<option value="${k}" ${B.sort===k?"selected":""}>${l}</option>`).join("")}</select>
+      <span class="help" style="margin:0">Gestrichelt = automatisch erkannt</span></div>
+    <div class="bhead"><span></span><span>Spiel</span><span>Status</span><span>Gespielt</span><span>HLTB</span><span>Im Regal</span></div>
+    <div id="blist"></div><div style="margin-top:18px">${historyCard()}</div></div></div>`;
+  $("#bsort").onchange = e => { B.sort = e.target.value; blist(); };
+  blist();
+}
+function blist(){
+  const B = S.bl, far = new Date(8.64e15);
+  const list = blGames().filter(g => B.f==="open" ? SMAP[g.status].g==="open" : B.f==="done" ? SMAP[g.status].g==="done" : g.status===B.f);
+  list.sort({added:(a,b)=>(a.added||far)-(b.added||far), last:(a,b)=>(b.last||0)-(a.last||0), min:(a,b)=>b.pcMinutes-a.pcMinutes,
+    name:(a,b)=>a.title.localeCompare(b.title,"de"), rating:(a,b)=>(b.meta.rating||0)-(a.meta.rating||0),
+    short:(a,b)=>(a.remaining??Infinity)-(b.remaining??Infinity)}[B.sort]);
+  $("#blist").innerHTML = (list.slice(0,B.limit).map(g=>`<div class="brow" onclick="openGame('${esc(g.key)}')">
+    <div class="poster">${img(g.covers,g.title)}</div>
+    <div class="mid2"><b>${esc(g.title)}</b><span>${[g.pcMinutes?hrs(g.pcMinutes):"nie gestartet", g.hltb&&g.hltb.main?`HLTB ${hrs(g.hltb.main)}`:"", g.genres.slice(0,2).join(", ")].filter(Boolean).join(" · ")}</span></div>
+    ${pill(g)}<span class="cd">${g.pcMinutes?hrs(g.pcMinutes):"–"}</span><span class="cd">${g.hltb&&g.hltb.main?hrs(g.hltb.main):"–"}</span><span class="cd">${g.added?g.added.getFullYear():"–"}</span></div>`).join("")
+    || `<p class="help">Hier ist gerade nichts.</p>`)
+    + (list.length > B.limit ? `<button class="btn ghost more" onclick="S.bl.limit+=150;blist()">Mehr anzeigen (${list.length-B.limit})</button>` : "");
+}
+
+/* ================= Aktivität ================= */
+function renderActivity(){
+  const st = sessionStats(0);
+  let h = playingBanner() + `<div class="eyebrow" style="margin-top:6px">Dein Rhythmus</div><div class="h1">Aktivität</div>`;
+  if (!st.ss.length){
+    $("#view").innerHTML = h + `<div class="card hero" style="min-height:280px"><div class="eyebrow">Session-Tracker</div><div class="mid" style="margin:8px 0">Sammelt gerade.</div>
+      <div class="sub">Sobald du am PC spielst, während Gaming Recap läuft, erscheinen hier deine Sessions: Heatmap, Serien, Uhrzeiten und dein Gamer-Typ. Spiele, die du über Playnite startest, zählen auch. Konsolen liefern leider keine Sessions.</div></div>`;
+    return;
+  }
+  // Heatmap (53 Wochen)
+  const today = new Date(); today.setHours(0,0,0,0);
+  const start = new Date(today); start.setDate(today.getDate() - ((today.getDay()+6)%7) - 52*7);
+  let cells = "", months = "", lastM = -1;
+  for (let w=0; w<53; w++){
+    const wd0 = new Date(start); wd0.setDate(start.getDate()+w*7);
+    months += `<span>${wd0.getMonth()!==lastM && wd0.getDate()<=7 ? wd0.toLocaleDateString("de-DE",{month:"short"}).replace(".","") : ""}</span>`;
+    if (wd0.getDate()<=7) lastM = wd0.getMonth();
+    for (let d=0; d<7; d++){
+      const x = new Date(start); x.setDate(start.getDate()+w*7+d);
+      if (x > today){ cells += `<i class="x"></i>`; continue; }
+      const m = st.perDay[dayKey(x)]||0, l = m<=0?0:m<30?1:m<90?2:m<180?3:4;
+      cells += `<i class="l${l}" title="${fdate(x)}: ${m?hrs(m):"nicht gespielt"}"></i>`;
+    }
+  }
+  const year = st.days.filter(d=>d>=dayKey(new Date(Date.now()-365*864e5))).length;
+  h += `<div class="stat3" style="margin-bottom:14px">
+    <div class="tile reveal"><small>Aktuelle Serie</small><b>${st.curStreak} ${st.curStreak===1?"Tag":"Tage"}</b><span>${st.curStreak?"am Stück gezockt 🔥":"heute schon gespielt?"}</span></div>
+    <div class="tile reveal"><small>Längste Serie</small><b>${st.best} Tage</b><span>Rekord</span></div>
+    <div class="tile reveal"><small>Sessions</small><b>${num(st.ss.length)}</b><span>Ø ${hrs(st.avg)} lang</span></div>
+    <div class="tile reveal"><small>Spieltage</small><b>${year}</b><span>in den letzten 12 Monaten</span></div></div>
+  <div class="bento">
+  <section class="card reveal"><h3>Dein Jahr in Kästchen</h3>
+    <div class="heatwrap"><div class="months">${months}</div><div class="heat">${cells}</div></div>
+    <div class="legend">weniger <i style="background:#ffffff0d"></i><i style="background:#c8f13540"></i><i style="background:#c8f13570"></i><i style="background:#c8f135a8"></i><i style="background:#c8f135"></i> mehr</div></section>`;
+  const hmx = Math.max(...st.hours, 1);
+  h += `<section class="card violetc s7 reveal"><h3>Wann du spielst</h3>
+    <div class="eyebrow" style="opacity:.8">Dein Typ</div><div class="mid" style="margin:4px 0 6px">${esc(st.type)}</div>
+    <div style="font-weight:600;opacity:.9">${num(st.night*100)} % deiner Zeit zwischen 22 und 5 Uhr.</div>
+    <div class="cols thin" style="height:150px">${st.hours.map((v,i)=>`<div class="c"><div style="height:0;background:#ffffffdd" data-h="${Math.max(2,v/hmx*100)}%"></div><span>${i%3===0?i:""}</span></div>`).join("")}</div></section>`;
+  const wmx = Math.max(...st.wd, 1);
+  h += `<section class="card yellowc s5 reveal"><h3>Wochentage</h3>
+    <div class="mid">${st.weekend>.4?"Wochenend-Gamer":"Feierabend-Gamer"}</div><div style="font-weight:600;margin-top:4px">${num(st.weekend*100)} % am Wochenende.</div>
+    <div class="cols" style="height:150px">${st.wd.map((v,i)=>`<div class="c"><div style="height:0;background:#1d1600" data-h="${Math.max(3,v/wmx*100)}%"></div><span>${WD[i]}</span></div>`).join("")}</div></section>`;
+  if (st.longest){
+    const g = S.gmap.get(st.longest[0]);
+    h += `<section class="card topg s6 reveal" ${g?`onclick="openGame('${esc(g.key)}')"`:""}><div class="bgimg">${g?img(g.banners,g.title):ph(titleOf(st.longest[0]))}</div>
+      <div class="in"><div class="eyebrow">Längste Session</div><div class="t">${hrs(st.longest[2]/60)}</div>
+      <div>${esc(titleOf(st.longest[0]))} · ${fdate(new Date(st.longest[1]*1000))}</div></div></section>`;
+  }
+  const since30 = Date.now()/1000-30*86400, g30 = {};
+  st.ss.filter(s=>s[1]>=since30).forEach(([k,,sec])=>g30[k]=(g30[k]||0)+sec/60);
+  const top30 = Object.entries(g30).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  h += `<section class="card s6 reveal"><h3>Letzte 30 Tage</h3>${top30.length ? top30.map(([k,v])=>`<div class="pbar"><span class="nm" style="width:150px">${esc(titleOf(k))}</span>
+    <span class="trk"><div style="width:0;background:var(--lime)" data-w="${v/top30[0][1]*100}%"></div></span><span class="v">${hrs(v)}</span></div>`).join("") : `<p class="help">Nichts gespielt.</p>`}</section>`;
+  h += achCard() + friendsCard();
+  const cb = comebacks(), ya = yearAgo();
+  if (ya.length) h += `<section class="card orangec s6 reveal"><h3>Heute vor einem Jahr</h3><div class="mid" style="font-size:clamp(28px,6vw,40px)">${esc(titleOf(ya[0][0]))}</div>
+    <div style="font-weight:700;margin-top:6px">Um diese Zeit letztes Jahr hast du ${ya.map(([k,v])=>`${esc(titleOf(k))} (${hrs(v)})`).slice(0,3).join(", ")} gespielt.</div></section>`;
+  if (cb.length) h += `<section class="card s6 reveal"><h3>Comebacks</h3>${cb.map(c=>`<div class="pbar"><span class="nm" style="width:auto;flex:1">🔁 ${esc(titleOf(c.k))}</span><span class="v" style="width:auto">nach ${num(c.gap/30)} Monaten</span></div>`).join("")}
+    <p class="help">Spiele, zu denen du nach mindestens einem halben Jahr Pause zurückgekehrt bist.</p></section>`;
+  const recent = st.ss.slice(-12).reverse();
+  h += `<section class="card reveal"><h3>Letzte Sessions</h3>${recent.map(([k,s,sec])=>{ const g=S.gmap.get(k), d=new Date(s*1000);
+    return `<div class="brow" style="grid-template-columns:52px 1fr auto" ${g?`onclick="openGame('${esc(k)}')"`:""}><div class="poster">${g?img(g.covers,g.title):ph(k)}</div>
+      <div class="mid2"><b>${esc(titleOf(k))}</b><span>${d.toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"short"})}, ${d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})} Uhr</span></div>
+      <b>${hrs(sec/60)}</b></div>`; }).join("")}
+    <p class="help">Erfasst seit ${fdate(new Date(st.since*1000))}. Nur PC, Konsolen liefern keine Sessions.</p></section></div>`;
+  $("#view").innerHTML = h;
+}
+
+
+/* ================= Tier-Liste ================= */
+function renderTier(){
+  const q = norm(S.lib.tq||"");
+  const played = S.groups.filter(g=>g.minutes>0 || g.tier).sort((a,b)=>b.minutes-a.minutes);
+  const pool = played.filter(g=>!g.tier && (!q || g.key.includes(q)));
+  const item = g => `<div class="titem" data-k="${esc(g.key)}" title="${esc(g.title)}"><div class="poster">${img(g.covers,g.title)}</div></div>`;
+  $("#view").innerHTML = `<div class="eyebrow" style="margin-top:6px">Deine Bibliothek</div><div class="h1">Tier-Liste</div>${libSeg()}
+    <p class="help" style="margin-top:-6px">${matchMedia("(pointer:fine)").matches?"Cover in eine Reihe ziehen. Antippen öffnet das Spiel.":"Cover antippen und Rang wählen."}</p>
+    ${TIERS.map(([t,c])=>`<div class="tierrow"><div class="tl" style="background:${c}">${t}</div><div class="tz" data-tier="${t}">${played.filter(g=>g.tier===t).map(item).join("")}</div></div>`).join("")}
+    <div class="secttl" style="margin-top:20px">Noch nicht eingeordnet (${pool.length})</div>
+    <div class="toolbar"><input id="tq" type="search" placeholder="Spiel suchen …" value="${esc(S.lib.tq||"")}"></div>
+    <div class="tpool" data-tier="">${pool.slice(0, S.lib.tlimit||80).map(item).join("") || `<span class="help">Alles eingeordnet!</span>`}</div>
+    ${pool.length > (S.lib.tlimit||80) ? `<button class="btn ghost more" onclick="S.lib.tlimit=(S.lib.tlimit||80)+120;renderTier()">Mehr anzeigen</button>`:""}`;
+  $("#tq").oninput = e => { S.lib.tq = e.target.value; const pos = e.target.selectionStart; renderTier(); const el=$("#tq"); el.focus(); el.setSelectionRange(pos,pos); };
+  document.querySelectorAll(".titem").forEach(el => {
+    el.ondragstart = e => e.preventDefault();
+    el.onpointerdown = e => {
+      if (e.button !== 0) return;
+      const sx = e.clientX, sy = e.clientY, mouse = e.pointerType === "mouse";
+      let ghost = null, zone = null;
+      const move = ev => {
+        if (!ghost){
+          if (!mouse || Math.hypot(ev.clientX-sx, ev.clientY-sy) < 6) return;
+          ghost = el.cloneNode(true); el.style.opacity = ".3";
+          ghost.style.cssText = `position:fixed;z-index:200;pointer-events:none;width:${el.offsetWidth}px;transform:rotate(-4deg) scale(1.08);filter:drop-shadow(0 12px 24px #000a)`;
+          document.body.appendChild(ghost);
+        }
+        ghost.style.left = (ev.clientX - el.offsetWidth/2) + "px"; ghost.style.top = (ev.clientY - el.offsetHeight/2) + "px";
+        const z = document.elementFromPoint(ev.clientX, ev.clientY)?.closest(".tz,.tpool");
+        if (z !== zone){ zone && zone.classList.remove("over"); zone = z; zone && zone.classList.add("over"); }
+      };
+      const up = () => {
+        removeEventListener("pointermove", move); removeEventListener("pointerup", up); removeEventListener("pointercancel", up);
+        if (!ghost) return tierPick(el.dataset.k);
+        ghost.remove(); el.style.opacity = ""; zone && zone.classList.remove("over");
+        if (zone && (zone.dataset.tier || null) !== (S.gmap.get(el.dataset.k).tier || null)) setTier(el.dataset.k, zone.dataset.tier || null, false);
+      };
+      addEventListener("pointermove", move); addEventListener("pointerup", up); addEventListener("pointercancel", up);
+    };
+  });
+}
+function tierPick(key){
+  const g = S.gmap.get(key); if (!g) return;
+  $("#pickerBody").innerHTML = `<button class="ibtn dclose" onclick="$('#picker').close()">✕</button><div class="pk">
+    <div class="slot" style="width:150px"><div class="poster">${img(g.covers,g.title)}</div></div>
+    <h2>${esc(g.title)}</h2><div class="why">${g.minutes?hrs(g.minutes)+" gespielt":""}</div>
+    <div class="tpick" style="justify-content:center">${TIERS.map(([t,c])=>`<button style="background:${c}" class="${g.tier===t?"on":""}" onclick="setTier('${esc(key)}','${t}',false).then(()=>$('#picker').close())">${t}</button>`).join("")}</div>
+    <div class="acts">${g.tier?`<button class="btn ghost" onclick="setTier('${esc(key)}',null,false).then(()=>$('#picker').close())">Entfernen</button>`:""}
+      <button class="btn ghost" onclick="$('#picker').close();openGame('${esc(key)}')">Details</button></div></div>`;
+  if (!$("#picker").open) $("#picker").showModal();
+}
+
+/* ================= Wunschliste ================= */
+function renderWish(){
+  const sx = S.data.steam || {}, wl = (sx.wishlist||[]).slice();
+  let h = `<div class="eyebrow" style="margin-top:6px">Steam</div><div class="h1">Wunschliste</div>${libSeg()}`;
+  if (!wl.length){
+    $("#view").innerHTML = h + `<div class="empty"><div class="big">💝</div><h2>Keine Wunschliste gefunden</h2><p class="help">${esc(sx.wishlist_error || "Verbinde Steam in den Einstellungen. Die Wunschliste muss in Steam öffentlich sichtbar sein.")}</p></div>`;
+    return;
+  }
+  const now = Date.now()/1000;
+  const sale = wl.filter(w=>w.discount>0).sort((a,b)=>b.discount-a.discount);
+  const soon = wl.filter(w=>w.soon || (w.release && w.release>now)).sort((a,b)=>(a.release||9e12)-(b.release||9e12));
+  const rest = wl.filter(w=>!sale.includes(w) && !soon.includes(w)).sort((a,b)=>(a.prio||999)-(b.prio||999));
+  const sum = k => wl.reduce((s,w)=>s+(w[k]||0),0);
+  const row = w => `<a class="wlrow" href="https://store.steampowered.com/app/${esc(w.appid)}/" target="_blank" rel="noopener">
+    <div class="poster">${img([`https://cdn.cloudflare.steamstatic.com/steam/apps/${w.appid}/library_600x900.jpg`,`https://cdn.cloudflare.steamstatic.com/steam/apps/${w.appid}/header.jpg`], w.name)}</div>
+    <div class="mid2" style="min-width:0"><b style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(w.name)}</b>
+      <span class="help" style="margin:0">${w.soon||(w.release&&w.release>now) ? `🗓️ ${w.release&&w.release>now?fdate(new Date(w.release*1000)):esc(w.release_text||"Bald verfügbar")}` : w.added?`auf der Liste seit ${fdate(new Date(w.added*1000))}`:""}</span></div>
+    <div class="price">${w.free?"Kostenlos":w.price!=null?`${w.discount?`<span class="disc">-${w.discount}%</span>`:""}${esc(w.fmt||euro(w.price))}${w.discount?`<s>${euro(w.orig)}</s>`:""}`:"–"}</div></a>`;
+  h += `<div class="stat3" style="margin-bottom:14px">
+    <div class="tile"><small>Spiele</small><b>${wl.length}</b><span>auf der Wunschliste</span></div>
+    <div class="tile"><small>Im Angebot</small><b style="color:var(--lime)">${sale.length}</b><span>${sale.length?`bis zu -${sale[0].discount} %`:"gerade keins"}</span></div>
+    <div class="tile"><small>Alles zusammen</small><b>${euro(sum("price"))}</b><span>${sum("orig")>sum("price")?`statt ${euro(sum("orig"))}`:"aktueller Preis"}</span></div>
+    <div class="tile"><small>Kommt bald</small><b>${soon.length}</b><span>${soon[0]?esc(soon[0].name):"nichts angekündigt"}</span></div></div>`;
+  if (sale.length) h += `<section class="card" style="margin-bottom:14px"><h3>🔥 Im Angebot</h3>${sale.map(row).join("")}</section>`;
+  if (soon.length) h += `<section class="card" style="margin-bottom:14px"><h3>🗓️ Release-Kalender</h3>${soon.map(row).join("")}</section>`;
+  if (rest.length) h += `<section class="card"><h3>Der Rest</h3>${rest.map(row).join("")}</section>`;
+  h += `<p class="help">Preise aus dem deutschen Steam-Store, ${sx.at?`Stand ${fdate(new Date(sx.at*1000))}`:""}. Neue Angebote meldet dir Windows, wenn Gaming Recap läuft.</p>`;
+  $("#view").innerHTML = h;
+}
+const euro = c => c==null ? "–" : (c/100).toLocaleString("de-DE",{style:"currency",currency:"EUR"});
+
+/* ================= Abzeichen ================= */
+function badgeCtx(){
+  const st = sessionStats(0), y = String(new Date().getFullYear());
+  const played = S.groups.filter(g=>g.minutes>0);
+  const total = played.reduce((s,g)=>s+g.minutes,0);
+  const maxG = played.reduce((m,g)=>Math.max(m,g.minutes),0);
+  let early = 0; for (const [,s] of st.ss){ const h = new Date(s*1000).getHours(); if (h>=5 && h<9) early++; }
+  const gen = {}; for (const g of played) for (const x of g.genres) gen[x]=(gen[x]||0)+g.pcMinutes;
+  const ach = Object.values((S.data.steam||{}).ach||{});
+  const rare = ach.reduce((m,a)=>a.r && a.r[1]!=null ? Math.min(m,a.r[1]) : m, 101);
+  const devs = new Set(played.flatMap(g=>Object.keys(g.devs)));
+  return {st, total, maxG, early, doneYear: doneInYear(y).length, comp: S.groups.filter(g=>g.pc&&g.status==="komplett").length,
+    devCount: devs.size, groups: S.groups.length, retro: played.filter(g=>g.year && g.year<2005).reduce((m,g)=>Math.max(m,g.minutes),0),
+    genres5: Object.values(gen).filter(v=>v>=300).length, rated: S.groups.filter(g=>g.meta.rating).length,
+    tiered: S.groups.filter(g=>g.tier).length, achTotal: ach.reduce((s,a)=>s+a.d,0), rare, topShare: total ? maxG/total : 0,
+    unplayed: backlogStats().unplayed};
+}
+const BADGES = [
+  ["night","🦉","Nachteule","30 % deiner PC-Zeit nach 22 Uhr",c=>[c.st.night*100,30,"%"]],
+  ["early","🌅","Frühaufsteher","10 Sessions vor 9 Uhr",c=>[c.early,10]],
+  ["marathon","🏃","Marathon","Eine Session über 6 Stunden",c=>[c.st.longest?c.st.longest[2]/3600:0,6,"Std"]],
+  ["streak7","🔥","Eine Woche durch","7 Tage Serie",c=>[c.st.best,7,"Tage"]],
+  ["streak30","☄️","Unaufhaltsam","30 Tage Serie",c=>[c.st.best,30,"Tage"]],
+  ["c100","💯","100-Stunden-Club","Ein Spiel über 100 Stunden",c=>[c.maxG/60,100,"Std"]],
+  ["c1000","👑","Tausender","Ein Spiel über 1.000 Stunden",c=>[c.maxG/60,1000,"Std"]],
+  ["life","⏳","Lebenswerk","1.000 Stunden insgesamt",c=>[c.total/60,1000,"Std"]],
+  ["kill5","⚔️","Backlog-Killer","5 Spiele dieses Jahr durchgespielt",c=>[c.doneYear,5]],
+  ["kill12","🗡️","Backlog-Schlächter","12 Spiele dieses Jahr durchgespielt",c=>[c.doneYear,12]],
+  ["comp","🏆","Komplettist","3 Spiele auf 100 %",c=>[c.comp,3]],
+  ["hop","🔀","Plattform-Hopper","Gespielt auf PC, PlayStation und Xbox",c=>[c.devCount,3]],
+  ["coll","📚","Sammler","250 Spiele in der Bibliothek",c=>[c.groups,250]],
+  ["retro","🕹️","Retro-Fan","10 Stunden in einem Spiel von vor 2005",c=>[c.retro/60,10,"Std"]],
+  ["omni","🎨","Allesfresser","8 Genres mit je 5+ Stunden",c=>[c.genres5,8]],
+  ["weekend","🛋️","Wochenend-Krieger","Die Hälfte deiner Zeit am Wochenende",c=>[c.st.weekend*100,50,"%"]],
+  ["critic","🧐","Kritiker","20 Spiele mit Sternen bewertet",c=>[c.rated,20]],
+  ["tier","📊","Tier-Meister","25 Spiele in der Tier-Liste",c=>[c.tiered,25]],
+  ["ach","🎖️","Erfolgsjäger","500 Steam-Erfolge",c=>[c.achTotal,500]],
+  ["rare","💎","Seltener Fund","Ein Erfolg, den unter 5 % haben",c=>[c.rare<5?1:0,1]],
+  ["loyal","💍","Treue Seele","Ein Spiel macht ein Viertel deiner Zeit aus",c=>[c.topShare*100,25,"%"]],
+  ["shame","📦","Ehrlich ist ehrlich","50 Spiele nie gestartet",c=>[c.unplayed,50]],
+];
+function badges(){
+  const c = badgeCtx();
+  return BADGES.map(([id,e,n,d,f])=>{ const [v,t,u] = f(c); return {id,e,n,d,got:v>=t,p:Math.min(1,Math.max(0,v/t)),v,t,u}; });
+}
+function badgeGrid(list){
+  return `<div class="badges">${list.map(b=>`<div class="bdg ${b.got?"on":"off"}"><div class="e">${b.e}</div><b>${esc(b.n)}</b><span>${esc(b.d)}</span>
+    ${b.got?"":`<div class="pr"><div style="width:${b.p*100}%"></div></div><span>${num(Math.min(b.v,b.t), b.v<10&&b.v%1?1:0)} / ${num(b.t)}${b.u?" "+b.u:""}</span>`}</div>`).join("")}</div>`;
+}
+
+/* ================= Backlog: Ziele & Verlauf ================= */
+const DONE = new Set(["durchgespielt","komplett"]);
+function doneInYear(y){
+  const keys = new Set();
+  for (const [k, st, at] of S.data.status_log||[]) if (DONE.has(st) && String(at).startsWith(y)) keys.add(k);
+  return [...keys].filter(k=>{ const g=S.gmap.get(k); return g && DONE.has(g.status); });
+}
+function addedInYear(y){ return blGames().filter(g=>g.added && g.added.getFullYear()===Number(y)); }
+function goalsCard(){
+  const y = String(new Date().getFullYear()), g = (S.data.goals||{})[y] || {};
+  const done = doneInYear(y).length, added = addedInYear(y).length;
+  const dayFrac = (Date.now() - new Date(Number(y),0,1)) / (new Date(Number(y)+1,0,1) - new Date(Number(y),0,1));
+  const bar = (label, v, t, good) => {
+    const pct = t ? Math.min(100, v/t*100) : 0, onTrack = good ? v >= t*dayFrac : v <= t*dayFrac;
+    return `<div class="goal"><div class="gtop"><span>${label}</span><span>${v} / ${t}</span></div><div class="gbar"><div style="width:0" data-w="${pct}%"></div></div>
+      <div style="font-size:12.5px;opacity:.8;margin-top:4px">${good ? (v>=t?"🎉 Geschafft!":onTrack?"Im Plan":"Etwas hinter dem Plan") : (v>t?"Ziel gerissen 🙈":onTrack?"Im Rahmen":"Über dem Plan")}</div></div>`;
+  };
+  return `<section class="card cyanc reveal"><h3>Jahresziel ${y}</h3>
+    ${g.done ? bar("Durchgespielt", done, g.done, true) : `<div style="font-weight:700;margin-bottom:6px">${done} Spiele durchgespielt</div>`}
+    ${g.max_new ? bar("Neue Spiele", added, g.max_new, false) : `<div style="font-weight:700;margin-bottom:6px">${added} neue Spiele in der Bibliothek</div>`}
+    <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:800">Ziele festlegen</summary>
+      <label style="color:inherit">Durchspielen (Anzahl)</label><input type="number" id="gDone" min="1" max="500" value="${g.done||""}" style="width:100%;background:#00000018;color:#04201d;border-color:#00000030">
+      <label style="color:inherit">Höchstens neue Spiele kaufen</label><input type="number" id="gNew" min="1" max="500" value="${g.max_new||""}" style="width:100%;background:#00000018;color:#04201d;border-color:#00000030">
+      <button class="btn small" style="margin-top:10px;background:#04201d;color:var(--cyan)" onclick="saveGoals()">Speichern</button></details></section>`;
+}
+window.saveGoals = async () => {
+  const y = String(new Date().getFullYear()), all = {...(S.data.goals||{})};
+  const d = parseInt($("#gDone").value), n = parseInt($("#gNew").value);
+  all[y] = {}; if (d>0) all[y].done = d; if (n>0) all[y].max_new = n;
+  try { await saveKv("goals", all); toast("Ziele gespeichert"); route(); } catch(e){ toast("Speichern fehlgeschlagen"); }
+};
+function historyCard(){
+  const months = [], now = new Date();
+  for (let i=11;i>=0;i--){ const d = new Date(now.getFullYear(), now.getMonth()-i, 1); months.push([d.getFullYear(), d.getMonth()]); }
+  const key = (y,m) => `${y}-${String(m+1).padStart(2,"0")}`;
+  const add = {}, done = {}, seen = new Set();
+  for (const g of blGames()) if (g.added) { const k = key(g.added.getFullYear(), g.added.getMonth()); add[k]=(add[k]||0)+1; }
+  for (const [k, st, at] of S.data.status_log||[]) if (DONE.has(st) && !seen.has(k)){ seen.add(k); const m = String(at).slice(0,7); done[m]=(done[m]||0)+1; }
+  const mx = Math.max(1, ...months.map(([y,m])=>Math.max(add[key(y,m)]||0, done[key(y,m)]||0)));
+  const ta = months.reduce((s,[y,m])=>s+(add[key(y,m)]||0),0), td = months.reduce((s,[y,m])=>s+(done[key(y,m)]||0),0);
+  return `<section class="card reveal"><h3>Backlog-Verlauf · 12 Monate</h3>
+    <div style="font-weight:800;font-size:18px">${ta} dazu, ${td} durchgespielt</div>
+    <div class="help" style="margin-top:2px">${ta && td ? `Auf ${num(ta/td,1)} neue Spiele kommt ein durchgespieltes.` : td ? "Du spielst mehr durch, als du kaufst. Respekt!" : "Durchgespielt wird gezählt, sobald du einen Status setzt."}</div>
+    <div class="mbar">${months.map(([y,m])=>`<div class="c"><div class="pair"><div style="height:0;background:var(--pink)" data-h="${(add[key(y,m)]||0)/mx*100}%"></div><div style="height:0;background:var(--lime)" data-h="${(done[key(y,m)]||0)/mx*100}%"></div></div><span>${new Date(y,m,1).toLocaleDateString("de-DE",{month:"narrow"})}</span></div>`).join("")}</div>
+    <div class="legend"><i style="background:var(--pink)"></i> neu dazu <i style="background:var(--lime);margin-left:10px"></i> durchgespielt</div></section>`;
+}
+
+/* ================= Aktivität: Extras ================= */
+function comebacks(){
+  const by = {}; for (const s of S.data.sessions||[]) (by[s[0]] = by[s[0]] || []).push(s);
+  const out = [];
+  for (const [k, ss] of Object.entries(by)) for (let i=1;i<ss.length;i++){ const gap = (ss[i][1]-ss[i-1][1])/86400; if (gap >= 180) out.push({k, gap, at: ss[i][1]}); }
+  return out.sort((a,b)=>b.at-a.at).slice(0,5);
+}
+function yearAgo(){
+  const t = Date.now()/1000 - 365*86400;
+  const per = {}; for (const [k,s,sec] of S.data.sessions||[]) if (Math.abs(s - t) < 3.5*86400) per[k]=(per[k]||0)+sec/60;
+  return Object.entries(per).sort((a,b)=>b[1]-a[1]);
+}
+function achCard(){
+  const ach = (S.data.steam||{}).ach || {}, list = Object.entries(ach);
+  if (!list.length) return "";
+  const y = String(new Date().getFullYear());
+  const total = list.reduce((s,[,a])=>s+a.d,0), year = list.reduce((s,[,a])=>s+((a.y||{})[y]||0),0);
+  const perfect = list.filter(([,a])=>a.t && a.d===a.t);
+  const titleA = a => { const g = S.groups.find(x=>x.appid===a); return g ? g.title : "Steam-Spiel"; };
+  const rares = list.filter(([,a])=>a.r && a.r[1]!=null).sort((a,b)=>a[1].r[1]-b[1].r[1]).slice(0,5);
+  return `<section class="card pinkc s6 reveal"><h3>Steam-Erfolge</h3><div class="mid">${num(total)}</div>
+    <div style="font-weight:700">freigeschaltet, ${num(year)} davon ${y} · ${perfect.length} ${perfect.length===1?"Spiel":"Spiele"} auf 100 %</div>
+    ${rares.length?`<div class="secttl" style="color:#160411aa">Deine seltensten</div>${rares.map(([a,r])=>`<div class="pbar"><span class="nm" style="width:auto;flex:1;white-space:normal">💎 ${esc(r.r[0])}<br><span style="font-weight:600;font-size:12.5px;opacity:.8">${esc(titleA(a))}</span></span><span class="v">${num(r.r[1],1)} %</span></div>`).join("")}`:""}</section>`;
+}
+function friendsCard(){
+  const fr = (S.data.steam||{}).friends || [];
+  if (!fr.length) return "";
+  const mine = S.groups.reduce((s,g)=>s+g.recs.filter(r=>r.store==="Steam").reduce((a,r)=>a+(r.minutes||0),0),0);
+  const list = [...fr.map(f=>({...f, me:false})), {name:"Du", minutes:mine, me:true, top: (()=>{ const t = S.groups.filter(g=>g.appid).sort((a,b)=>b.minutes-a.minutes)[0]; return t?[t.title,t.minutes]:null; })()}]
+    .sort((a,b)=>b.minutes-a.minutes);
+  const rank = list.findIndex(f=>f.me)+1;
+  return `<section class="card s6 reveal"><h3>Du vs. Steam-Freunde</h3><div class="mid">Platz ${rank}</div><div class="help" style="margin-bottom:8px">von ${list.length}, nach Steam-Stunden (nur Freunde mit öffentlichem Profil)</div>
+    ${list.slice(0,10).map((f,i)=>`<div class="frow ${f.me?"me":""}">${f.avatar?`<img src="${esc(f.avatar)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=av>${esc((f.name||"?")[0])}</div>'">`:`<div class="av">${esc((f.name||"?")[0])}</div>`}
+      <div style="min-width:0"><b>${i+1}. ${esc(f.name)}</b><span>${f.top?`Top: ${esc(f.top[0])}`:""}${f.common&&f.common[0]?` · gemeinsam: ${esc(f.common[0][0])}`:""}</span></div><b>${hrs(f.minutes)}</b></div>`).join("")}</section>`;
+}
+
+/* ================= Wrapped ================= */
+const W = {mode:"year", slides:[], i:0, t0:0, paused:false, raf:0, DUR:6500, data:null};
+async function ensureYear(){
+  if (S.yearPM !== undefined && S.yearPM !== null) return;
+  if (CLOUD) return;
+  try { const d = await (await fetch("/api/data?period=year")).json(); S.yearPM = d.period_minutes || {}; S.yearInfo = d.period; } catch(e){ S.yearPM = {}; }
+}
+function renderWrapped(){
+  const y = new Date().getFullYear(), bd = badges(), got = bd.filter(b=>b.got).length;
+  $("#view").innerHTML = `<section class="card hero reveal" style="min-height:58vh;justify-content:center;text-align:center;align-items:center">
+    <div class="eyebrow">Dein Gaming Recap</div><div class="num" style="font-size:clamp(70px,20vw,170px)">Wrapped</div>
+    <div class="sub" style="margin:10px auto 18px">Dein Spieljahr als Story: Stunden, Top-Spiele, dein Gamer-Typ, Rekorde und Abzeichen. Am Ende gibt's ein Bild zum Teilen.</div>
+    <div class="chips" style="justify-content:center">${[["year",String(y)],["all","Alle Zeiten"]].map(([k,l])=>`<button class="chip ${W.mode===k?"on":""}" onclick="W.mode='${k}';renderWrapped()">${l}</button>`).join("")}</div>
+    <button class="btn limeb" style="font-size:18px;padding:18px 34px" onclick="startWrapped()">▶ Story starten</button>
+    <div class="sub" id="wrapHint" style="margin:14px auto 0;font-size:14px;opacity:.85"></div></section>
+    <div class="h1" style="font-size:32px;margin-top:28px">Abzeichen <span style="color:var(--muted)">${got}/${bd.length}</span></div>
+    ${badgeGrid(bd.sort((a,b)=>(b.got-a.got)||(b.p-a.p)))}`;
+  if (W.mode === "year") ensureYear().then(()=>{
+    const el = $("#wrapHint"); if (!el) return;
+    const info = S.yearInfo || {}, has = Object.values(S.yearPM||{}).some(v=>v>0) || (S.data.sessions||[]).some(x=>x[1] >= new Date(y,0,1)/1000);
+    el.innerHTML = !has ? `Für ${y} gibt es noch keine Daten: Gaming Recap zeichnet ab jetzt auf. Bis dahin zeigt die Story <b>alle Zeiten</b>.`
+      : info.complete === false && info.tracking_since ? `Hinweis: Für ${y} zählt alles ab dem ${fdate(new Date(info.tracking_since))}, dem Start der Aufzeichnung.` : "";
+  });
+}
+function wrappedData(){
+  const year = new Date().getFullYear(), yr = W.mode === "year", pm = yr ? (S.yearPM||{}) : null;
+  const ys = yr ? new Date(year,0,1)/1000 : 0;
+  const rows = S.groups.map(g=>{
+    const devs = {}; let m = 0;
+    for (const r of g.recs){ const v = pm ? (pm[r.id]||0) : (r.minutes||0); m += v; devs[r.device] = (devs[r.device]||0)+v; }
+    return {g, m, devs};
+  }).filter(x=>x.m>0).sort((a,b)=>b.m-a.m);
+  const total = rows.reduce((s,x)=>s+x.m,0);
+  const dev = {}; rows.forEach(x=>Object.entries(x.devs).forEach(([k,v])=>dev[k]=(dev[k]||0)+v));
+  const plat = {}; rows.forEach(x=>x.g.recs.forEach(r=>{ const v = pm ? (pm[r.id]||0) : (r.minutes||0); if (v) plat[platLabel(r)]=(plat[platLabel(r)]||0)+v; }));
+  const gen = {}; rows.forEach(x=>x.g.genres.forEach(n=>gen[n]=(gen[n]||0)+(x.devs.PC||0)));
+  const st = sessionStats(ys);
+  const months = {}; for (const [k,s,sec] of st.ss){ const d = new Date(s*1000), mk = `${d.getFullYear()}-${d.getMonth()}`; months[mk]=(months[mk]||0)+sec/60; }
+  const bestMonth = Object.entries(months).sort((a,b)=>b[1]-a[1])[0];
+  const done = (yr ? doneInYear(String(year)) : S.groups.filter(g=>g.pc && DONE.has(g.status)).map(g=>g.key)).map(k=>S.gmap.get(k)).filter(Boolean);
+  const added = yr ? addedInYear(year).length : blGames().length;
+  const ach = Object.values((S.data.steam||{}).ach||{});
+  const achN = yr ? ach.reduce((s,a)=>s+((a.y||{})[year]||0),0) : ach.reduce((s,a)=>s+a.d,0);
+  const rare = ach.filter(a=>a.r && (!yr || (a.r[2] && new Date(a.r[2]*1000).getFullYear()===year))).sort((a,b)=>a.r[1]-b.r[1])[0];
+  const bd = badges().filter(b=>b.got);
+  const fr = (S.data.steam||{}).friends || [];
+  const mySteam = S.groups.reduce((s,g)=>s+g.recs.filter(r=>r.store==="Steam").reduce((a,r)=>a+(r.minutes||0),0),0);
+  const rank = fr.length ? [...fr.map(f=>f.minutes), mySteam].sort((a,b)=>b-a).indexOf(mySteam)+1 : 0;
+  return {year, yr, rows, total, dev, plat:Object.entries(plat).sort((a,b)=>b[1]-a[1]), gen:Object.entries(gen).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]),
+    st, bestMonth, done, added, achN, rare, bd, rank, friends: fr.length, info: yr ? (S.yearInfo||{}) : {}};
+}
+const FUN = [[686,"× Herr der Ringe (Extended)"],[510,"Flüge nach New York"],[2700,"× Breaking Bad komplett"],[90,"Fußballspiele"],[42,"Marathons (im Schnitt)"]];
+function wrapSlides(D){
+  const L = [], label = D.yr ? String(D.year) : "aller Zeiten";
+  const cover = g => `<div class="poster">${img(g.covers,g.title)}</div>`;
+  L.push({bg:"radial-gradient(70% 60% at 20% 20%,#ff4fa3,transparent),radial-gradient(60% 60% at 90% 80%,#7a5cff,transparent),#1a0b24",
+    html:`<div class="k w-in">Gaming Recap</div><div class="xl w-in d1">${D.yr?D.year:"∞"}</div><div class="h w-in d2">${D.yr?"Dein Gaming-Jahr.":"Deine ganze Gaming-Geschichte."}</div>
+      <p class="w-in d3">${D.yr && D.info && D.info.complete===false && D.info.tracking_since ? `Aufgezeichnet seit ${fdate(new Date(D.info.tracking_since))}. ` : ""}Tippe rechts für weiter, links für zurück. Gedrückt halten pausiert.</p>`});
+  if (!D.total){ L.push({bg:"#15141c", html:`<div class="h">Noch keine Spielzeit ${D.yr?"in diesem Jahr":""} erfasst.</div><p>Schau wieder vorbei, wenn ein paar Abgleiche gelaufen sind.</p>`}); return L; }
+  const fun = FUN[Math.floor(Math.random()*FUN.length)];
+  L.push({bg:"linear-gradient(160deg,#7a5cff,#2a0f5a)", html:`<div class="k w-in">${D.yr?`${D.year} hast du`:"Insgesamt hast du"}</div>
+    <div class="xl w-in d1" data-count="${Math.round(D.total/60)}">0</div><div class="h w-in d2">Stunden gezockt.</div>
+    <p class="w-in d3">Das sind <b>${num(D.total/1440,1)} Tage</b> am Stück.</p><p class="w-in d4">Oder <b>${num(D.total/fun[0], D.total/fun[0]<10?1:0)} ${fun[1]}</b>.</p>`});
+  L.push({bg:"linear-gradient(160deg,#ff8a3d,#ff4fa3)", html:`<div class="k w-in">Gespielt</div><div class="xl w-in d1">${D.rows.length}</div><div class="h w-in d2">verschiedene Spiele.</div>
+    <p class="w-in d3">Auf ${D.plat.length} Plattformen${D.added?`, und ${D.added} ${D.yr?"neue":""} PC-Spiele in der Bibliothek`:""}.</p>
+    <div class="wpost w-in d4">${D.rows.slice(5,9).map(x=>cover(x.g)).join("")}</div>`});
+  const pc = (D.dev.PC||0)/D.total*100;
+  L.push({bg:"#c8f135", fg:"#111", html:`<div class="k w-in">PC vs. Konsole</div><div class="xl w-in d1">${num(pc)}%</div>
+    <div class="h w-in d2">${pc>=70?"PC-Masterrace.":pc>=50?"Am liebsten am PC.":"Team Couch."}</div>
+    ${["PC","PlayStation","Xbox"].filter(k=>D.dev[k]).map((k,i)=>`<div class="devrow w-in d${i+2}" style="font-size:17px"><span class="lbl">${k}</span><span class="trk"><div style="width:${D.dev[k]/D.total*100}%"></div></span><span class="v">${hrs(D.dev[k])}</span></div>`).join("")}`});
+  if (D.gen.length) L.push({bg:"linear-gradient(160deg,#2ee6d6,#3d7bff)", fg:"#04201d", html:`<div class="k w-in">Deine Gamer-DNA</div><div class="h w-in d1" style="font-size:clamp(40px,13cqw,72px)">${esc(D.gen[0][0])}</div>
+    <p class="w-in d2">Dein Lieblingsgenre mit ${hrs(D.gen[0][1])}.</p><div class="wlist w-in d3">${D.gen.slice(1,5).map(([n,v],i)=>`<div><i>${i+2}</i>${esc(n)}<span>${hrs(v)}</span></div>`).join("")}</div>`});
+  if (D.rows.length > 1) L.push({bg:"linear-gradient(170deg,#15141c,#2a0f3a)", html:`<div class="k w-in">Deine Top 5</div><div class="h w-in d1">Fast ganz oben …</div>
+    <div class="wlist">${D.rows.slice(1,5).reverse().map((x,i)=>`<div class="w-in d${i+2}"><i>${5-i-(D.rows.length<5?5-D.rows.length:0)}</i><span style="margin:0;font-size:19px;opacity:1;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.g.title)}</span><span>${hrs(x.m)}</span></div>`).join("")}</div>`});
+  const t = D.rows[0];
+  L.push({bg:"radial-gradient(80% 60% at 50% 30%,#ff4fa3aa,transparent),#0b0610", cls:"wtop1", html:`<div class="k w-in" style="text-align:center">Und deine Nummer eins …</div>
+    <div class="w-in d2">${cover(t.g)}</div><div class="h w-in d3" style="text-align:center;font-size:clamp(28px,9cqw,48px)">${esc(t.g.title)}</div>
+    <p class="w-in d4" style="text-align:center"><b>${hrs(t.m)}</b> · ${num(t.m/D.total*100)} % deiner Zeit</p>`});
+  if (D.st.ss.length >= 3){
+    const mx = Math.max(...D.st.hours,1);
+    L.push({bg:"linear-gradient(160deg,#3d1a8a,#0b0a2a)", html:`<div class="k w-in">Dein Typ</div><div class="h w-in d1" style="font-size:clamp(38px,12.5cqw,70px)">${esc(D.st.type)}</div>
+      <p class="w-in d2">${num(D.st.night*100)} % deiner PC-Zeit lag zwischen 22 und 5 Uhr.</p>
+      <div class="cols thin w-in d3" style="height:150px">${D.st.hours.map((v,i)=>`<div class="c"><div style="height:${Math.max(2,v/mx*100)}%;background:#fff"></div><span style="color:#fff">${i%6===0?i:""}</span></div>`).join("")}</div>`});
+    const lg = D.st.longest;
+    L.push({bg:"linear-gradient(160deg,#ffd23f,#ff8a3d)", fg:"#1d1000", html:`<div class="k w-in">Rekorde</div>
+      <div class="h w-in d1">${hrs(lg[2]/60)} am Stück.</div><p class="w-in d2">Deine längste Session: ${esc(titleOf(lg[0]))} am ${fdate(new Date(lg[1]*1000))}.</p>
+      <div class="h w-in d3" style="margin-top:26px">${D.st.best} Tage in Folge.</div><p class="w-in d4">Deine längste Serie.${D.bestMonth?` Stärkster Monat: <b>${new Date(Number(D.bestMonth[0].split("-")[0]), Number(D.bestMonth[0].split("-")[1]),1).toLocaleDateString("de-DE",{month:"long"})}</b> mit ${hrs(D.bestMonth[1])}.`:""}</p>`});
+  }
+  if (D.done.length) L.push({bg:"linear-gradient(160deg,#7a5cff,#ff4fa3)", html:`<div class="k w-in">Backlog</div><div class="xl w-in d1">${D.done.length}</div>
+    <div class="h w-in d2">Spiele durchgespielt.</div><div class="wpost w-in d3">${D.done.slice(0,4).map(cover).join("")}</div>
+    ${D.added?`<p class="w-in d4">Dazugekommen sind ${D.added}. ${D.added > D.done.length ? "Der Stapel wächst … 😅" : "Der Stapel schrumpft! 💪"}</p>`:""}`});
+  if (D.achN) L.push({bg:"linear-gradient(160deg,#ff4fa3,#ff8a3d)", fg:"#160411", html:`<div class="k w-in">Steam-Erfolge</div><div class="xl w-in d1">${num(D.achN)}</div>
+    <div class="h w-in d2">freigeschaltet.</div>${D.rare?`<p class="w-in d3">Dein seltenster: <b>${esc(D.rare.r[0])}</b>. Den haben nur ${num(D.rare.r[1],1)} % aller Spieler.</p>`:""}`});
+  if (D.rank) L.push({bg:"linear-gradient(160deg,#2ee6d6,#c8f135)", fg:"#04201d", html:`<div class="k w-in">Unter Freunden</div><div class="xl w-in d1">#${D.rank}</div>
+    <div class="h w-in d2">von ${D.friends+1}.</div><p class="w-in d3">${D.rank===1?"Niemand in deiner Steam-Freundesliste hat mehr gezockt. 👑":"Gemessen an den Steam-Stunden deiner Freunde."}</p>`});
+  if (D.bd.length) L.push({bg:"linear-gradient(170deg,#15141c,#0b3b36)", html:`<div class="k w-in">Abzeichen</div><div class="h w-in d1">${D.bd.length} freigeschaltet.</div>
+    <div class="w-in d2" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:10px">${D.bd.slice(0,12).map(b=>`<div style="text-align:center;width:72px"><div style="font-size:40px">${b.e}</div><div style="font-size:11.5px;font-weight:700;opacity:.85">${esc(b.n)}</div></div>`).join("")}</div>`});
+  L.push({bg:"radial-gradient(60% 80% at 15% 20%,#ff4fa3,transparent),radial-gradient(50% 70% at 85% 10%,#7a5cff,transparent),radial-gradient(60% 80% at 70% 100%,#ff8a3d,transparent),#2a0f3a",
+    final:true, html:`<div class="k w-in">Das war ${label}</div>
+    <div class="wlist w-in d1" style="margin-top:12px"><div><i>⏱</i>${num(Math.round(D.total/60))} Stunden</div><div><i>🎮</i>${D.rows.length} Spiele</div>
+      <div><i>🏆</i><span style="margin:0;font-size:19px;opacity:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.g.title)}</span></div>
+      ${D.st.ss.length>=3?`<div><i>🦉</i>${esc(D.st.type)}</div>`:""}${D.gen.length?`<div><i>🧬</i>${esc(D.gen[0][0])}</div>`:""}${D.done.length?`<div><i>🏁</i>${D.done.length} durchgespielt</div>`:""}</div>
+    <div class="wbtns w-in d2"><button class="btn" data-act="share">📤 Bild teilen</button><button class="btn ghost" data-act="again">↺ Nochmal</button></div>`});
+  return L;
+}
+window.startWrapped = async () => {
+  if (W.mode === "year") await ensureYear();
+  W.data = wrappedData();
+  if (W.mode === "year" && !W.data.total){ W.mode = "all"; W.data = wrappedData(); toast(`Noch keine Daten für ${new Date().getFullYear()} – zeige alle Zeiten`); } W.slides = wrapSlides(W.data); W.i = 0;
+  let el = $("#wrap");
+  if (!el){ el = document.createElement("div"); el.id = "wrap"; document.body.appendChild(el); }
+  el.innerHTML = `<div class="wstage" id="wstage"><div class="wbars">${W.slides.map(()=>"<i><b></b></i>").join("")}</div>
+    <button class="ibtn wclose" id="wclose">✕</button><div id="wslot"></div></div>`;
+  el.classList.add("open"); document.body.style.overflow = "hidden";
+  $("#wclose").onclick = e => { e.stopPropagation(); closeWrapped(); };
+  const stage = $("#wstage");
+  let downAt = 0, sx = 0;
+  stage.onpointerdown = e => { if (e.target.closest("button")) return; downAt = Date.now(); sx = e.clientX; W.paused = true; };
+  stage.onpointerup = e => {
+    if (e.target.closest("button")) return;
+    const held = Date.now() - downAt, dx = e.clientX - sx; W.paused = false; W.t0 = performance.now() - W.elapsed;
+    if (Math.abs(dx) > 50) return dx < 0 ? wGo(1) : wGo(-1);
+    if (held < 300){ const r = stage.getBoundingClientRect(); wGo(e.clientX - r.left < r.width*0.33 ? -1 : 1); }
+  };
+  stage.onpointercancel = () => { W.paused = false; W.t0 = performance.now() - W.elapsed; };
+  document.addEventListener("keydown", wKeys);
+  wShow();
+};
+function wKeys(e){ if (e.key==="ArrowRight"||e.key===" ") wGo(1); else if (e.key==="ArrowLeft") wGo(-1); else if (e.key==="Escape") closeWrapped(); }
+function closeWrapped(){ cancelAnimationFrame(W.raf); $("#wrap").classList.remove("open"); document.body.style.overflow = ""; document.removeEventListener("keydown", wKeys); }
+function wGo(d){ const n = W.i + d; if (n < 0) { W.i = 0; return wShow(); } if (n >= W.slides.length) return; W.i = n; wShow(); }
+function wShow(){
+  const sl = W.slides[W.i];
+  $("#wslot").innerHTML = `<div class="wslide ${sl.cls||""}" style="background:${sl.bg};color:${sl.fg||"#fff"}">${sl.html}</div>`;
+  document.querySelectorAll(".wbars i b").forEach((b,i)=>b.style.width = i < W.i ? "100%" : "0");
+  const root = $("#wslot");
+  setTimeout(()=>animate(root), 250);
+  root.querySelectorAll("[data-act]").forEach(b=>b.onclick = e => { e.stopPropagation(); if (b.dataset.act==="share") shareWrapped(); else { W.i = 0; wShow(); } });
+  W.t0 = performance.now(); W.elapsed = 0; cancelAnimationFrame(W.raf);
+  const bar = document.querySelectorAll(".wbars i b")[W.i];
+  const tick = t => {
+    if (!$("#wrap").classList.contains("open")) return;
+    if (!W.paused) W.elapsed = t - W.t0;
+    const p = Math.min(1, W.elapsed / W.DUR); bar.style.width = (p*100) + "%";
+    if (p >= 1 && !sl.final) return wGo(1);
+    W.raf = requestAnimationFrame(tick);
+  };
+  W.raf = requestAnimationFrame(tick);
+}
+async function shareWrapped(){
+  const D = W.data, c = document.createElement("canvas"); c.width = 1080; c.height = 1920;
+  const x = c.getContext("2d"), F = "Segoe UI, system-ui, -apple-system, Roboto, sans-serif";
+  const bg = x.createLinearGradient(0,0,1080,1920); bg.addColorStop(0,"#ff4fa3"); bg.addColorStop(.45,"#7a5cff"); bg.addColorStop(1,"#120a24");
+  x.fillStyle = bg; x.fillRect(0,0,1080,1920);
+  const blob = (cx,cy,r,col) => { const g = x.createRadialGradient(cx,cy,0,cx,cy,r); g.addColorStop(0,col); g.addColorStop(1,"transparent"); x.fillStyle = g; x.fillRect(0,0,1080,1920); };
+  blob(900,1650,700,"#ff8a3daa"); blob(150,300,600,"#c8f13555");
+  const txt = (t, y, size, weight=900, col="#fff", xx=90) => { x.fillStyle = col; x.font = `${weight} ${size}px ${F}`; x.fillText(t, xx, y); };
+  const fit = (t, max, size) => { x.font = `900 ${size}px ${F}`; while (x.measureText(t).width > max && size > 30) { size -= 4; x.font = `900 ${size}px ${F}`; } return size; };
+  txt(`MEIN GAMING ${D.yr?D.year:"RECAP"}`, 180, 46, 800, "#ffffffcc");
+  txt(num(Math.round(D.total/60)), 420, fit(num(Math.round(D.total/60)), 900, 260));
+  txt("Stunden gezockt", 500, 64, 800);
+  txt(`${D.rows.length} Spiele · ${D.plat.length} Plattformen`, 580, 42, 600, "#ffffffdd");
+  txt("TOP 5", 720, 40, 800, "#ffffffaa");
+  D.rows.slice(0,5).forEach((r,i)=>{ const y = 800 + i*96; txt(String(i+1), y, 64, 900, "#c8f135");
+    let t = r.g.title; x.font = `800 52px ${F}`; while (x.measureText(t).width > 640 && t.length > 4) t = t.slice(0,-2); if (t !== r.g.title) t += "…";
+    txt(t, y, 52, 800, "#fff", 180); x.font = `700 40px ${F}`; const h = hrs(r.m); x.fillStyle = "#ffffffcc"; x.fillText(h, 990 - x.measureText(h).width, y); });
+  let y = 1340;
+  const line = (a, b) => { txt(a, y, 34, 800, "#ffffffaa"); txt(b, y+64, fit(b, 900, 60), 900); y += 160; };
+  if (D.st.ss.length >= 3) line("MEIN TYP", D.st.type);
+  if (D.gen.length) line("LIEBLINGSGENRE", D.gen[0][0]);
+  if (y < 1700 && D.bd.length) line("ABZEICHEN", `${D.bd.length} freigeschaltet`);
+  txt("🎮 Gaming Recap", 1840, 36, 800, "#ffffffbb");
+  const file = await new Promise(r=>c.toBlob(b=>r(new File([b], `gaming-recap-${D.yr?D.year:"alle"}.png`, {type:"image/png"})), "image/png"));
+  try {
+    if (navigator.canShare && navigator.canShare({files:[file]})) { await navigator.share({files:[file], title:"Mein Gaming Recap"}); return; }
+  } catch(e){ if (e.name === "AbortError") return; }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(file); a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
+  toast("Bild gespeichert");
+}
+
+/* ================= Detailansicht ================= */
+window.openGame = key => {
+  const g = S.gmap.get(key); if (!g) return;
+  const devs = Object.keys(g.devs), H = g.hltb;
+  let tempo = "";
+  const ref = H ? (g.status==="komplett" && H.comp ? H.comp : H.main) : null;
+  if (ref && g.pcMinutes > 30 && SMAP[g.status].g === "done"){
+    const p = (g.pcMinutes/ref - 1)*100;
+    tempo = `<p class="help">Du hast ${hrs(g.pcMinutes)} gebraucht – ${num(Math.abs(p))} % ${p<0?"schneller":"langsamer"} als der Schnitt für ${g.status==="komplett"&&H.comp?"100 %":"die Story"}.</p>`;
+  } else if (g.remaining) tempo = `<p class="help">Noch etwa <b>${hrs(g.remaining)}</b> bis zum Abspann.</p>`;
+  const hltbBlock = `<div class="secttl">HowLongToBeat ${H&&H.manual?"(selbst eingetragen)":""}</div>
+    ${H && (H.main||H.plus||H.comp) ? `<div class="hl"><div><small>Story</small><b>${H.main?hrs(H.main):"–"}</b></div><div><small>+ Extras</small><b>${H.plus?hrs(H.plus):"–"}</b></div><div><small>100 %</small><b>${H.comp?hrs(H.comp):"–"}</b></div></div>${tempo}` : `<p class="help">Noch keine Zeit bekannt.</p>`}
+    <div class="inl" style="flex-wrap:wrap">${H&&H.id?`<a class="btn ghost small" href="https://howlongtobeat.com/game/${H.id}" target="_blank" rel="noopener">Auf HLTB ansehen ↗</a>`:`<a class="btn ghost small" href="https://howlongtobeat.com/?q=${encodeURIComponent(g.title)}" target="_blank" rel="noopener">Auf HLTB suchen ↗</a>`}
+      ${S.data.can_edit?`<input type="number" id="hlMain" min="0" step="0.5" placeholder="Story-Std" value="${H&&H.manual&&H.main?H.main/60:""}"><button class="btn ghost small" onclick="saveHltb('${esc(g.key)}')">Eintragen</button>`:""}</div>`;
+  const left = `<div class="kv">
+      <div><small>Spielzeit</small><b>${g.minutes?hrs(g.minutes):"nie gestartet"}</b></div>
+      <div><small>Zuletzt gespielt</small><b>${fdate(g.last)}</b></div>
+      ${g.added?`<div><small>In Bibliothek seit</small><b>${fdate(g.added)}</b></div>`:""}
+      ${g.first?`<div><small>Zum ersten Mal</small><b>${fdate(g.first)}</b></div>`:""}
+      ${g.year?`<div><small>Erschienen</small><b>${g.year}</b></div>`:""}
+      ${g.devsList.length?`<div><small>Studio</small><b>${esc(g.devsList.slice(0,2).join(", "))}</b></div>`:""}</div>
+    ${g.recs.length>1?`<div class="secttl">Nach Plattform</div><div class="tagrow">${g.recs.map(r=>`<span class="tag"><i style="background:${pcolor(platLabel(r))}"></i>${esc(platLabel(r))} · ${hrs(r.minutes||0)}</span>`).join("")}</div>`:""}
+    ${g.genres.length?`<div class="secttl">Genres</div><div class="tagrow">${g.genres.map(x=>`<span class="tag">${esc(x)}</span>`).join("")}</div>`:""}
+    ${hltbBlock}
+    ${g.ach && g.ach.t ? `<div class="secttl">Steam-Erfolge</div><div class="goal"><div class="gtop"><span>${g.ach.d} von ${g.ach.t}</span><span>${num(g.ach.d/g.ach.t*100)} %</span></div>
+      <div class="gbar" style="background:#ffffff14"><div style="width:${g.ach.d/g.ach.t*100}%;background:var(--lime)"></div></div>
+      ${g.ach.r?`<p class="help">Seltenster: <b>${esc(g.ach.r[0])}</b> – nur ${num(g.ach.r[1],1)} % haben ihn.</p>`:""}</div>` : ""}
+    ${g.price && g.price.orig ? `<div class="secttl">Preis</div><p style="margin:4px 0">${euro(g.price.orig)} im Steam-Store${g.price.discount?` (gerade -${g.price.discount} %)`:""}${g.minutes>=60?` · <b>${euro(g.price.orig/(g.minutes/60))} pro Stunde</b>`:""}</p>` : ""}
+    ${g.appid ? `<a class="btn ghost small" style="margin-top:10px" href="https://store.steampowered.com/app/${esc(g.appid)}/" target="_blank" rel="noopener">Im Steam-Store ↗</a>` : ""}`;
+  const right = `${g.pc && !g.hidden ? `<div class="secttl">Backlog-Status ${g.isAuto?"<span style='text-transform:none;letter-spacing:0'>(automatisch erkannt)</span>":""}</div>
+      <div class="sgrid">${STATUS.map(s=>`<button style="color:${s.c}" class="${g.status===s.k?"on":""}" onclick="setStatus('${esc(g.key)}','${s.k}')"><span style="color:var(--ink)">${s.e} ${s.l}</span></button>`).join("")}
+      ${g.isAuto?"":`<button onclick="setStatus('${esc(g.key)}',null)" style="color:var(--muted)">↺ Automatisch</button>`}</div>`
+      : `<p class="help">${g.pc?"In Playnite ausgeblendet, daher nicht im Backlog.":"Konsolenspiele zählen in die Statistik, aber nicht in den Backlog."}</p>`}
+    <div class="secttl">Tier-Liste</div>
+    <div class="tpick">${TIERS.map(([t,c])=>`<button style="background:${c}" class="${g.tier===t?"on":""}" onclick="setTier('${esc(g.key)}', ${g.tier===t?"null":`'${t}'`})">${t}</button>`).join("")}</div>
+    <div class="secttl">Deine Bewertung</div>
+    <div class="stars">${[1,2,3,4,5].map(i=>`<button class="${(g.meta.rating||0)>=i?"on":""}" onclick="setRating('${esc(g.key)}',${i})">★</button>`).join("")}</div>
+    <div class="secttl">Notiz</div><textarea id="note" placeholder="z. B. Bei Kapitel 3 aufgehört …">${esc(g.meta.note||"")}</textarea>`;
+  $("#detailBody").innerHTML = `<button class="ibtn dclose" onclick="$('#detail').close()">✕</button>
+    <div class="dban">${img(g.banners,g.title)}</div>
+    <div class="dhead"><div class="poster">${img(g.covers,g.title)}</div>
+      <div><h2>${esc(g.title)}</h2><div class="tagrow">${devs.map(d=>`<span class="tag"><i style="background:${DEV_COLORS[d]}"></i>${d}</span>`).join("")}</div></div></div>
+    <div class="dbody"><div class="dgrid"><div>${left}</div><div>${right}</div></div></div>`;
+  $("#note").onchange = e => saveMeta(g.key, {note:e.target.value});
+  if (!$("#detail").open) $("#detail").showModal();
+};
+async function saveMeta(key, patch){
+  if (CLOUD){
+    const q = edits(); q.push({key, ...patch, ts:Date.now()}); store.set("gr_edits", q);
+    S.data.meta[key] = {...(S.data.meta[key]||{}), ...patch};
+    buildGroups(); header(); flushEdits(); return;
+  }
+  const r = await fetch("/api/meta",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({key, ...patch})});
+  if (!r.ok) { toast("Speichern fehlgeschlagen"); return; }
+  const m = await r.json();
+  S.data.meta[m.key] = {status:m.status, rating:m.rating, note:m.note, tier:m.tier, updated:m.updated};
+  buildGroups();
+}
+window.setStatus = async (key, st) => { await saveMeta(key,{status:st}); openGame(key); route(); };
+window.setTier = async (key, t, reopen=true) => { await saveMeta(key,{tier:t}); if (reopen && $("#detail").open) openGame(key); if (cur()==="spiele" && S.lib.view==="tier") renderLib(); };
+async function saveKv(key, value){
+  if (CLOUD){ const q = edits(); q.push({kind:"kv", key, value, ts:Date.now()}); store.set("gr_edits", q); S.data.goals = value; header(); flushEdits(); return; }
+  await post("/api/kv", {key, value}); S.data.goals = value;
+}
+window.setRating = async (key, n) => { const g = S.gmap.get(key); await saveMeta(key,{rating: g.meta.rating===n ? 0 : n}); openGame(key); };
+window.saveHltb = async key => {
+  const v = parseFloat($("#hlMain").value);
+  await post("/api/hltb", {key, main: v>0 ? v : null});
+  S.data.hltb[key] = v>0 ? {...(S.data.hltb[key]||{}), main: Math.round(v*60), manual:true} : undefined;
+  buildGroups(); openGame(key); toast("Gespeichert");
+};
+$("#detail").addEventListener("click", e => { if (e.target.id==="detail") e.target.close(); });
+
+/* Handy: Änderungen verschlüsselt nach GitHub schicken, der PC übernimmt sie */
+let flushing = false;
+async function flushEdits(){
+  if (!CLOUD || flushing || !S.snap || !S.snap.gh) return;
+  const q = edits().filter(e=>!e.sent); if (!q.length) return;
+  flushing = true;
+  try {
+    const {repo, token, branch} = S.snap.gh, ts = Date.now();
+    const body = await encryptObj({edits:q}, pass());
+    const name = `edits/${ts}-${Math.random().toString(36).slice(2,8)}.enc`;
+    const r = await fetch(`https://api.github.com/repos/${repo}/contents/${name}`, {method:"PUT",
+      headers:{"Authorization":"Bearer "+token,"Accept":"application/vnd.github+json","Content-Type":"application/json"},
+      body: JSON.stringify({message:"Änderung vom Handy", content:btoa(unescape(encodeURIComponent(body))), branch})});
+    if (r.ok){ const sent = new Set(q.map(e=>e.ts)); store.set("gr_edits", edits().map(e=>sent.has(e.ts)?{...e,sent:true}:e)); }
+  } catch(e){ /* offline: später nochmal */ }
+  finally { flushing = false; header(); }
+}
+window.addEventListener("online", flushEdits);
+
+/* ================= Zufalls-Picker ================= */
+const PK = {pool:"open", genre:"", inst:false, len:"", mood:"", pick:null};
+const MOODS = {
+  chill: g => (g.remaining==null || g.remaining < 900) && !g.genres.some(x=>/shooter|horror|soulslike|competitive/i.test(x)),
+  story: g => g.genres.some(x=>/rpg|rollenspiel|adventure|abenteuer|story|visual novel/i.test(x)),
+  friends: g => g.features.some(x=>/multi|co-?op|koop/i.test(x)),
+};
+window.openPicker = () => { PK.pick = null; renderPicker(); $("#picker").showModal(); };
+function pickerPool(){
+  return blGames().filter(g => (PK.pool==="open" ? SMAP[g.status].g==="open" : g.status===PK.pool)
+    && (!PK.genre || g.genres.includes(PK.genre)) && (!PK.inst || g.installed)
+    && (!PK.mood || MOODS[PK.mood](g)) && (!PK.len || (g.remaining!=null && (PK.len==="s" ? g.remaining<600 : PK.len==="m" ? g.remaining>=600&&g.remaining<1800 : g.remaining>=1800))));
+}
+function renderPicker(){
+  const genres = [...new Set(blGames().filter(g=>SMAP[g.status].g==="open").flatMap(g=>g.genres))].sort((a,b)=>a.localeCompare(b,"de"));
+  const pool = pickerPool(), g = PK.pick;
+  const chip = (k,l,v,f) => `<button class="chip ${PK[f]===k?"on":""}" onclick="PK.${f}='${k}';PK.pick=null;renderPicker()">${l}</button>`;
+  $("#pickerBody").innerHTML = `<button class="ibtn dclose" onclick="$('#picker').close()">✕</button><div class="pk">
+    <div class="eyebrow">Was spiele ich als Nächstes?</div>
+    <div class="slot" id="slot"><div class="poster">${g?img(g.covers,g.title):ph("?")}</div></div>
+    <h2 id="pkTitle">${g?esc(g.title):"Lass den Würfel entscheiden"}</h2>
+    <div class="why">${g?pickWhy(g):`${pool.length} Spiele im Topf`}</div>
+    <div class="opts">${[["open","Alles offen"],["als_naechstes","🎯 Als Nächstes"],["angefangen","▶️ Angefangen"],["ungespielt","📦 Nie gestartet"],["pausiert","⏸️ Pausiert"]].map(([k,l])=>chip(k,l,0,"pool")).join("")}</div>
+    <div class="opts">${[["","Jede Stimmung"],["chill","😌 Entspannt"],["story","📖 Story-Abend"],["friends","👥 Mit Freunden"]].map(([k,l])=>chip(k,l,0,"mood")).join("")}</div>
+    <div class="opts">${[["","Jede Länge"],["s","⚡ Kurz (< 10 Std)"],["m","Mittel (10–30)"],["l","Lang (30+)"]].map(([k,l])=>chip(k,l,0,"len")).join("")}</div>
+    <div class="opts"><select onchange="PK.genre=this.value;PK.pick=null;renderPicker()"><option value="">Alle Genres</option>${genres.map(x=>`<option ${PK.genre===x?"selected":""}>${esc(x)}</option>`).join("")}</select>
+      <label class="check" style="margin:0"><input type="checkbox" ${PK.inst?"checked":""} onchange="PK.inst=this.checked;PK.pick=null;renderPicker()"> nur installierte</label></div>
+    <div class="acts"><button class="btn limeb" id="roll" ${pool.length?"":"disabled"}>🎲 ${g?"Nochmal":"Würfeln"}</button>
+      ${g && g.status!=="als_naechstes" ? `<button class="btn ghost" onclick="setStatus('${esc(g.key)}','als_naechstes').then(()=>$('#picker').close())">🎯 Merken</button>`:""}
+      ${g ? `<button class="btn ghost" onclick="$('#picker').close();openGame('${esc(g.key)}')">Details</button>`:""}</div></div>`;
+  $("#roll").onclick = roll;
+}
+function pickWhy(g){
+  const bits = [];
+  if (g.added) bits.push(`liegt seit ${fdate(g.added)} im Regal`);
+  bits.push(g.pcMinutes ? `${hrs(g.pcMinutes)} gespielt` : "noch nie gestartet");
+  if (g.remaining) bits.push(`noch ca. ${hrs(g.remaining)}`);
+  return esc(bits.join(" · "));
+}
+function roll(){
+  const pool = pickerPool(); if (!pool.length) return;
+  const final = pool[Math.floor(Math.random()*pool.length)];
+  $("#roll").disabled = true;
+  let i = 0, delay = 40;
+  const tick = () => {
+    const g = i < 16 ? pool[Math.floor(Math.random()*pool.length)] : final;
+    $("#slot").innerHTML = `<div class="poster">${img(g.covers,g.title)}</div>`;
+    $("#pkTitle").textContent = g.title;
+    if (i < 16){ i++; delay *= 1.12; setTimeout(tick, delay); }
+    else { PK.pick = final; renderPicker(); $("#slot").classList.add("pop"); }
+  };
+  tick();
+}
+
+/* ================= Handy-Menü (Cloud) ================= */
+function cloudMenu(){
+  const q = edits(), waiting = q.filter(e=>!e.sent).length, sent = q.length - waiting;
+  $("#settingsBody").innerHTML = `<button class="ibtn dclose" onclick="$('#settings').close()">✕</button>
+    <div class="h1" style="font-size:32px">Handy-App</div>
+    <div class="kv"><div><small>Stand vom PC</small><b>${S.data.last_sync?new Date(S.data.last_sync).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"}):"–"}</b></div>
+      <div><small>Deine Änderungen</small><b>${q.length ? `${sent} unterwegs, ${waiting} wartend` : "alle übernommen"}</b></div></div>
+    <p class="help">Änderungen am Backlog, an Sternen und Notizen gehen verschlüsselt an GitHub und werden übernommen, sobald dein PC an ist. Bis dahin siehst du sie hier schon.</p>
+    ${sourcesBlock()}
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
+      <button class="btn limeb" onclick="S.snap=null;$('#settings').close();loadCloud(true)">Neu laden</button>
+      ${waiting?`<button class="btn ghost" onclick="flushEdits().then(()=>cloudMenu())">Jetzt senden</button>`:""}
+      <button class="btn ghost" onclick="if(confirm('Abmelden? Das Passwort wird von diesem Gerät gelöscht.')){store.del('gr_pass');store.del('gr_blob');location.reload()}">Abmelden</button></div>`;
+  if (!$("#settings").open) $("#settings").showModal();
+}
+
+/* ================= Einstellungen (PC) ================= */
+async function post(url, body){
+  const r = await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  const j = await r.json().catch(()=>({}));
+  if (!r.ok) throw new Error(j.error || ("Fehler " + r.status));
+  return j;
+}
+if (LOCAL){
+  $("#syncBtn").onclick = async () => { await post("/api/sync",{}); setTimeout(load,400); };
+  $("#setBtn").onclick = () => openSettings();
+}
+window.openSettings = async () => {
+  const c = await (await fetch("/api/config")).json();
+  const ph2 = set => set ? "•••• gespeichert" : "";
+  const cl = c.cloud || {};
+  const srcs = Object.entries(S.data.sources||{});
+  $("#settingsBody").innerHTML = `<button class="ibtn dclose" onclick="$('#settings').close()">✕</button>
+    <div class="h1" style="font-size:32px">Einstellungen</div>
+    <p class="help" style="margin-top:-8px">Alles bleibt auf diesem PC (Ordner <code>daten</code>). Die Handy-App bekommt nur eine verschlüsselte Kopie.</p>
+    ${srcs.length?`<fieldset><legend>Status</legend>${srcs.map(([n,v])=>`<div class="src"><span class="${v.ok?"ok":"bad"}">${v.ok?"●":"✕"}</span><span><b>${esc(n)}</b> <span class="help">${v.ok?esc(v.info||(v.count!=null?v.count+" Spiele":"ok")):esc(v.error)}</span></span></div>`).join("")}</fieldset>`:""}
+
+    <fieldset><legend>📱 Handy-App (auch wenn der PC aus ist)</legend>
+      <label class="check"><input type="checkbox" id="cloud_enabled" ${c.cloud_enabled?"checked":""}> Verschlüsselte Kopie auf GitHub Pages ablegen</label>
+      ${cl.url && c.cloud_enabled ? `<div class="urlbox">${esc(cl.url)}</div><p class="help">Diese Adresse auf dem Handy öffnen und „Zum Home-Bildschirm hinzufügen“.</p>`:""}
+      ${cl.error ? `<p class="bad" style="font-weight:700">${esc(cl.error)}</p>` : cl.last_push ? `<p class="help">Zuletzt hochgeladen: ${esc(cl.last_push.replace("T"," ").slice(0,16))} UTC</p>`:""}
+      <label>Repository (benutzername/gaming-recap)</label><input type="text" id="gh_repo" value="${esc(c.gh_repo)}" placeholder="marvin/gaming-recap">
+      <label>GitHub-Token</label><input type="password" id="gh_token" placeholder="${ph2(c.gh_token_set)}" autocomplete="off">
+      <label>Passwort für die Handy-App (mind. 10 Zeichen)</label><input type="password" id="cloud_pass" placeholder="${ph2(c.cloud_pass_set)}" autocomplete="new-password">
+      <div class="help"><ol>
+        <li>Auf <a href="https://github.com/signup" target="_blank" rel="noopener">github.com</a> ein Konto anlegen.</li>
+        <li><a href="https://github.com/new" target="_blank" rel="noopener">Neues Repository</a>: Name <code>gaming-recap</code>, <b>Public</b>, „Add a README file“ anhaken.</li>
+        <li>Im Repository: Settings › Pages › Branch <code>main</code> / <code>/(root)</code> › Save.</li>
+        <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Token erstellen</a>: „Only select repositories“ › gaming-recap, Permissions › Contents: <b>Read and write</b>.</li>
+        <li>Alles hier eintragen und speichern.</li></ol>
+        Das Repository ist öffentlich, deine Daten darin sind aber mit dem Passwort verschlüsselt. Nimm ein Passwort, das du sonst nirgends nutzt. Der Token steckt verschlüsselt in der Kopie, damit das Handy Änderungen zurückschicken kann.</div>
+      ${c.cloud_enabled?`<button class="btn ghost small" type="button" id="pushBtn" style="margin-top:10px">Jetzt hochladen</button>`:""}
+    </fieldset>
+
+    <fieldset><legend>🖥️ Playnite (alle PC-Launcher)</legend>
+      <div class="src">${c.playnite_found?`<span class="ok">●</span> Playnite gefunden`:`<span class="bad">✕</span> Playnite nicht gefunden – <a href="https://playnite.link" target="_blank" rel="noopener">playnite.link</a>`}</div>
+      <div class="src">${c.extension_installed?`<span class="ok">●</span> Erweiterung installiert`:`<span class="bad">✕</span> Erweiterung fehlt`}</div>
+      <button class="btn ghost small" type="button" id="instBtn" style="margin-top:8px" ${c.playnite_found?"":"disabled"}>${c.extension_installed?"Erweiterung neu installieren":"Erweiterung installieren"}</button>
+      <div class="help">Danach Playnite einmal neu starten. In Playnite unter <i>Bibliothek › Bibliotheken konfigurieren</i> Steam, Epic, Ubisoft, EA, GOG und Xbox verbinden.</div>
+      <label>Pfad zum Export</label><input type="text" id="playnite_export" value="${esc(c.playnite_export)}">
+    </fieldset>
+    <fieldset><legend>⏱️ Session-Tracker & HowLongToBeat</legend>
+      <label class="check"><input type="checkbox" id="tracker" ${c.tracker?"checked":""}> Laufende PC-Spiele erkennen und Sessions speichern</label>
+      <div class="help">${c.tracker_supported?"Funktioniert, solange Gaming Recap läuft. Tipp: Autostart einrichten (siehe Anleitung).":"Nur unter Windows verfügbar."} Änderung wirkt nach einem Neustart.</div>
+      <label class="check" style="margin-top:12px"><input type="checkbox" id="hltb" ${c.hltb?"checked":""}> Spieldauern von HowLongToBeat laden</label>
+      <div class="help">Inoffiziell: Falls HLTB seine Seite ändert, kannst du Zeiten pro Spiel selbst eintragen.</div>
+    </fieldset>
+    <fieldset><legend>Steam</legend>
+      <label>Steam Web-API-Key</label><input type="password" id="steam_api_key" placeholder="${ph2(c.steam_api_key_set)}" autocomplete="off">
+      <label>Steam-Profil (Link, ID oder Name)</label><input type="text" id="steam_id" value="${esc(c.steam_id)}" placeholder="https://steamcommunity.com/id/deinname">
+      <div class="help">Key: <a href="https://steamcommunity.com/dev/apikey" target="_blank" rel="noopener">steamcommunity.com/dev/apikey</a> (Domain: <code>localhost</code>). In Steam unter Profil › Privatsphäre die „Spieldetails“ auf „Öffentlich“.</div>
+    </fieldset>
+    <fieldset><legend>PlayStation 5</legend>
+      <label>NPSSO-Token</label><input type="password" id="psn_npsso" placeholder="${ph2(c.psn_npsso_set)}" autocomplete="off">
+      <div class="help"><ol><li>Auf <a href="https://www.playstation.com" target="_blank" rel="noopener">playstation.com</a> anmelden.</li>
+      <li>Im selben Browser <a href="https://ca.account.sony.com/api/v1/ssocookie" target="_blank" rel="noopener">diesen Link</a> öffnen.</li>
+      <li>Den Wert hinter <code>"npsso"</code> einfügen.</li></ol>Wie ein Passwort behandeln. Hält ca. 2 Monate.</div>
+    </fieldset>
+    <fieldset><legend>Xbox Series X <span class="help">(experimentell)</span></legend>
+      <label>OpenXBL-API-Key</label><input type="password" id="xbox_api_key" placeholder="${ph2(c.xbox_api_key_set)}" autocomplete="off">
+      <div class="help"><ol><li>Auf <a href="https://xbl.io" target="_blank" rel="noopener">xbl.io</a> mit deinem Microsoft-Konto anmelden.</li>
+      <li>Unter „API Keys“ einen Key erstellen und hier einfügen.</li></ol>Drittanbieter-Dienst. Spielzeiten kommen in Portionen.</div>
+    </fieldset>
+    <fieldset><legend>🔔 Extras & Hinweise</legend>
+      <label class="check"><input type="checkbox" id="steam_extras" ${c.steam_extras?"checked":""}> Steam-Erfolge, Wunschliste, Preise und Freunde laden</label>
+      <label class="check" style="margin-top:10px"><input type="checkbox" id="notify_sales" ${c.notify_sales?"checked":""}> Windows-Hinweis bei Angeboten auf der Wunschliste</label>
+      <label class="check" style="margin-top:10px"><input type="checkbox" id="notify_weekly" ${c.notify_weekly?"checked":""}> Wochen-Recap jeden Montag</label>
+      <label>Pausen-Erinnerung nach … Stunden am Stück (0 = aus)</label><input type="number" id="pause_hours" min="0" max="24" step="0.5" value="${c.pause_hours||0}">
+      <label>Leistung deines PCs beim Zocken (Watt, für die Stromrechnung)</label><input type="number" id="watts" min="50" max="2000" value="${c.watts||350}">
+      <label>Strompreis (€ pro kWh)</label><input type="number" id="kwh_price" min="0" max="5" step="0.01" value="${c.kwh_price||0.35}">
+    </fieldset>
+    <fieldset><legend>Sonstiges</legend>
+      <label>Automatisch abgleichen alle … Stunden</label><input type="number" id="sync_hours" min="1" max="48" value="${c.sync_hours}">
+      <label class="check" style="margin-top:14px"><input type="checkbox" id="lan" ${c.lan?"checked":""}> Zusätzlich im Heim-WLAN freigeben</label>
+      <div class="help">Brauchst du mit der Handy-App eigentlich nicht mehr. Wirkt nach einem Neustart.</div>
+    </fieldset>
+    <div style="display:flex;gap:10px;justify-content:flex-end"><button class="btn ghost" type="button" onclick="$('#settings').close()">Abbrechen</button>
+      <button class="btn limeb" type="button" id="saveBtn">Speichern</button></div>`;
+  $("#instBtn").onclick = async () => {
+    try { const r = await post("/api/playnite/install",{}); alert("Installiert nach:\n" + r.path + "\n\nStarte Playnite jetzt neu."); openSettings(); }
+    catch(e){ alert(e.message); }
+  };
+  if ($("#pushBtn")) $("#pushBtn").onclick = async () => { await post("/api/cloud/push",{}); toast("Lade hoch …"); setTimeout(openSettings, 8000); };
+  $("#saveBtn").onclick = async () => {
+    $("#saveBtn").disabled = true;
+    try {
+      const v = id => $("#"+id).value, ch = id => $("#"+id).checked;
+      await post("/api/config", {steam_api_key:v("steam_api_key"), steam_id:v("steam_id"), psn_npsso:v("psn_npsso"), xbox_api_key:v("xbox_api_key"),
+        playnite_export:v("playnite_export"), gh_repo:v("gh_repo"), gh_token:v("gh_token"), cloud_pass:v("cloud_pass"),
+        cloud_enabled:ch("cloud_enabled"), tracker:ch("tracker"), hltb:ch("hltb"), lan:ch("lan"), sync_hours:Number(v("sync_hours"))||6,
+        steam_extras:ch("steam_extras"), notify_sales:ch("notify_sales"), notify_weekly:ch("notify_weekly"),
+        pause_hours:Number(v("pause_hours"))||0, watts:Number(v("watts"))||350, kwh_price:Number(v("kwh_price"))||0.35});
+      $("#settings").close(); toast("Gespeichert"); setTimeout(load,400);
+    } catch(e){ alert("Speichern fehlgeschlagen: " + e.message); $("#saveBtn").disabled = false; }
+  };
+  if (!$("#settings").open) $("#settings").showModal();
+};
+
+/* ================= Start ================= */
+if (CLOUD && "serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+nav();
+load();
+if (LOCAL) setInterval(()=>{ if (!document.hidden && cur()!=="wrapped") fetch("/api/data?period="+S.period).then(r=>r.json()).then(d=>{
+  const changed = JSON.stringify(d.playing) !== JSON.stringify(S.data && S.data.playing) || d.last_sync !== (S.data && S.data.last_sync);
+  if (changed && !$("#detail").open && !$("#picker").open && !$("#settings").open){ S.data = d; buildGroups(); header(); route(); }
+}).catch(()=>{}); }, 60000);
+</script>
+</body>
+</html>
