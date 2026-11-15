@@ -256,6 +256,25 @@ details.adv{border:1px solid #ffffff1a;border-radius:16px;padding:12px 14px;marg
 details.adv>summary{cursor:pointer;font-weight:800;list-style:none}
 details.adv>summary::before{content:"▸ ";color:var(--muted)}details.adv[open]>summary::before{content:"▾ "}
 details.adv[open]>summary{margin-bottom:6px}
+.buyc{display:block;font-size:11px;font-weight:800;margin-top:3px;white-space:nowrap}
+.calrow{display:grid;grid-template-columns:46px 40px 1fr;gap:12px;align-items:center;padding:8px 0;border-top:1px solid #ffffff10;color:inherit;text-decoration:none}
+.calrow .cday{text-align:center;background:#ffffff0d;border-radius:12px;padding:6px 0}.calrow .cday b{display:block;font-size:20px;line-height:1}.calrow .cday span{font-size:11px;color:var(--muted)}
+.calrow .poster{width:40px;border-radius:8px}.calrow .mid2 b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.calrow .mid2 span{font-size:12.5px;color:var(--muted)}
+.trc{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}.trc div{background:#ffffff0b;border-radius:12px;padding:8px;text-align:center}.trc b{display:block;font-size:16px}.trc span{font-size:11px;color:var(--muted)}
+.trp{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}.trp div{text-align:center}.trp img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;box-shadow:0 0 0 2px #b8c7ff66}
+.trp span{display:block;font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
+.hrow{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;padding:8px 0;border-top:1px solid #ffffff10;cursor:pointer}
+.hrow .poster{width:40px;border-radius:8px}.hrow .poster>img{width:100%;height:100%;object-fit:cover}.hrow b{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hrow span{font-size:12px;color:var(--muted)}
+.hrow .trk{height:5px;border-radius:5px;background:#ffffff12;margin-top:5px;overflow:hidden}.hrow .trk div{height:100%;background:linear-gradient(90deg,#ffd23f,var(--lime))}.hrow em{font-style:normal;font-weight:900}
+.freerail{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;align-items:flex-start}
+.freeg{flex:none;width:130px;color:inherit;text-decoration:none}.freeg .poster{border-radius:14px;margin-bottom:6px}.freeg b{display:block;font-size:13px;line-height:1.2}.freeg span{font-size:11.5px;color:var(--lime);font-weight:700}
+.freesep{flex:none;writing-mode:vertical-rl;transform:rotate(180deg);font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--muted);align-self:center}
+.cmpp{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;padding:10px 0;border-top:1px solid #ffffff10}.cmpp:first-of-type{border-top:0}
+.cmpp small{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:800}.cmpp b{font-size:22px}.cmpp span{display:block;font-size:12px;color:var(--muted)}
+.cmpp>div:last-child{text-align:right}.cmpp .vs{text-align:center;font-weight:900;font-size:18px}.cmpp .vs small{text-transform:none;letter-spacing:0}
+.snb{border:0;background:#ffffff0d;color:inherit;border-radius:10px;padding:2px 8px;margin-top:4px;font-size:14px;cursor:pointer}
+.moods{display:flex;gap:10px}.moods button{flex:1;font-size:34px;padding:10px 0;border-radius:16px;border:2px solid #ffffff14;background:#ffffff08;cursor:pointer}.moods button.on{border-color:var(--lime);background:#c8f13518}
+.diary{display:flex;gap:10px;padding:8px 0;border-top:1px solid #ffffff10}.diary>span{font-size:22px}.diary small{color:var(--muted);font-size:11.5px}.diary p{margin:2px 0 0}
 .updbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom));z-index:200;border:0;border-radius:999px;padding:12px 18px;font-weight:800;background:var(--lime);color:#111;box-shadow:0 10px 30px #000a}
 .pc-chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:#ffffff10;margin:4px 4px 0 0;color:var(--ink)}
 .pc-chip i{width:7px;height:7px;border-radius:50%;display:inline-block}
@@ -684,7 +703,7 @@ async function loadCloud(force){
       const m = meta[norm(e.key)]; return !(m && m.updated && Date.parse(m.updated) >= e.ts) && Date.now()-e.ts < 30*86400e3; }));
   }
   const snap = S.snap, meta = {...(snap.meta||{})};
-  let goals = snap.goals || {}; const kvs = {year_overrides: snap.year_overrides || {}, wrapped: snap.wrapped_archive || {}, notpc: snap.notpc || {}};
+  let goals = snap.goals || {}; const kvs = {year_overrides: snap.year_overrides || {}, wrapped: snap.wrapped_archive || {}, notpc: snap.notpc || {}, snotes: snap.snotes || {}};
   for (const e of edits()){
     if (e.kind === "kv"){ if (e.key === "goals") goals = e.value; else kvs[e.key] = e.value; continue; }
     const k = norm(e.key); meta[k] = {...(meta[k]||{}), ...pick(e,["status","rating","note","tier","hide"]), updated:new Date(e.ts).toISOString()};
@@ -692,7 +711,8 @@ async function loadCloud(force){
   const p = S.period === "all" ? null : (snap.periods||{})[S.period];
   S.data = {last_sync:snap.last_sync, sources:snap.sources||{}, games:snap.games||[], meta, hltb:snap.hltb||{},
     sessions:snap.sessions||[], csessions:snap.csessions||[], status_log:snap.status_log||[], goals, steam:snap.steam||{}, prefs:snap.prefs||{},
-    year_overrides: kvs.year_overrides, wrapped_archive: kvs.wrapped, notpc: kvs.notpc,
+    year_overrides: kvs.year_overrides, wrapped_archive: kvs.wrapped, notpc: kvs.notpc, snotes: kvs.snotes,
+    trophies: snap.trophies || [], free_games: snap.free_games || [],
     playing:[], can_edit:false, period: p ? p.info : {period:"all"}, period_minutes: p ? p.pm : null};
   S.pcache = {}; S.yearPM = undefined; S.yearInfo = undefined;
   applyEstimate(); buildGroups(); header(); route(); flushEdits(); setTimeout(saveYearArchive, 1500);
@@ -1119,6 +1139,7 @@ function renderOverviewInner(){
   const nextB = bd.filter(b=>!b.got).sort((a,b)=>b.p-a.p).slice(0, Math.max(0, 6-got.length));
   h += `<section class="card reveal"><h3>Abzeichen · ${got.length} von ${bd.length}</h3>${badgeGrid([...got.slice(0,6), ...nextB])}
     <button class="btn ghost small" style="margin-top:14px" onclick="location.hash='#/wrapped'">Alle Abzeichen ansehen</button></section>`;
+  h += freeCard() + compareCard();
   const FL = facts(played,total,plats); for (const k in FX) delete FX[k]; FL.forEach((x,i)=>FX[i]=x);
   const ACC = ["#9b7bff","#ff8a3d","#ffd23f","#2ee6d6","#ff4fa3","#c8f135"];
   h += `<section class="card reveal"><h3>Fun Facts <span class="help" style="font-weight:600;text-transform:none;letter-spacing:0">· antippen für Details</span></h3><div class="facts">${FL.map((x,i)=>
@@ -1278,6 +1299,31 @@ function platTags(plats){
   return Object.entries(plats).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1])
     .map(([p,v])=>`<span class="tag"><i style="background:${pcolor(p)}"></i>${esc(p)} · ${hrs(v)}</span>`).join("");
 }
+function freeCard(){
+  const fg = (S.data.free_games||[]); if (!fg.length) return "";
+  const own = new Set(S.groups.map(g=>g.key)), now = fg.filter(f=>f.kind==="now"), soon = fg.filter(f=>f.kind==="soon");
+  const tile = f => `<a class="freeg" href="${esc(f.url)}" target="_blank" rel="noopener"><div class="poster">${f.image?`<img src="${esc(f.image)}" alt="" loading="lazy">`:ph(f.title)}</div>
+    <b>${esc(f.title)}</b><span>${f.kind==="now" ? (own.has(f.key)?"✓ hast du schon":`gratis bis ${fdate(new Date(f.end))}`) : `ab ${fdate(new Date(f.start))}`}</span></a>`;
+  return `<section class="card reveal"><h3>🎁 Gratis bei Epic</h3><div class="freerail">${now.map(tile).join("")}${soon.length?`<div class="freesep">Demnächst</div>`+soon.map(tile).join(""):""}</div></section>`;
+}
+// Dieser Monat/dieses Jahr gegen den vorigen Zeitraum (aus dem Wrapped-Archiv)
+function compareCard(){
+  const A = S.data.wrapped_archive || {}, n = new Date(), pad = x => String(x).padStart(2,"0");
+  const cm = `${n.getFullYear()}-${pad(n.getMonth()+1)}`, pmD = new Date(n.getFullYear(), n.getMonth()-1, 1), pm = `${pmD.getFullYear()}-${pad(pmD.getMonth()+1)}`;
+  const cy = String(n.getFullYear()), py = String(n.getFullYear()-1);
+  const tot = a => a ? Object.values(a.games||{}).reduce((s,x)=>s+x[0],0) : 0;
+  const pairs = [];
+  if (A[pm] && A[cm]) pairs.push([n.toLocaleDateString("de-DE",{month:"long"}), pmD.toLocaleDateString("de-DE",{month:"long"}), A[cm], A[pm], n.getDate()/new Date(n.getFullYear(), n.getMonth()+1, 0).getDate()]);
+  if (A[py] && A[cy]) pairs.push([cy, py, A[cy], A[py], (n - new Date(n.getFullYear(),0,1))/(365*864e5)]);
+  if (!pairs.length) return "";
+  const top = a => Object.entries(a.games||{}).sort((x,y)=>y[1][0]-x[1][0])[0];
+  return `<section class="card reveal"><h3>📊 Vergleich</h3>${pairs.map(([l1,l2,a,b,frac])=>{ const t1 = tot(a), t2 = tot(b), pace = frac > 0 ? t1/frac : t1, d = t2 ? (pace/t2-1)*100 : 0;
+    const g1 = top(a), g2 = top(b);
+    return `<div class="cmpp"><div><small>${esc(l1)} bisher</small><b>${hrs(t1)}</b><span>${g1 && S.gmap.get(g1[0]) ? "meist " + esc(S.gmap.get(g1[0]).title) : ""}</span></div>
+      <div class="vs" style="color:${d>=0?"var(--lime)":"#ff8a3d"}">${d>=0?"▲":"▼"} ${num(Math.abs(d))} %<small>auf Kurs</small></div>
+      <div><small>${esc(l2)}</small><b>${hrs(t2)}</b><span>${g2 && S.gmap.get(g2[0]) ? "meist " + esc(S.gmap.get(g2[0]).title) : ""}</span></div></div>`; }).join("")}
+    <p class="help">„Auf Kurs“: hochgerechnet aufs ganze ${pairs.length>1?"Jahr bzw. den ganzen Monat":"Zeitraum"}.</p></section>`;
+}
 function sourcesLink(){
   const s = Object.entries(S.data.sources||{}); if (!s.length) return "";
   const bad = s.filter(([,v])=>!v.ok).length;
@@ -1403,7 +1449,8 @@ function renderActivity(){
   let h = playingBanner() + `<div class="eyebrow" style="margin-top:6px">Dein Rhythmus</div><div class="h1">Aktivität</div>`;
   if (!st.ss.length){
     $("#view").innerHTML = h + `<div class="card hero" style="min-height:280px"><div class="eyebrow">Session-Tracker</div><div class="mid" style="margin:8px 0">Sammelt gerade.</div>
-      <div class="sub">Sobald du spielst, erscheinen hier deine Sessions: Heatmap, Serien, Uhrzeiten und dein Gamer-Typ. PC-Spiele werden live erkannt, Konsolenzeit beim nächsten Abgleich.</div></div>`;
+      <div class="sub">Sobald du spielst, erscheinen hier deine Sessions: Heatmap, Serien, Uhrzeiten und dein Gamer-Typ. PC-Spiele werden live erkannt, Konsolenzeit beim nächsten Abgleich.</div></div>
+      <div class="bento" style="margin-top:14px">${hunterCard() + trophyCard() + achCard()}</div>`;
     return;
   }
   // Heatmap (53 Wochen)
@@ -1455,7 +1502,7 @@ function renderActivity(){
   const top30 = Object.entries(g30).sort((a,b)=>b[1]-a[1]).slice(0,6);
   h += `<section class="card s6 reveal"><h3>Letzte 30 Tage</h3>${top30.length ? top30.map(([k,v])=>`<div class="pbar"><span class="nm" style="width:150px">${esc(titleOf(k))}</span>
     <span class="trk"><div style="width:0;background:var(--lime)" data-w="${v/top30[0][1]*100}%"></div></span><span class="v">${hrs(v)}</span></div>`).join("") : `<p class="help">Nichts gespielt.</p>`}</section>`;
-  h += achCard();
+  h += hunterCard() + trophyCard() + achCard();
   const cb = comebacks(), ya = yearAgo();
   if (ya.length) h += `<section class="card orangec s6 reveal"><h3>Heute vor einem Jahr</h3><div class="mid" style="font-size:clamp(28px,6vw,40px)">${esc(titleOf(ya[0][0]))}</div>
     <div style="font-weight:700;margin-top:6px">Um diese Zeit letztes Jahr hast du ${ya.map(([k,v])=>`${esc(titleOf(k))} (${hrs(v)})`).slice(0,3).join(", ")} gespielt.</div></section>`;
@@ -1465,8 +1512,8 @@ function renderActivity(){
   h += `<section class="card reveal"><h3>Letzte Sessions</h3>${recent.map(([k,s,sec,dev,ap])=>{ const g=S.gmap.get(k), d=new Date(s*1000);
     return `<div class="brow" style="grid-template-columns:52px 1fr auto" ${g?`onclick="openGame('${esc(k)}')"`:""}><div class="poster">${g?img(g.covers,g.title):ph(k)}</div>
       <div class="mid2"><b>${esc(titleOf(k))}</b><span>${d.toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"short"})}${ap?" · ungefähr":`, ${d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})} Uhr`} · <i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${pcolor(dev)}"></i> ${esc(dev)}</span></div>
-      <b>${hrs(sec/60)}</b></div>`; }).join("")}
-    <p class="help">Erfasst seit ${fdate(new Date(st.since*1000))}. PC live, Konsole beim Abgleich.</p></section></div>`;
+      <div style="text-align:right"><b>${hrs(sec/60)}</b><button class="snb" onclick="event.stopPropagation();noteSession('${esc(k)}',${s})">${snoteIcon(k,s)}</button></div></div>`; }).join("")}
+    <p class="help">Erfasst seit ${fdate(new Date(st.since*1000))}. PC live, Konsole beim Abgleich. Mit ✎ hältst du fest, wie die Session war.</p></section></div>`;
   $("#view").innerHTML = h;
 }
 
@@ -1525,6 +1572,29 @@ function tierPick(key){
 }
 
 /* ================= Wunschliste ================= */
+// Preis pro Spielstunde (IGDB-Spieldauer der Story)
+function buyCheck(w){
+  const h = (S.data.hltb||{})[norm(w.name)], m = h && h.main && h.main <= 300*60 ? h.main : null;
+  if (!m || w.free || !w.price) return "";
+  const per = w.price / (m/60), col = per < 100 ? "var(--lime)" : per < 300 ? "#ffd23f" : "#ff8a3d";
+  return `<small class="buyc" style="color:${col}" title="Preis geteilt durch ${hrs(m)} Story laut IGDB">${euro(per)}/Std · ${hrs(m)}</small>`;
+}
+function releaseCalendar(soon){
+  const dated = soon.filter(w=>w.release && w.release*1000 > Date.now()), vague = soon.filter(w=>!dated.includes(w));
+  const byM = {};
+  for (const w of dated){ const d = new Date(w.release*1000), k = `${d.getFullYear()}-${String(d.getMonth()).padStart(2,"0")}`; (byM[k] = byM[k] || []).push(w); }
+  const days = d => Math.ceil((d - Date.now())/864e5);
+  return `<section class="card" style="margin-bottom:14px"><h3>🗓️ Release-Kalender</h3>
+    ${Object.entries(byM).sort().map(([k, list])=>{ const d0 = new Date(list[0].release*1000);
+      return `<div class="secttl" style="margin-top:12px">${d0.toLocaleDateString("de-DE",{month:"long", year:"numeric"})}</div>
+        ${list.map(w=>{ const d = new Date(w.release*1000), n = days(d);
+          return `<a class="calrow" href="https://store.steampowered.com/app/${esc(w.appid)}/" target="_blank" rel="noopener">
+            <div class="cday"><b>${d.getDate()}</b><span>${d.toLocaleDateString("de-DE",{weekday:"short"})}</span></div>
+            <div class="poster">${img([`https://cdn.cloudflare.steamstatic.com/steam/apps/${w.appid}/library_600x900.jpg`], w.name)}</div>
+            <div class="mid2" style="min-width:0"><b>${esc(w.name)}</b><span>${n<=0?"heute":n===1?"morgen":`in ${n} Tagen`}${w.price?` · ${esc(w.fmt||euro(w.price))}`:""}</span></div></a>`; }).join("")}`; }).join("")}
+    ${vague.length?`<div class="secttl" style="margin-top:12px">Ohne festes Datum</div>${vague.map(w=>`<div class="help" style="margin:4px 0">• ${esc(w.name)} – ${esc(w.release_text||"bald")}</div>`).join("")}`:""}
+    <p class="help">Am Erscheinungstag bekommst du einen Hinweis (Windows und – falls eingerichtet – aufs Handy).</p></section>`;
+}
 function renderWish(){
   const sx = S.data.steam || {}, wl = (sx.wishlist||[]).slice();
   let h = `<div class="eyebrow" style="margin-top:6px">Steam</div><div class="h1">Wunschliste</div>${libSeg()}`;
@@ -1541,14 +1611,14 @@ function renderWish(){
     <div class="poster">${img([`https://cdn.cloudflare.steamstatic.com/steam/apps/${w.appid}/library_600x900.jpg`,`https://cdn.cloudflare.steamstatic.com/steam/apps/${w.appid}/header.jpg`], w.name)}</div>
     <div class="mid2" style="min-width:0"><b style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(w.name)}</b>
       <span class="help" style="margin:0">${w.soon||(w.release&&w.release>now) ? `🗓️ ${w.release&&w.release>now?fdate(new Date(w.release*1000)):esc(w.release_text||"Bald verfügbar")}` : w.added?`auf der Liste seit ${fdate(new Date(w.added*1000))}`:""}</span></div>
-    <div class="price">${w.free?"Kostenlos":w.price!=null?`${w.discount?`<span class="disc">-${w.discount}%</span>`:""}${esc(w.fmt||euro(w.price))}${w.discount?`<s>${euro(w.orig)}</s>`:""}`:"–"}</div></a>`;
+    <div class="price">${w.free?"Kostenlos":w.price!=null?`${w.discount?`<span class="disc">-${w.discount}%</span>`:""}${esc(w.fmt||euro(w.price))}${w.discount?`<s>${euro(w.orig)}</s>`:""}`:"–"}${buyCheck(w)}</div></a>`;
   h += `<div class="stat3" style="margin-bottom:14px">
     <div class="tile"><small>Spiele</small><b>${wl.length}</b><span>auf der Wunschliste</span></div>
     <div class="tile"><small>Im Angebot</small><b style="color:var(--lime)">${sale.length}</b><span>${sale.length?`bis zu -${sale[0].discount} %`:"gerade keins"}</span></div>
     <div class="tile"><small>Alles zusammen</small><b>${euro(sum("price"))}</b><span>${sum("orig")>sum("price")?`statt ${euro(sum("orig"))}`:"aktueller Preis"}</span></div>
     <div class="tile"><small>Kommt bald</small><b>${soon.length}</b><span>${soon[0]?esc(soon[0].name):"nichts angekündigt"}</span></div></div>`;
   if (sale.length) h += `<section class="card" style="margin-bottom:14px"><h3>🔥 Im Angebot</h3>${sale.map(row).join("")}</section>`;
-  if (soon.length) h += `<section class="card" style="margin-bottom:14px"><h3>🗓️ Release-Kalender</h3>${soon.map(row).join("")}</section>`;
+  if (soon.length) h += releaseCalendar(soon);
   if (rest.length) h += `<section class="card"><h3>Der Rest</h3>${rest.map(row).join("")}</section>`;
   h += `<p class="help">Preise aus dem deutschen Steam-Store, ${sx.at?`Stand ${fdate(new Date(sx.at*1000))}`:""}. Neue Angebote meldet dir Windows, wenn Gaming Recap läuft.</p>`;
   $("#view").innerHTML = h;
@@ -1739,6 +1809,65 @@ function yearAgo(){
   const per = {}; for (const [k,s,sec] of allSessions()) if (Math.abs(s - t) < 3.5*86400) per[k]=(per[k]||0)+sec/60;
   return Object.entries(per).sort((a,b)=>b[1]-a[1]);
 }
+/* Session-Tagebuch */
+const MOOD = ["", "😐", "🙂", "😍"];
+function snoteIcon(k, s){ const n = (S.data.snotes||{})[`${k}|${s}`]; return n ? MOOD[n[0]] || "📝" : "✎"; }
+window.noteSession = (k, s) => {
+  const id = `${k}|${s}`, cur = (S.data.snotes||{})[id] || [0, ""], g = S.gmap.get(k);
+  $("#infoBody").innerHTML = `<button class="ibtn dclose" onclick="$('#info').close()">✕</button>
+    <div class="eyebrow">${fdate(new Date(s*1000))}</div><div class="h1" style="font-size:28px;margin:4px 0 12px">${esc(g?g.title:k)}</div>
+    <div class="moods">${[1,2,3].map(m=>`<button class="${cur[0]===m?"on":""}" onclick="this.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));this.classList.add('on');this.parentNode.dataset.m=${m}">${MOOD[m]}</button>`).join("")}</div>
+    <textarea id="snText" rows="3" maxlength="280" placeholder="Was ist passiert? (optional)" style="width:100%;margin-top:12px">${esc(cur[1])}</textarea>
+    <div style="display:flex;gap:10px;margin-top:12px"><button class="btn limeb" onclick="saveSNote('${esc(id)}')">Speichern</button>
+      ${cur[0]||cur[1]?`<button class="btn ghost" onclick="saveSNote('${esc(id)}',true)">Löschen</button>`:""}</div>`;
+  $(".moods").dataset.m = cur[0]; $("#info").showModal();
+};
+window.saveSNote = async (id, del) => {
+  const all = {...(S.data.snotes||{})}, m = Number($(".moods").dataset.m||0), t = $("#snText").value.trim();
+  if (del || (!m && !t)) delete all[id]; else all[id] = [m, t];
+  try { await saveKv("snotes", all); S.data.snotes = all; } catch(e){ toast("Speichern fehlgeschlagen"); return; }
+  $("#info").close(); toast("Gespeichert"); route();
+};
+function trophyLine(g){
+  const t = (S.data.trophies||[]).find(x=>x.key===g.key), a = g.appid && ((S.data.steam||{}).ach||{})[g.appid];
+  if (!t && !(a && a.t)) return "";
+  return `<div class="secttl">Erfolge</div><div class="tagrow">${a&&a.t?`<span class="tag">Steam ${a.d}/${a.t} · ${num(a.d/a.t*100)} %</span>`:""}
+    ${t?`<span class="tag">PlayStation ${t.progress} % · 🏆${t.got[0]} 🥇${t.got[1]} 🥈${t.got[2]} 🥉${t.got[3]}</span>`:""}</div>`;
+}
+function diaryBlock(g){
+  const notes = Object.entries(S.data.snotes||{}).filter(([id])=>id.split("|")[0]===g.key).sort((a,b)=>b[0].split("|")[1]-a[0].split("|")[1]);
+  if (!notes.length) return "";
+  return `<div class="secttl">Tagebuch</div>${notes.slice(0,10).map(([id,[m,t]])=>`<div class="diary"><span>${MOOD[m]||"📝"}</span><div><small>${fdate(new Date(id.split("|")[1]*1000))}</small>${t?`<p>${esc(t)}</p>`:""}</div></div>`).join("")}`;
+}
+function trophyCard(){
+  const tr = S.data.trophies || []; if (!tr.length) return "";
+  const sum = i => tr.reduce((s,t)=>s+t.got[i],0), plats = tr.filter(t=>t.got[0]>0).sort((a,b)=>(b.updated||"").localeCompare(a.updated||""));
+  const all = sum(0)+sum(1)+sum(2)+sum(3);
+  const TC = [["🏆","Platin","#b8c7ff"],["🥇","Gold","#ffd23f"],["🥈","Silber","#d6d6e0"],["🥉","Bronze","#d08a4f"]];
+  return `<section class="card s6 reveal" style="background:linear-gradient(160deg,#16243f,#101018)"><h3>PlayStation-Trophäen</h3><div class="mid">${num(all)}</div>
+    <div class="trc">${TC.map(([e,l,c],i)=>`<div><b style="color:${c}">${e} ${num(sum(i))}</b><span>${l}</span></div>`).join("")}</div>
+    ${plats.length?`<div class="secttl">Deine Platins</div><div class="trp">${plats.slice(0,8).map(t=>`<div title="${esc(t.name)}"><img src="${esc(t.icon)}" alt="" loading="lazy" onerror="this.remove()"><span>${esc(t.name)}</span></div>`).join("")}</div>`:""}</section>`;
+}
+// Spiele, in denen nur noch wenig bis 100 % fehlt (Steam-Erfolge + PS-Trophäen)
+function hunterList(){
+  const out = [];
+  for (const [a, x] of Object.entries((S.data.steam||{}).ach||{})){
+    if (!x.t || x.d >= x.t || x.d/x.t < .6) continue;
+    const g = S.groups.find(q=>q.appid==a); if (g) out.push({g, pct: x.d/x.t*100, left: x.t-x.d, unit:"Erfolge", src:"Steam"});
+  }
+  for (const t of S.data.trophies||[]){
+    if (t.progress >= 100 || t.progress < 60) continue;
+    const g = S.gmap.get(t.key); const left = t.def.reduce((s,v)=>s+v,0) - t.got.reduce((s,v)=>s+v,0);
+    out.push({g, name:t.name, icon:t.icon, pct:t.progress, left, unit:"Trophäen", src:"PlayStation"});
+  }
+  return out.sort((a,b)=>b.pct-a.pct);
+}
+function hunterCard(){
+  const L = hunterList(); if (!L.length) return "";
+  return `<section class="card s6 reveal"><h3>🎯 Erfolgsjäger</h3><p class="help" style="margin-top:-4px">Hier fehlt nicht mehr viel bis 100 %.</p>
+    ${L.slice(0,8).map(x=>`<div class="hrow" ${x.g?`onclick="openGame('${esc(x.g.key)}')"`:""}><div class="poster">${x.g?img(x.g.covers,x.g.title):x.icon?`<img src="${esc(x.icon)}" alt="">`:ph(x.name)}</div>
+      <div style="min-width:0"><b>${esc(x.g?x.g.title:x.name)}</b><span>noch ${x.left} ${x.unit} · ${x.src}</span><div class="trk"><div style="width:${x.pct}%"></div></div></div><em>${num(x.pct)} %</em></div>`).join("")}</section>`;
+}
 function achCard(){
   const ach = (S.data.steam||{}).ach || {}, list = Object.entries(ach);
   if (!list.length) return "";
@@ -1783,8 +1912,27 @@ function renderFriends(){
   <section class="card s5 reveal"><h3>Letzte 2 Wochen</h3>${hot.length?hot.slice(0,8).map(f=>`<div class="frank ${f.me?"me":""}" ${f.me?"":`onclick="openFriend(${f.idx})"`}>${avatar(f,36)}
       <div class="fm"><b>${esc(f.name)}</b><span>${f.recent_games&&f.recent_games[0]?esc(f.recent_games[0][0]):f.me?"":""}</span></div><div class="fv"><b>${hrs(f.recent)}</b></div></div>`).join(""):`<p class="help">Gerade spielt keiner.</p>`}
     <p class="help">Steam meldet die Spielzeit der letzten 14 Tage.</p></section></div>
+  ${gameNight()}
   <p class="help" style="text-align:center">Antippen für Details · Nur Steam, Freunde mit privatem Profil fehlen · aktualisiert einmal am Tag</p>`;
   $("#view").innerHTML = h;
+}
+const GN = new Set();
+function gameNight(){
+  const fr = (S.data.steam||{}).friends || []; if (!fr.length) return "";
+  const sel = fr.filter((f,i)=>GN.has(i));
+  let res = "";
+  if (sel.length){
+    const cnt = {};
+    for (const f of sel) for (const [n,a,b] of f.common||[]){ const k = norm(n); cnt[k] = cnt[k] || {n, me:b, them:[], c:0}; cnt[k].c++; cnt[k].them.push([f.name,a]); }
+    const list = Object.values(cnt).filter(x=>x.c===sel.length).sort((a,b)=>(b.me+b.them.reduce((s,t)=>s+t[1],0))-(a.me+a.them.reduce((s,t)=>s+t[1],0)));
+    const coop = S.groups.filter(g=>g.features.some(x=>/multi|co-?op|koop|online/i.test(x)));
+    res = list.length ? list.slice(0,10).map(x=>{ const g = S.gmap.get(norm(x.n)), mp = g && coop.includes(g);
+      return `<div class="xrow" ${g?`onclick="openGame('${esc(g.key)}')"`:""}><div class="poster">${g?img(g.covers,g.title):ph(x.n)}</div>
+        <div><b>${esc(x.n)}${mp?` <span class="tag" style="font-size:10px">👥 Multiplayer</span>`:""}</b><span>Du ${hrs(x.me)} · ${x.them.map(([nm,m])=>`${esc(nm)} ${hrs(m)}`).join(" · ")}</span></div><em></em></div>`; }).join("")
+      : `<p class="help">Kein Spiel, das ihr alle gespielt habt. Steam zeigt nur Spiele mit Spielzeit.</p>`;
+  }
+  return `<section class="card reveal" style="margin-top:14px"><h3>🎲 Spieleabend</h3><p class="help" style="margin-top:-4px">Wähle Freunde aus – du siehst, was ihr alle schon gespielt habt.</p>
+    <div class="chips" style="flex-wrap:wrap">${fr.map((f,i)=>`<button class="chip ${GN.has(i)?"on":""}" onclick="GN.has(${i})?GN.delete(${i}):GN.add(${i});quietRoute()">${esc(f.name)}</button>`).join("")}</div>${res}</section>`;
 }
 window.openFriend = i => {
   const f = ((S.data.steam||{}).friends||[])[i]; if (!f) return;
@@ -2200,7 +2348,7 @@ window.openGame = key => {
       ${g.year?`<div><small>Erschienen</small><b>${g.year}</b></div>`:""}
       ${g.devsList.length?`<div><small>Studio</small><b>${esc(g.devsList.slice(0,2).join(", "))}</b></div>`:""}</div>
     <div class="secttl">Plattformen</div><div class="tagrow">${g.recs.map(r=>`<span class="tag"><i style="background:${pcolor(platLabel(r))}"></i>${esc(platLabel(r))} · ${r.minutes?hrs(r.minutes):"nie gespielt"}${r.family?" · geliehen":""}</span>`).join("")}</div>
-    ${yearBlock(g)}
+    ${yearBlock(g)}${trophyLine(g)}${diaryBlock(g)}
     ${g.genres.length?`<div class="secttl">Genres</div><div class="tagrow">${g.genres.map(x=>`<span class="tag">${esc(x)}</span>`).join("")}</div>`:""}
     ${hltbBlock}
     ${g.ach && g.ach.t ? `<div class="secttl">Steam-Erfolge</div><div class="goal"><div class="gtop"><span>${g.ach.d} von ${g.ach.t}</span><span>${num(g.ach.d/g.ach.t*100)} %</span></div>
@@ -2452,6 +2600,18 @@ window.openSettings = async () => {
       <div class="help" style="margin-top:0">Welche PC-Stores zählen in deinen Backlog? Konsolen und geliehene Spiele sind nie dabei.</div>
       ${[...new Set([...DEFAULT_BL_STORES, ...S.data.games.filter(g=>g.device==="PC").map(g=>g.store)])].map(st=>`<label class="check" style="margin-top:8px"><input type="checkbox" class="blstore" value="${esc(st)}" ${backlogStores().includes(st)?"checked":""}> ${esc(st)}</label>`).join("")}
     </fieldset>
+    <fieldset><legend>📲 Push aufs Handy</legend>
+      <div class="help" style="margin-top:0">Hinweise (Angebote, Gratis-Spiele, Releases, Wochen- und Monats-Recap) kommen zusätzlich aufs Handy – über den kostenlosen Dienst <b>ntfy</b>, ohne Konto.</div>
+      <ol class="help"><li>App <b>ntfy</b> installieren (<a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android</a> / <a href="https://apps.apple.com/app/ntfy/id1625396347" target="_blank" rel="noopener">iPhone</a>).</li>
+        <li>Hier ein Thema erzeugen, speichern, dann in ntfy auf „+“ und genau dieses Thema abonnieren.</li>
+        <li>„Test senden“ drücken.</li></ol>
+      <label>Thema (wie ein Passwort – nicht weitergeben)</label>
+      <div class="inl"><input type="text" id="push_topic" value="${esc(c.push_topic||"")}" autocomplete="off" style="flex:1">
+        <button class="btn ghost small" type="button" onclick="$('#push_topic').value='gr-'+crypto.getRandomValues(new Uint32Array(3)).join('').slice(0,22)">Erzeugen</button>
+        <button class="btn ghost small" type="button" onclick="post('/api/push/test',{topic:$('#push_topic').value}).then(()=>toast('Test gesendet')).catch(e=>alert(e.message))">Test senden</button></div>
+      <label class="check" style="margin-top:10px"><input type="checkbox" id="notify_free" ${c.notify_free!==false?"checked":""}> Gratis-Spiele bei Epic melden</label>
+      <label class="check" style="margin-top:8px"><input type="checkbox" id="notify_release" ${c.notify_release!==false?"checked":""}> Release-Tag von Wunschlisten-Spielen melden</label>
+    </fieldset>
     <fieldset><legend>🔔 Extras & Hinweise</legend>
       ${c.autostart_supported?`<label class="check" style="margin-bottom:10px"><input type="checkbox" id="autostartChk" ${c.autostart?"checked":""} onchange="setAutostart(this)"> Mit Windows starten (minimiert) – damit keine Tage fehlen</label>`:""}
       <label class="check"><input type="checkbox" id="steam_extras" ${c.steam_extras?"checked":""}> Steam-Erfolge, Wunschliste, Preise und Freunde laden</label>
@@ -2481,7 +2641,7 @@ window.openSettings = async () => {
         playnite_export:v("playnite_export"), gh_repo:v("gh_repo"), igdb_client_id:v("igdb_client_id"), igdb_client_secret:v("igdb_client_secret"), gh_token:v("gh_token"), cloud_pass:v("cloud_pass"),
         cloud_enabled:ch("cloud_enabled"), tracker:ch("tracker"), hltb:ch("hltb"), lan:ch("lan"), sync_hours:Number(v("sync_hours"))||6,
         backlog_stores:[...document.querySelectorAll(".blstore:checked")].map(e=>e.value),
-        steam_extras:ch("steam_extras"), notify_sales:ch("notify_sales"), notify_weekly:ch("notify_weekly"),
+        steam_extras:ch("steam_extras"), notify_sales:ch("notify_sales"), notify_weekly:ch("notify_weekly"), push_topic:v("push_topic"), notify_free:ch("notify_free"), notify_release:ch("notify_release"),
         pause_hours:Number(v("pause_hours"))||0, watts:Number(v("watts"))||350, kwh_price:Number(v("kwh_price"))||0.35});
       $("#settings").close(); toast("Gespeichert"); setTimeout(load,400);
     } catch(e){ alert("Speichern fehlgeschlagen: " + e.message); $("#saveBtn").disabled = false; }
