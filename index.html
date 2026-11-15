@@ -855,6 +855,22 @@ body::after{content:"";position:fixed;right:-15vw;bottom:-25vh;width:60vw;height
 .dln{display:flex;justify-content:space-between;gap:12px;align-items:baseline;font-size:13.5px}.dln span{color:var(--muted);font-size:12.5px;text-align:right}
 .dlbar{height:6px;border-radius:9px;background:#ffffff12;overflow:hidden;margin-top:7px}.dlbar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--violet));border-radius:9px;transition:width .6s}
 .dlbar.ind i{width:35%;animation:dlind 1.3s ease-in-out infinite}@keyframes dlind{from{transform:translateX(-100%)}to{transform:translateX(300%)}}
+.valall{margin:-4px 0 18px;padding:12px 14px 2px;border-radius:18px;background:#ffffff05;border:1px dashed #ffffff18}
+.vah{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;margin-bottom:10px}.vah span{font-size:12px;color:var(--muted)}
+.valtop.sm{margin-bottom:10px}.valtop.sm b{font-size:clamp(18px,2.2vw,26px)}.valtop.sm>div{padding:10px 14px}
+.paidbox{margin-top:14px;padding:12px 14px;border-radius:16px;background:#ffffff08;border:1px solid #ffffff10}
+.paidbox b{display:block;font-size:14px}.paidbox>span{font-size:12.5px;color:var(--muted)}
+.paidbox.on{background:linear-gradient(120deg,#14F0C814,#33C3FF0c);border-color:#14F0C833}
+.paidbest{display:flex;gap:10px;align-items:center;margin-top:10px;cursor:pointer}.paidbest .poster{width:40px;border-radius:8px;flex:none}
+.paidbest small{display:block;font-size:10.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--cyan)}.paidbest b{font-size:14px}.paidbest span{font-size:12px;color:var(--muted)}
+.advb{display:block;font-size:12px;color:var(--muted);margin:3px 0;line-height:1.5}
+.advb i{font-style:normal;font-weight:800;color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent);padding:1px 7px;border-radius:999px;margin-right:4px}
+.btn.on{background:var(--ink);color:var(--bg)}
+.eplan{display:grid;gap:8px;margin:4px 0 10px}
+.erow{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:8px 10px;border-radius:14px;background:#ffffff08;border:1px solid #ffffff10;cursor:pointer;text-align:left;animation:fanIn .45s backwards;animation-delay:var(--d);transition:background .2s}
+.erow:hover{background:#ffffff12}.erow .poster{border-radius:8px}
+.erow small{display:block;font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--cyan)}
+.erow b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.erow span{font-size:12px;color:var(--muted)}.erow .em{min-width:0}
 </style>
 </head>
 <body>
@@ -1042,7 +1058,7 @@ async function loadCloud(force){
       const m = meta[norm(e.key)]; return !(m && m.updated && Date.parse(m.updated) >= e.ts) && Date.now()-e.ts < 30*86400e3; }));
   }
   const snap = S.snap, meta = {...(snap.meta||{})};
-  let goals = snap.goals || {}; const kvs = {year_overrides: snap.year_overrides || {}, wrapped: snap.wrapped_archive || {}, notpc: snap.notpc || {}, snotes: snap.snotes || {}, covers: snap.covers || {}};
+  let goals = snap.goals || {}; const kvs = {year_overrides: snap.year_overrides || {}, wrapped: snap.wrapped_archive || {}, notpc: snap.notpc || {}, snotes: snap.snotes || {}, covers: snap.covers || {}, paid: snap.paid || {}};
   for (const e of edits()){
     if (e.kind === "kv"){ if (e.key === "goals") goals = e.value; else kvs[e.key] = e.value; continue; }
     const k = norm(e.key); meta[k] = {...(meta[k]||{}), ...pick(e,["status","rating","note","tier","hide"]), updated:new Date(e.ts).toISOString()};
@@ -1050,7 +1066,7 @@ async function loadCloud(force){
   const p = S.period === "all" ? null : (snap.periods||{})[S.period];
   S.data = {last_sync:snap.last_sync, sources:snap.sources||{}, games:snap.games||[], meta, hltb:snap.hltb||{},
     sessions:snap.sessions||[], csessions:snap.csessions||[], status_log:snap.status_log||[], goals, steam:snap.steam||{}, prefs:snap.prefs||{},
-    year_overrides: kvs.year_overrides, wrapped_archive: kvs.wrapped, notpc: kvs.notpc, snotes: kvs.snotes, covers: kvs.covers,
+    year_overrides: kvs.year_overrides, wrapped_archive: kvs.wrapped, notpc: kvs.notpc, snotes: kvs.snotes, covers: kvs.covers, paid: kvs.paid, wl_deals: snap.wl_deals || {},
     values: snap.values || {}, values_at: snap.values_at, xcovers: snap.xcovers || {},
     tracking_since: snap.tracking_since, health: snap.health || [],
     trophies: snap.trophies || [], free_games: snap.free_games || [],
@@ -1270,7 +1286,7 @@ function header(){
 }
 
 /* ================= Router ================= */
-function cur(){ let h = location.hash.replace("#/",""); if (h === "aktivitaet") h = "statistik"; return ROUTES.some(r=>r[0]===h) ? h : "uebersicht"; }
+function cur(){ let h = location.hash.replace("#/","").split("/")[0]; if (h === "aktivitaet") h = "statistik"; return ROUTES.some(r=>r[0]===h) ? h : "uebersicht"; }
 function nav(){
   const c = cur();
   $("#tabbar").innerHTML = ROUTES.map(([k,l,i])=>`<a href="#/${k}" class="${c===k?"on":""}">${ICONS[i]}${l}</a>`).join("");
@@ -1547,7 +1563,8 @@ function backlogMini(){
   return `<section class="card x4 reveal"><h3>Dein PC-Backlog</h3><div class="bhero">
       <div class="ring" style="--p:${bl.pct}"><div><div><b>${num(bl.pct)}%</b><br><span>geschafft</span></div></div></div>
       <div><div class="bhero nums" style="margin-bottom:12px"><div><b>${bl.open}</b><span>offen</span></div><div><b>${bl.done}</b><span>durch</span></div>${bl.rest?`<div><b>${num(bl.rest/60)}</b><span>Std Story</span></div>`:""}</div>
-      <button class="btn limeb" onclick="openPicker()">🎲 Was spiele ich als Nächstes?</button></div></div></section>`;
+      <div class="inl" style="flex-wrap:wrap;gap:8px"><button class="btn limeb" onclick="openPicker()">🎲 Was spiele ich als Nächstes?</button>
+      <button class="btn ghost" onclick="openPicker(120)">⏱ Abend planen</button></div></div></div></section>`;
 }
 function saleBanner(){
   const sale = ((S.data.steam||{}).wishlist||[]).filter(w=>w.discount>0).sort((a,b)=>b.discount-a.discount);
@@ -1605,8 +1622,23 @@ function libValue(){
   const sum = (k, list) => (list||out).reduce((s,x)=>s+x[k],0);
   const shame = out.filter(x=>!x.g.minutes);
   const stores = {}; for (const x of out) stores[x.store] = (stores[x.store]||0) + x.r;
+  // Konsolenspiele (geschätzt über den PC-Preis desselben Spiels)
+  const con = [];
+  for (const g of S.groups){
+    if (g.owned || !g.consoleMin && g.pc) continue;
+    if (!Object.keys(g.devs).some(d=>d!=="PC")) continue;
+    const v = V[g.key]; if (!v || !(v[0] || v[2])) continue;
+    let [r, c, l] = v; if (!r) r = Math.max(c||0, l||0); if (c == null) c = r; l = l == null ? c : Math.min(l, c);
+    con.push({g, r, c, l, src:"itad", store: Object.keys(g.devs).find(d=>d!=="PC") || "Konsole"});
+  }
+  // Was du selbst eingetragen hast
+  const P = (S.data||{}).paid || {}, paid = [];
+  for (const g of S.groups){ const v = P[g.key]; if (v == null) continue; const x = out.find(y=>y.g===g) || con.find(y=>y.g===g);
+    paid.push({g, p: v, r: x ? x.r : null}); }
+  const paidSum = paid.reduce((s,x)=>s+Math.max(0,x.p),0), paidR = paid.reduce((s,x)=>s+(x.r||0),0);
   return {list:out, r:sum("r"), c:sum("c"), l:sum("l"), itad: out.some(x=>x.src==="itad"), shame, shameR: sum("r", shame), shameL: sum("l", shame),
-    stores: Object.entries(stores).sort((a,b)=>b[1]-a[1]), at: (S.data||{}).values_at};
+    stores: Object.entries(stores).sort((a,b)=>b[1]-a[1]), at: (S.data||{}).values_at,
+    con, conR: sum("r", con), conC: sum("c", con), conL: sum("l", con), paid, paidSum, paidR};
 }
 function valueCard(){
   const V = libValue(); if (!V.list.length) return "";
@@ -1619,6 +1651,11 @@ function valueCard(){
       <div style="--c:#14F0C8"><small>Heute</small><b>${eur(V.c)}</b><span>${V.r>V.c?`${num((1-V.c/V.r)*100)} % unter Normalpreis`:"gerade keine Rabatte"}</span></div>
       <div style="--c:#A97BFF"><small>Zum Bestpreis</small><b>${V.itad?eur(V.l):"–"}</b><span>${V.itad?"jeweils der tiefste Preis aller Zeiten":"IsThereAnyDeal-Key fehlt (Einstellungen)"}</span></div>
     </div>
+    ${V.con.length ? `<div class="valall"><div class="vah"><b>🎮 Alle Plattformen</b><span>PC + ${V.con.length} Konsolenspiele · Konsole geschätzt mit dem PC-Preis</span></div>
+      <div class="valtop sm">
+        <div style="--c:#33C3FF"><small>Normalpreis</small><b>${eur(V.r+V.conR)}</b><span>davon Konsole ~${euro(V.conR)}</span></div>
+        <div style="--c:#14F0C8"><small>Heute</small><b>${eur(V.c+V.conC)}</b><span>davon Konsole ~${euro(V.conC)}</span></div>
+        <div style="--c:#A97BFF"><small>Zum Bestpreis</small><b>${eur(V.l+V.conL)}</b><span>davon Konsole ~${euro(V.conL)}</span></div></div></div>` : ""}
     <div class="vcols"><div>
       <div class="vbars">${bar("Normalpreis",V.r,"#33C3FF",euro(V.r))}${bar("Heute",V.c,"#14F0C8",euro(V.c))}${V.itad?bar("Bestpreis",V.l,"#A97BFF",euro(V.l)):""}${V.shame.length?bar("Pile of Shame",V.shameR,"#FFB547",euro(V.shameR)):""}</div>
       <div class="secttl" style="margin-top:4px">Nach Store</div>
@@ -1629,16 +1666,37 @@ function valueCard(){
       <div class="secttl" style="margin-top:0">Die teuersten</div>
       <div class="vexp">${top.map(x=>`<div class="poster" onclick="openGame('${esc(x.g.key)}')">${img(x.g.covers,x.g.title)}<em>${euro(x.r)}</em></div>`).join("")}</div>
       ${V.shame.length?`<p style="margin:14px 0 0"><b>📦 ${V.shame.length} Spiele nie gestartet</b> – zusammen ${euro(V.shameR)} Normalpreis${V.itad?`, zum Bestpreis ${euro(V.shameL)}`:""}.</p>`:""}
+      ${paidBlock(V)}
       <button class="btn ghost small" style="margin-top:14px" onclick="openValue()">Alle Preise ansehen</button>
     </div></div></section>`;
 }
+function paidBlock(V){
+  if (!V.paid.length) return `<div class="paidbox"><b>💳 Was hast du wirklich bezahlt?</b><span>Trag im Spiel-Detail deinen Kaufpreis ein – dann siehst du hier deine echten Ausgaben und Kosten pro Stunde.</span></div>`;
+  const withT = V.paid.filter(x=>x.p>0 && x.g.minutes>=60).map(x=>[x, x.p/(x.g.minutes/60)]).sort((a,b)=>a[1]-b[1]);
+  const free = V.paid.filter(x=>x.p<0).length, saved = V.paidR - V.paidSum;
+  return `<div class="paidbox on"><b>💳 Wirklich bezahlt: ${euro(V.paidSum)}</b>
+    <span>${V.paid.length} Spiele eingetragen${free?`, davon ${free} geschenkt/Abo`:""}${V.paidR>0 && saved>0?` · ${euro(saved)} gespart gegenüber Normalpreis`:""}</span>
+    ${withT[0]?`<div class="paidbest" onclick="openGame('${esc(withT[0][0].g.key)}')"><div class="poster">${img(withT[0][0].g.covers,withT[0][0].g.title)}</div><div><small>Bester Kauf</small><b>${esc(withT[0][0].g.title)}</b><span>${euro(withT[0][1])} pro Stunde</span></div></div>`:""}</div>`;
+}
 window.openValue = (sort) => {
   const V = libValue(); sort = sort || "r";
+  if (sort === "con" || sort === "paid"){
+    const P = (S.data||{}).paid || {};
+    const rows = sort === "con" ? [...V.con].sort((a,b)=>b.r-a.r).map(x=>gRow(x.g, `~${euro(x.r)}`, `${esc(x.store)} · PC-Preis heute ${euro(x.c)} · Bestpreis ${euro(x.l)}`))
+      : [...V.paid].sort((a,b)=>b.p-a.p).map(x=>gRow(x.g, x.p===-1?"geschenkt":x.p===-2?"Abo":euro(x.p), x.p>0 && x.g.minutes>=60 ? `${euro(x.p/(x.g.minutes/60))} pro Stunde · ${hrs(x.g.minutes)}` : hrs(x.g.minutes||0)));
+    $("#infoBody").innerHTML = `<button class="ibtn dclose" onclick="$('#info').close()">✕</button>
+      <div class="eyebrow">Bibliothekswert</div><div class="h1" style="font-size:clamp(30px,6vw,44px);margin:6px 0 4px">${sort==="con"?`~${euro(V.conR)}`:euro(V.paidSum)}</div>
+      <p class="help" style="margin-top:0">${sort==="con"?"Konsolenspiele, geschätzt mit dem PC-Preis desselben Spiels (IsThereAnyDeal). Abo- und Gratis-Titel zählen hier mit ihrem normalen Preis.":"Deine selbst eingetragenen Kaufpreise (im Spiel-Detail)."}</p>
+      <div class="seg" style="margin-top:6px">${[["r","Normalpreis"],["c","Heute"],["l","Bestpreis"],["cut","Größte Ersparnis"],["con","Konsole"],["paid","Bezahlt"]].map(([k,l])=>`<button class="${sort===k?"on":""}" onclick="openValue('${k}')">${l}</button>`).join("")}</div>
+      ${rows.join("") || `<p class="help">Noch nichts da.</p>`}`;
+    if (!$("#info").open) $("#info").showModal();
+    return;
+  }
   const list = [...V.list].sort((a,b)=> sort==="h" ? (b.g.minutes ? b.r/b.g.minutes : 0) - (a.g.minutes ? a.r/a.g.minutes : 0) : sort==="cut" ? (b.r-b.l)-(a.r-a.l) : b[sort]-a[sort]);
   $("#infoBody").innerHTML = `<button class="ibtn dclose" onclick="$('#info').close()">✕</button>
     <div class="eyebrow">Bibliothekswert</div><div class="h1" style="font-size:clamp(30px,6vw,44px);margin:6px 0 4px">${euro(V.r)}</div>
     <p class="help" style="margin-top:0">${V.itad?"Preise von IsThereAnyDeal (Deutschland, alle offiziellen Stores)":"Preise aus dem Steam-Store – für alle Stores und Tiefstpreise den IsThereAnyDeal-Key eintragen"}${V.at?`, Stand ${fdate(new Date(V.at*1000))}`:""}. Was du wirklich bezahlt hast, weiß kein Store.</p>
-    <div class="seg" style="margin-top:6px">${[["r","Normalpreis"],["c","Heute"],["l","Bestpreis"],["cut","Größte Ersparnis"]].map(([k,l])=>`<button class="${sort===k?"on":""}" onclick="openValue('${k}')">${l}</button>`).join("")}</div>
+    <div class="seg" style="margin-top:6px">${[["r","Normalpreis"],["c","Heute"],["l","Bestpreis"],["cut","Größte Ersparnis"],["con","Konsole"],["paid","Bezahlt"]].map(([k,l])=>`<button class="${sort===k?"on":""}" onclick="openValue('${k}')">${l}</button>`).join("")}</div>
     ${list.slice(0,150).map(x=>gRow(x.g, euro(sort==="cut"?x.r-x.l:x[sort==="cut"?"r":sort]), `${esc(x.store)} · normal ${euro(x.r)} · heute ${euro(x.c)}${x.src==="itad"?` · Bestpreis ${euro(x.l)}`:""}`)).join("")}`;
   if (!$("#info").open) $("#info").showModal();
 };
@@ -1732,7 +1790,19 @@ function avatarHead(list, sub){
   return `<div class="khead avh reveal"><div><div class="eyebrow">Steam</div><div class="h1">Freunde</div>${sub?`<p>${sub}</p>`:""}</div>
     <div class="avs" aria-hidden="true">${list.slice(0,7).map((f,i)=>`<span style="--i:${i}">${avatar(f,52)}</span>`).join("")}</div></div>`;
 }
-const steamCov = a => img([`https://cdn.cloudflare.steamstatic.com/steam/apps/${a}/library_600x900.jpg`], "");
+const steamCov = a => img([`https://cdn.cloudflare.steamstatic.com/steam/apps/${a}/library_600x900.jpg`,`https://cdn.cloudflare.steamstatic.com/steam/apps/${a}/header.jpg`], "");
+// Wunschliste: Steam liefert für neue Spiele Bildpfade mit Prüfsumme (w.cover) – alte Pfade nur als Rückfall
+const wlImgs = w => [w.cover, `https://cdn.cloudflare.steamstatic.com/steam/apps/${w.appid}/library_600x900.jpg`, w.header, `https://cdn.cloudflare.steamstatic.com/steam/apps/${w.appid}/header.jpg`].filter(Boolean);
+const wlCov = w => img(wlImgs(w), w.name);
+// Kaufberater: heutiger Bestpreis aller Stores gegen den Tiefstpreis aller Zeiten (IsThereAnyDeal)
+function dealAdvice(w){
+  const d = ((S.data||{}).wl_deals||{})[String(w.appid)];
+  if (!d || d.c == null || d.l == null || w.free) return null;
+  const cheaper = w.price != null && d.c < w.price - 50 && d.shop && d.shop !== "Steam" ? ` · bei ${d.shop} ${euro(d.c)}` : "";
+  if (d.c <= d.l) return {k:"atl", t:`🔥 Tiefstpreis${d.shop?` bei ${d.shop}`:""}`, s:`so günstig war es noch nie (${euro(d.c)})`, c:"#14F0C8"};
+  if (d.c <= d.l * 1.15) return {k:"good", t:"👍 Fast Tiefstpreis", s:`Tiefst: ${euro(d.l)}${cheaper}`, c:"#33C3FF"};
+  return {k:"wait", t:"⏳ Lieber warten", s:`war schon ${euro(d.l)}${d.lcut?` (−${d.lcut} %)`:""}${d.lt?` · ${fdate(new Date(d.lt))}`:""}${cheaper}`, c:"#FFB547"};
+}
 function scopeLabel(){
   const n = new Date();
   if (S.period === "year") return String(n.getFullYear());
@@ -1788,10 +1858,6 @@ function facts(played,total,plats){
     const pr = (S.data.steam||{}).prices || {};
     const owned = S.groups.filter(g=>g.appid && pr[g.appid]);
     const LV = libValue();
-    if (LV.r > 0) add("Bibliothekswert", euro(LV.r), `${LV.list.length} PC-Spiele zum Normalpreis${LV.itad?` – zum Bestpreis ${euro(LV.l)}`:""}`,
-      () => `<p class="help">Heute: <b>${euro(LV.c)}</b>${LV.itad?` · Bestpreis: <b>${euro(LV.l)}</b>`:""}. Was du wirklich bezahlt hast, weiß kein Store.</p>`
-        + [...LV.list].sort((a,b)=>b.r-a.r).slice(0,15).map(x=>gRow(x.g, euro(x.r), x.src==="itad"?`Bestpreis ${euro(x.l)}`:"")).join("")
-        + `<button class="btn ghost small" style="margin-top:12px" onclick="openValue()">Alle Preise</button>`, "heute", "💰");
     const vals = owned.filter(g=>pr[g.appid].orig>0 && g.minutes>=120).map(g=>[g, pr[g.appid].orig/100/(g.minutes/60)]).sort((a,b)=>a[1]-b[1]);
     if (vals.length >= 3){
       const dl = list => () => `<p class="help">Heutiger Normalpreis geteilt durch deine Spielzeit (ab 2 Std).</p>` + list.map(([g,v])=>gRow(g, `${euro(v*100)}/Std`, `${euro(pr[g.appid].orig)} · ${hrs(g.minutes)}`)).join("");
@@ -2217,37 +2283,41 @@ function releaseCalendar(soon){
         ${list.map(w=>{ const d = new Date(w.release*1000), n = days(d);
           return `<a class="calrow" href="https://store.steampowered.com/app/${esc(w.appid)}/" target="_blank" rel="noopener">
             <div class="cday"><b>${d.getDate()}</b><span>${d.toLocaleDateString("de-DE",{weekday:"short"})}</span></div>
-            <div class="poster">${img([`https://cdn.cloudflare.steamstatic.com/steam/apps/${w.appid}/library_600x900.jpg`], w.name)}</div>
+            <div class="poster">${wlCov(w)}</div>
             <div class="mid2" style="min-width:0"><b>${esc(w.name)}</b><span>${n<=0?"heute":n===1?"morgen":`in ${n} Tagen`}${w.price?` · ${esc(w.fmt||euro(w.price))}`:""}</span></div></a>`; }).join("")}`; }).join("")}
     ${vague.length?`<div class="secttl" style="margin-top:12px">Ohne festes Datum</div>${vague.map(w=>`<div class="help" style="margin:4px 0">• ${esc(w.name)} – ${esc(w.release_text||"bald")}</div>`).join("")}`:""}
     <p class="help">Am Erscheinungstag bekommst du einen Hinweis (Windows und – falls eingerichtet – aufs Handy).</p></section>`;
 }
 function renderWish(){
   const sx = S.data.steam || {}, wl = (sx.wishlist||[]).slice();
-  let h = `${stackHead("Steam", "Wunschliste", `${wl.length} Spiele`, wl.filter(w=>w.discount>0).concat(wl).slice(0,3).map(w=>steamCov(w.appid)), wl.some(w=>w.discount>0)?`−${Math.max(...wl.map(w=>w.discount||0))} %`:"")}${libSeg()}`;
+  let h = `${stackHead("Steam", "Wunschliste", `${wl.length} Spiele`, wl.filter(w=>w.discount>0).concat(wl).slice(0,3).map(wlCov), wl.some(w=>w.discount>0)?`−${Math.max(...wl.map(w=>w.discount||0))} %`:"")}${libSeg()}`;
   if (!wl.length){
     setView(h + `<div class="empty"><div class="big">💝</div><h2>Keine Wunschliste gefunden</h2><p class="help">${esc(sx.wishlist_error || "Verbinde Steam in den Einstellungen. Die Wunschliste muss in Steam öffentlich sichtbar sein.")}</p></div>`);
     return;
   }
   const now = Date.now()/1000;
-  const sale = wl.filter(w=>w.discount>0).sort((a,b)=>b.discount-a.discount);
+  const adv = new Map(wl.map(w=>[w, dealAdvice(w)]));
+  const rank = w => { const a = adv.get(w); return a ? {atl:0, good:1, wait:3}[a.k] : 2; };
+  const sale = wl.filter(w=>w.discount>0 || (adv.get(w)||{}).k==="atl").sort((a,b)=>rank(a)-rank(b) || b.discount-a.discount);
+  const atl = wl.filter(w=>(adv.get(w)||{}).k==="atl").length;
   const soon = wl.filter(w=>w.soon || (w.release && w.release>now)).sort((a,b)=>(a.release||9e12)-(b.release||9e12));
   const rest = wl.filter(w=>!sale.includes(w) && !soon.includes(w)).sort((a,b)=>(a.prio||999)-(b.prio||999));
   const sum = k => wl.reduce((s,w)=>s+(w[k]||0),0);
   const row = w => `<a class="wlrow" href="https://store.steampowered.com/app/${esc(w.appid)}/" target="_blank" rel="noopener">
-    <div class="poster">${img([`https://cdn.cloudflare.steamstatic.com/steam/apps/${w.appid}/library_600x900.jpg`,`https://cdn.cloudflare.steamstatic.com/steam/apps/${w.appid}/header.jpg`], w.name)}</div>
+    <div class="poster">${wlCov(w)}</div>
     <div class="mid2" style="min-width:0"><b style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(w.name)}</b>
+      ${(()=>{ const a = adv.get(w); return a ? `<span class="advb" style="--c:${a.c}"><i>${esc(a.t)}</i> ${esc(a.s)}</span>` : ""; })()}
       <span class="help" style="margin:0">${w.soon||(w.release&&w.release>now) ? `🗓️ ${w.release&&w.release>now?fdate(new Date(w.release*1000)):esc(w.release_text||"Bald verfügbar")}` : w.added?`auf der Liste seit ${fdate(new Date(w.added*1000))}`:""}</span></div>
     <div class="price">${w.free?"Kostenlos":w.price!=null?`${w.discount?`<span class="disc">-${w.discount}%</span>`:""}${esc(w.fmt||euro(w.price))}${w.discount?`<s>${euro(w.orig)}</s>`:""}`:"–"}${buyCheck(w)}</div></a>`;
   h += `<div class="stat3" style="margin-bottom:14px">
     <div class="tile"><small>Spiele</small><b>${wl.length}</b><span>auf der Wunschliste</span></div>
-    <div class="tile"><small>Im Angebot</small><b style="color:var(--lime)">${sale.length}</b><span>${sale.length?`bis zu -${sale[0].discount} %`:"gerade keins"}</span></div>
+    <div class="tile"><small>Im Angebot</small><b style="color:var(--lime)">${sale.length}</b><span>${atl?`🔥 ${atl} auf Tiefstpreis`:sale.length?`bis zu -${Math.max(...sale.map(w=>w.discount||0))} %`:"gerade keins"}</span></div>
     <div class="tile"><small>Alles zusammen</small><b>${euro(sum("price"))}</b><span>${sum("orig")>sum("price")?`statt ${euro(sum("orig"))}`:"aktueller Preis"}</span></div>
     <div class="tile"><small>Kommt bald</small><b>${soon.length}</b><span>${soon[0]?esc(soon[0].name):"nichts angekündigt"}</span></div></div>`;
-  if (sale.length) h += `<section class="card" style="margin-bottom:14px"><h3>🔥 Im Angebot</h3>${sale.map(row).join("")}</section>`;
-  if (soon.length) h += `<button class="banner" onclick="S.lib.view='rel';renderLib();afterRender()"><span class="bdot"></span><b>${soon.length} Releases angekündigt</b><span>${esc(soon[0].name)}${soon[0].release?" · "+fdate(new Date(soon[0].release*1000)):""}</span><em>→</em></button>`;
+  if (sale.length) h += `<section class="card" style="margin-bottom:14px"><h3>🔥 Im Angebot & Tiefstpreise</h3>${sale.map(row).join("")}</section>`;
+  if (soon.length) h += `<button class="banner" onclick="S.lib.view='rel';route()"><span class="bdot"></span><b>${soon.length} Releases angekündigt</b><span>${esc(soon[0].name)}${soon[0].release?" · "+fdate(new Date(soon[0].release*1000)):""}</span><em>→</em></button>`;
   if (rest.length) h += `<section class="card"><h3>Weitere Wünsche</h3>${rest.map(row).join("")}</section>`;
-  h += `<p class="help">Preise aus dem deutschen Steam-Store, ${sx.at?`Stand ${fdate(new Date(sx.at*1000))}`:""}. Neue Angebote meldet dir Windows, wenn Gaming Recap läuft.</p>`;
+  h += `<p class="help">Preise aus dem deutschen Steam-Store${sx.at?`, Stand ${fdate(new Date(sx.at*1000))}`:""}. ${Object.keys(S.data.wl_deals||{}).length?"Kaufberater: Bestpreis aller offiziellen Stores und Tiefstpreis aller Zeiten von IsThereAnyDeal (täglich). Erreicht ein Wunsch seinen Tiefstpreis, bekommst du einen Hinweis.":"Für den Kaufberater (Tiefstpreise aller Stores) den IsThereAnyDeal-Key in den Einstellungen eintragen."}</p>`;
   setView(h);
 }
 const euro = c => c==null ? "–" : (c/100).toLocaleString("de-DE",{style:"currency",currency:"EUR"});
@@ -2662,10 +2732,12 @@ window.setWrapMode = k => {
 };
 function renderWrapped(){
   const bd = badges(), got = bd.filter(b=>b.got).length;
+  const deep = decodeURIComponent(location.hash.split("/")[2] || "");   // aus der Push-Nachricht: direkt ein Monat
+  if (deep){ history.replaceState(null, "", "#/wrapped"); if (wrapModes().some(m=>m[0]===deep)){ W.mode = deep; setTimeout(()=>startWrapped(), 400); } }
   if (!wrapModes().some(m=>m[0]===W.mode)) W.mode = "year";
   setView(`<section class="card hero reveal in" style="min-height:58vh;justify-content:center;text-align:center;align-items:center">
     <div class="eyebrow">Dein Gaming Recap</div><div class="num" style="font-size:clamp(70px,20vw,170px);line-height:1;padding-bottom:.12em">Wrapped</div>
-    <div class="sub" style="margin:10px auto 18px">Deine Story: Stunden, Top-Spiele, dein Gamer-Typ, Rekorde und Abzeichen. Am Ende gibt's ein Bild zum Teilen.</div>
+    <div class="sub" style="margin:10px auto 18px">Deine Story: Stunden, Top-Spiele, dein Gamer-Typ und Rekorde. Am Ende gibt's dein Poster als Bild zum Teilen.</div>
     <div class="chips" id="wrapChips" style="justify-content:center;flex-wrap:wrap">${wrapModes().map(([k,l])=>`<button class="chip ${W.mode===k?"on":""}" data-k="${esc(k)}" onclick="setWrapMode('${k}')">${esc(l)}</button>`).join("")}</div>
     <button class="btn limeb" style="font-size:18px;padding:18px 34px" onclick="startWrapped()">▶ Story starten</button>
     <div class="sub" id="wrapHint" style="margin:14px auto 0;font-size:14px;opacity:.85"></div></section>
@@ -3101,6 +3173,7 @@ window.openGame = key => {
       return `<div class="secttl">Preis (alle Stores)</div><div class="hl"><div><small>Normal</small><b>${euro(v[0])}</b></div><div><small>Heute</small><b>${euro(v[1])}</b></div><div><small>Bestpreis</small><b>${euro(v[2])}</b></div></div>`
         + (g.minutes>=60 && v[0] ? `<p class="help">${euro(v[0]/(g.minutes/60))} pro Spielstunde zum Normalpreis.</p>` : ""); })()}
     ${g.price && g.price.orig && !((S.data.values||{})[g.key]) ? `<div class="secttl">Preis</div><p style="margin:4px 0">${euro(g.price.orig)} im Steam-Store${g.price.discount?` (gerade -${g.price.discount} %)`:""}${g.minutes>=60?` · <b>${euro(g.price.orig/(g.minutes/60))} pro Stunde</b>`:""}</p>` : ""}
+    ${paidEditor(g)}
     ${g.appid ? `<a class="btn ghost small" style="margin-top:10px" href="https://store.steampowered.com/app/${esc(g.appid)}/" target="_blank" rel="noopener">Im Steam-Store ↗</a>` : ""}`;
   const right = `${g.pc && !g.hidden && g.owned && !consoleOnly(g) ? `<div class="secttl">Backlog-Status ${g.isAuto?"<span style='text-transform:none;letter-spacing:0'>(automatisch erkannt)</span>":""}</div>
       <div class="sgrid">${STATUS.map(s=>`<button style="color:${s.c}" class="${g.status===s.k?"on":""}" onclick="setStatus('${esc(g.key)}','${s.k}')"><span style="color:var(--ink)">${s.e} ${s.l}</span></button>`).join("")}
@@ -3138,6 +3211,26 @@ async function saveMeta(key, patch){
   S.data.meta[m.key] = {status:m.status, rating:m.rating, note:m.note, tier:m.tier, hide:m.hide, updated:m.updated};
   buildGroups();
 }
+function paidEditor(g){
+  if (!g.owned && !g.consoleMin && !g.pc) return "";
+  const v = ((S.data||{}).paid||{})[g.key];
+  const k = esc(g.key);
+  return `<div class="secttl">Was hast du bezahlt?</div>
+    <div class="inl" style="flex-wrap:wrap"><input type="number" id="paidIn" min="0" step="0.01" placeholder="z. B. 19,99" value="${v>0?(v/100).toFixed(2):""}" style="width:120px">
+      <button class="btn ghost small" onclick="setPaid('${k}', $('#paidIn').value)">€ speichern</button>
+      <button class="btn ghost small ${v===-1?"on":""}" onclick="setPaid('${k}', -1)">🎁 Geschenkt / gratis</button>
+      <button class="btn ghost small ${v===-2?"on":""}" onclick="setPaid('${k}', -2)">📀 Abo</button>
+      ${v!=null?`<button class="btn ghost small" onclick="setPaid('${k}', null)">✕</button>`:""}</div>
+    ${v>0 && g.minutes>=60 ? `<p class="help">${euro(v/(g.minutes/60))} pro Stunde bei ${hrs(g.minutes)} Spielzeit.</p>` : ""}`;
+}
+window.setPaid = async (key, val) => {
+  const all = {...((S.data||{}).paid||{})};
+  if (val === null || val === "") delete all[key];
+  else if (val === -1 || val === -2) all[key] = val;
+  else { const n = Math.round(parseFloat(String(val).replace(",", ".")) * 100); if (!(n >= 0)) { toast("Bitte einen Betrag eingeben"); return; } all[key] = n; }
+  try { await saveKv("paid", all); S.data.paid = all; } catch(e){ toast("Speichern fehlgeschlagen"); return; }
+  toast("Gespeichert"); openGame(key); quietRoute();
+};
 window.coverPick = async (key, q) => {
   const g = S.gmap.get(key); if (!g) return;
   const man = (S.data.covers||{})[key];
@@ -3217,14 +3310,34 @@ window.sendNow = async () => {
 };
 
 /* ================= Zufalls-Picker ================= */
-const PK = {pool:"open", genre:"", inst:false, len:"", mood:"", pick:null};
+const PK = {pool:"open", genre:"", inst:false, len:"", mood:"", pick:null, time:0};
 const MOODS = {
   chill: g => (g.remaining==null || g.remaining < 900) && !g.genres.some(x=>/shooter|horror|soulslike|competitive/i.test(x)),
   story: g => g.genres.some(x=>/rpg|rollenspiel|adventure|abenteuer|story|visual novel/i.test(x)),
   friends: g => g.features.some(x=>/multi|co-?op|koop/i.test(x)),
   top: g => (g.critic||0) >= 85 || (g.rev && g.rev.total >= 500 && g.rev.pct >= 92),
 };
-window.openPicker = () => { PK.pick = null; renderPicker(); $("#picker").showModal(); };
+window.openPicker = t => { PK.pick = null; if (t != null) PK.time = t; renderPicker(); $("#picker").showModal(); };
+/* Abend-Planer: Was passt in die Zeit, die ich heute habe? */
+function evePlan(t){
+  const out = [];
+  for (const g of blGames()){
+    if (SMAP[g.status].g !== "open" || !g.pc) continue;
+    const rem = g.remaining, main = g.hltb && g.hltb.main;
+    let sc = 0, why = "", tag = "";
+    if (rem != null && rem > 0 && rem <= t * 1.1){ sc = 100 - rem/t*10; tag = "🏁 Heute durchspielbar"; why = `noch ca. ${hrs(rem)} bis zum Abspann`; }
+    else if (g.status === "angefangen" && rem){ const p = Math.min(1, t/rem); sc = 45 + p*40; tag = "▶️ Gut weiterkommen"; why = `${num(p*100)} % vom Rest (${hrs(rem)}) schaffst du heute`; }
+    else if (g.status === "als_naechstes"){ sc = 55; tag = "🎯 Als Nächstes"; why = main ? `Story ca. ${hrs(main)} – heute ${num(Math.min(1,t/main)*100)} % davon` : "steht bei dir als Nächstes"; }
+    else if (!g.pcMinutes && main && main <= t*4){ sc = 35 + (g.critic||70)/10; tag = "⚡ Kurz & gut"; why = `ganze Story nur ${hrs(main)}`; }
+    else continue;
+    if (g.status === "als_naechstes") sc += 15;
+    if (g.installed) sc += 8; else why += " · nicht installiert";
+    if (g.last && Date.now() - g.last < 14*864e5) sc += 10;
+    sc += (g.critic||0)/20;
+    out.push({g, sc, why, tag});
+  }
+  return out.sort((a,b)=>b.sc-a.sc).slice(0,4);
+}
 function pickerPool(){
   return blGames().filter(g => (PK.pool==="open" ? SMAP[g.status].g==="open" : g.status===PK.pool)
     && (!PK.genre || g.genres.includes(PK.genre)) && (!PK.inst || g.installed)
@@ -3236,6 +3349,12 @@ function renderPicker(){
   const chip = (k,l,v,f) => `<button class="chip ${PK[f]===k?"on":""}" onclick="PK.${f}='${k}';PK.pick=null;renderPicker()">${l}</button>`;
   $("#pickerBody").innerHTML = `<button class="ibtn dclose" onclick="$('#picker').close()">✕</button><div class="pk">
     <div class="eyebrow">Was spiele ich als Nächstes?</div>
+    <div class="secttl" style="margin:10px 0 6px">⏱ Abend-Planer: Wie viel Zeit hast du heute?</div>
+    <div class="opts">${[[0,"Egal"],[60,"1 Std"],[120,"2 Std"],[180,"3 Std"],[300,"4 Std +"]].map(([k,l])=>`<button class="chip ${PK.time===k?"on":""}" onclick="PK.time=${k};renderPicker()">${l}</button>`).join("")}</div>
+    ${PK.time ? (()=>{ const plan = evePlan(PK.time); return plan.length ? `<div class="eplan">${plan.map((x,i)=>`<div class="erow" style="--d:${i*70}ms" onclick="$('#picker').close();openGame('${esc(x.g.key)}')">
+        <div class="poster">${img(x.g.covers,x.g.title)}</div><div class="em"><small>${esc(x.tag)}</small><b>${esc(x.g.title)}</b><span>${esc(x.why)}</span></div>
+        ${x.g.status!=="als_naechstes"?`<button class="btn ghost small" title="Als Nächstes merken" onclick="event.stopPropagation();saveMeta('${esc(x.g.key)}',{status:'als_naechstes'}).then(()=>{renderPicker();quietRoute();toast('Als Nächstes gemerkt')})">🎯</button>`:""}</div>`).join("")}</div>`
+        : `<p class="help">Für diese Zeit passt gerade nichts – für Vorschläge braucht es Spieldauern (IGDB).</p>`; })() : ""}
     <div class="slot" id="slot"><div class="poster">${g?img(g.covers,g.title):ph("?")}</div></div>
     <h2 id="pkTitle">${g?esc(g.title):"Lass den Würfel entscheiden"}</h2>
     <div class="why">${g?pickWhy(g):`${pool.length} Spiele im Topf`}</div>
