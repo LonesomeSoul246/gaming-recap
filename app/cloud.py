@@ -83,18 +83,30 @@ class GitHub:
         if body is not None:
             data = json.dumps(body).encode()
             headers["Content-Type"] = "application/json"
-        try:
-            return http_json(API + path, data=data, headers=headers, method=method, timeout=60)
-        except urllib.error.HTTPError as e:
-            if e.code == 401:
-                raise RuntimeError("GitHub lehnt den Token ab (abgelaufen oder falsch).")
-            if e.code == 403:
-                raise RuntimeError("GitHub verweigert den Zugriff. Hat der Token 'Contents: Read and write' für das Repository?")
-            if e.code == 404:
-                raise FileNotFoundError(path)
-            if e.code == 409:
-                raise RuntimeError("Das Repository ist leer. Lege es mit 'Add a README file' an.")
-            raise RuntimeError(f"GitHub-Fehler {e.code}")
+        for attempt in range(4):  # kurze Verbindungsabbrüche bei GitHub abfangen
+            try:
+                return http_json(API + path, data=data, headers=headers, method=method, timeout=60)
+            except urllib.error.HTTPError as e:
+                if e.code >= 500 and attempt < 3:
+                    time.sleep(2 * (attempt + 1))
+                    continue
+                self._http_error(e, path)
+            except (urllib.error.URLError, ConnectionError, TimeoutError, OSError) as e:
+                if attempt < 3:
+                    time.sleep(2 * (attempt + 1))
+                    continue
+                raise RuntimeError("Verbindung zu GitHub abgebrochen – wird beim nächsten Abgleich automatisch erneut versucht.") from e
+
+    def _http_error(self, e, path):
+        if e.code == 401:
+            raise RuntimeError("GitHub lehnt den Token ab (abgelaufen oder falsch).")
+        if e.code == 403:
+            raise RuntimeError("GitHub verweigert den Zugriff. Hat der Token 'Contents: Read and write' für das Repository?")
+        if e.code == 404:
+            raise FileNotFoundError(path)
+        if e.code == 409:
+            raise RuntimeError("Das Repository ist leer. Lege es mit 'Add a README file' an.")
+        raise RuntimeError(f"GitHub-Fehler {e.code}")
 
     def token_expiry(self):
         """Ablaufdatum des Tokens laut GitHub (Header bei jeder Antwort), z. B. '2027-02-15 10:00:00 UTC' – oder None."""
