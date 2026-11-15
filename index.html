@@ -571,6 +571,104 @@ html,body{background:radial-gradient(1200px 520px at 50% -120px,#242B37 0%,#1012
 .phead p{margin:2px 0 0;color:var(--muted);font-size:14px;max-width:520px}
 .blurbg{position:absolute;inset:-20%;background-size:cover;background-position:center;filter:blur(36px) saturate(1.3);opacity:.35;pointer-events:none}
 .facts .fact{background:linear-gradient(160deg,color-mix(in srgb,var(--a) 14%,#181B21),#15171C 70%)}
+
+/* ================= Aufbau & Lebendigkeit (G5) ================= */
+#view.pg{animation:pgIn .45s cubic-bezier(.2,.7,.2,1)}
+@keyframes pgIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.h3s{font-weight:600;text-transform:none;letter-spacing:0;color:var(--muted);margin-left:6px;font-size:12px}
+/* Hero: Formen schweben */
+.hero::before{animation:floatA 9s ease-in-out infinite alternate}
+.hero::after{animation:floatB 7s ease-in-out infinite alternate}
+@keyframes floatA{to{transform:translate(-18px,-14px) scale(1.06)}}
+@keyframes floatB{to{transform:rotate(40deg) translate(10px,8px)}}
+.hero .wave path{stroke-dasharray:520;stroke-dashoffset:520;animation:draw 2.2s .3s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+/* Seitenköpfe */
+.khead{position:relative;overflow:hidden;border-radius:var(--r);background:var(--panel);border:1px solid #ffffff10;padding:22px;margin:4px 0 16px;display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:150px}
+.khead .h1{margin:4px 0 4px}.khead .eyebrow{color:var(--acc);opacity:1}.khead p{margin:2px 0 0;color:var(--muted);font-size:14px}
+.khead>div:first-child{position:relative;z-index:1}
+.fan{position:relative;width:230px;height:130px;flex:none}
+.fan .poster{position:absolute;left:50%;bottom:-10px;width:78px;margin-left:-39px;border-radius:12px;transform-origin:50% 120%;
+  transform:rotate(calc(var(--i)*11deg)) translateX(calc(var(--i)*30px));box-shadow:0 10px 24px #0008;transition:transform .35s;animation:fanIn .7s backwards;animation-delay:calc((var(--i) + 2)*70ms)}
+.fanh:hover .fan .poster{transform:rotate(calc(var(--i)*15deg)) translateX(calc(var(--i)*40px)) translateY(-6px)}
+@keyframes fanIn{from{transform:rotate(0) translateY(40px);opacity:0}}
+.blurh{background:#14171C}.blurh .blurbg{opacity:.45;animation:kenburns 18s ease-in-out infinite alternate}
+.blurh::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#14171Cf0 35%,#14171C80)}
+.blurh>*{position:relative;z-index:1}
+.focus{text-align:center;cursor:pointer;flex:none}.focus .poster{width:86px;border-radius:12px;box-shadow:0 0 0 2px var(--acc),0 12px 30px #0009;transform:rotate(4deg);transition:transform .3s}
+.focus:hover .poster{transform:rotate(0) scale(1.05)}.focus span{display:block;margin-top:8px;font-size:11px;font-weight:800;color:var(--acc);letter-spacing:1px;text-transform:uppercase}
+.tiers{display:grid;grid-template-columns:repeat(3,44px);gap:8px;flex:none}
+.tiers i{font-style:normal;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-weight:900;color:#101216;font-size:18px;animation:pop .5s backwards;animation-delay:var(--d)}
+.tiers i:nth-child(odd){transform:rotate(-6deg)}.tiers i:nth-child(even){transform:rotate(5deg)}
+@keyframes pop{from{transform:scale(0) rotate(30deg);opacity:0}}
+.stk{position:relative;width:170px;height:130px;flex:none}
+.stk .poster{position:absolute;width:76px;border-radius:12px;top:0;left:calc(var(--i)*42px);transform:rotate(calc((var(--i) - 1)*8deg));box-shadow:0 10px 24px #0008;animation:fanIn .6s backwards;animation-delay:calc(var(--i)*90ms)}
+.tagst{position:absolute;right:-6px;top:-4px;background:var(--acc);color:var(--acc-ink);font-weight:900;font-size:13px;padding:6px 10px;border-radius:999px;transform:rotate(10deg);box-shadow:0 6px 16px #0007;animation:wob 2.6s ease-in-out infinite}
+@keyframes wob{50%{transform:rotate(-4deg) scale(1.06)}}
+.avs{display:flex;flex:none}.avs span{margin-left:-14px;animation:fanIn .5s backwards;animation-delay:calc(var(--i)*70ms)}
+.avs .fav{box-shadow:0 0 0 3px #181B21}
+@media(max-width:560px){.fan{width:150px;height:110px}.fan .poster{width:60px;margin-left:-30px;transform:rotate(calc(var(--i)*11deg)) translateX(calc(var(--i)*18px))}
+  .stk{width:120px}.stk .poster{width:58px;left:calc(var(--i)*30px)}.tiers{grid-template-columns:repeat(3,34px)}.tiers i{width:34px;height:34px;font-size:15px}
+  .avs .fav{width:38px!important;height:38px!important}.focus .poster{width:64px}}
+.gpage-h{margin:6px 0 14px}.gpage-h .eyebrow{color:var(--acc);opacity:1}
+/* Statistik-Kopf mit Mini-Balken */
+.shead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;padding:22px;border-radius:var(--r);background:radial-gradient(90% 120% at 100% 100%,#33C3FF22,transparent 60%),var(--panel);border:1px solid #ffffff10;margin:4px 0 16px}
+.shead .eyebrow{color:var(--acc);opacity:1}.shead .h1{margin:4px 0 10px}
+.shs{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:13px}.shs b{color:var(--ink);font-size:16px}
+.sbars{display:flex;align-items:flex-end;gap:3px;height:80px;width:min(46%,280px);flex:none}
+.sbars i{flex:1;border-radius:3px;background:linear-gradient(var(--acc),var(--cyan));height:var(--h);animation:grow .8s backwards;animation-delay:var(--d);opacity:.85}
+@keyframes grow{from{height:4%}}
+/* Listenzeile */
+.lr{display:grid;grid-template-columns:auto 40px 1fr auto;gap:12px;align-items:center;padding:9px 6px;border-radius:14px;cursor:pointer;transition:background .2s,transform .2s}
+.lr:hover{background:#ffffff08;transform:translateX(3px)}
+.lr .poster{width:40px;border-radius:8px}.lrn{font-weight:900;font-size:20px;color:var(--acc);width:20px;text-align:center}
+.lrm{min-width:0}.lrm b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lrm span{font-size:12px;color:var(--muted)}
+.lr em{font-style:normal;font-weight:800;white-space:nowrap}
+/* Zuletzt gespielt */
+.recent{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;padding:4px 2px 6px}
+.rc{flex:none;width:96px;text-align:left;animation:fanIn .5s backwards;animation-delay:var(--d)}
+.rc .poster{border-radius:12px;transition:transform .25s,box-shadow .25s}.rc:hover .poster{transform:translateY(-4px) rotate(-2deg)}
+.rc.first{width:120px}.rc.first .poster{box-shadow:0 0 0 2px var(--acc),0 0 26px #33C3FF55}
+.rc b{display:block;font-size:12.5px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rc span{font-size:11.5px;color:var(--muted)}
+/* Plattform-Stapel */
+.stack{display:flex;height:12px;border-radius:12px;overflow:hidden;gap:2px;margin:2px 0 12px}.stack i{animation:grow2 1s backwards}
+@keyframes grow2{from{flex:0}}
+/* Fun Fact im Wechsel */
+.spot{display:flex;flex-direction:column}.spotin{flex:1;opacity:0;transform:translateY(8px)}.spotin.on{animation:spotIn .6s forwards}
+@keyframes spotIn{to{opacity:1;transform:none}}
+.spotb{all:unset;cursor:pointer;display:block}.spotb i{font-style:normal;font-size:28px}.spotb small{display:block;margin-top:6px;font-size:11px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;color:var(--acc)}
+.spotb b{display:block;font-size:30px;font-weight:900;letter-spacing:-.8px;line-height:1.1;margin:4px 0}.spotb span{color:var(--muted);font-size:14px}
+.spotb em{display:inline-block;margin-top:8px;font-style:normal;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;background:#ffffff10;color:#ffffff99}
+.spotnav{display:flex;justify-content:space-between;align-items:center;margin-top:14px}
+/* Hinweis-Banner */
+.banner{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:10px;width:100%;margin-top:14px;padding:14px 16px;border-radius:18px;background:linear-gradient(90deg,#33C3FF1f,#A97BFF14);border:1px solid #33C3FF33;transition:transform .2s}
+.banner:hover{transform:translateY(-2px)}.banner b{white-space:nowrap}.banner span{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}.banner em{font-style:normal;color:var(--acc);font-weight:900}
+.bdot{width:9px;height:9px;border-radius:50%;background:var(--acc);flex:none;animation:pulse2 1.8s infinite}
+@keyframes pulse2{0%{box-shadow:0 0 0 0 #33C3FF88}70%{box-shadow:0 0 0 9px #33C3FF00}}
+/* Gratis-Seite */
+.freegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px}
+.freet{color:inherit;text-decoration:none;animation:fanIn .5s backwards;animation-delay:var(--d)}.freet .poster{border-radius:14px;margin-bottom:8px;transition:transform .25s}.freet:hover .poster{transform:translateY(-4px)}
+.freet b{display:block;font-size:14px}.freet span{font-size:12px;color:var(--acc);font-weight:700}
+/* Karten & Fakten mit gestaffeltem Einblenden */
+.fact{animation:fanIn .5s backwards;animation-delay:var(--d,0ms)}
+.card{transition:transform .25s,border-color .25s}.card:hover{border-color:#ffffff22}
+.poster img{transition:transform .5s}.lr:hover .poster img,.rc:hover .poster img{transform:scale(1.06)}
+/* Detail */
+.dstats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:16px 22px 0}
+.dstats div{background:#ffffff08;border:1px solid #ffffff10;border-radius:14px;padding:10px}.dstats b{display:block;font-size:16px}.dstats span{font-size:11px;color:var(--muted)}
+.dban{position:relative}.dban::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,#181B21)}
+/* PC: Seitenleiste */
+@media(min-width:1000px){
+  .deskNav{position:fixed;left:18px;top:84px;bottom:18px;width:200px;flex-direction:column;border-radius:22px;padding:10px;gap:4px;margin:0;background:#181B21cc;z-index:15}
+  .deskNav a{padding:11px 14px;border-radius:14px}
+  main{margin-left:236px;max-width:1240px}
+  .top .logo{width:200px}
+}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+.seg{overflow-x:auto;scrollbar-width:none;max-width:100%}.seg::-webkit-scrollbar{display:none}.seg button{white-space:nowrap;flex:none}
+@media(max-width:640px){.shead{flex-direction:column;align-items:stretch}.sbars{width:100%;height:46px}}
+@media(min-width:1000px){.deskNav{background:transparent;border:0;top:90px;bottom:auto}.hero .num{font-size:clamp(84px,11vw,150px)}.hero{min-height:300px}}
 </style>
 </head>
 <body>
@@ -627,7 +725,7 @@ const ICONS = {
   act:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>',
   wrap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg>',
 };
-const ROUTES = [["uebersicht","Übersicht","home"],["spiele","Spiele","lib"],["backlog","Backlog","back"],["aktivitaet","Aktivität","act"],["freunde","Freunde","friends"],["wrapped","Wrapped","wrap"]];
+const ROUTES = [["uebersicht","Übersicht","home"],["spiele","Spiele","lib"],["backlog","Backlog","back"],["statistik","Statistik","act"],["freunde","Freunde","friends"],["wrapped","Wrapped","wrap"]];
 
 /* ================= Helfer ================= */
 const S = {data:null, snap:null, period:"all", groups:[], gmap:new Map(),
@@ -981,7 +1079,7 @@ function header(){
 }
 
 /* ================= Router ================= */
-function cur(){ const h = location.hash.replace("#/",""); return ROUTES.some(r=>r[0]===h) ? h : "uebersicht"; }
+function cur(){ let h = location.hash.replace("#/",""); if (h === "aktivitaet") h = "statistik"; return ROUTES.some(r=>r[0]===h) ? h : "uebersicht"; }
 function nav(){
   const c = cur();
   $("#tabbar").innerHTML = ROUTES.map(([k,l,i])=>`<a href="#/${k}" class="${c===k?"on":""}">${ICONS[i]}${l}</a>`).join("");
@@ -990,7 +1088,8 @@ function nav(){
 function route(){
   nav();
   if (!S.data) return;
-  ({uebersicht:renderOverview, spiele:renderLib, backlog:renderBacklog, aktivitaet:renderActivity, freunde:renderFriends, wrapped:renderWrapped})[cur()]();
+  const v = $("#view"); if (!S.quiet && v){ v.classList.remove("pg"); void v.offsetWidth; v.classList.add("pg"); }
+  ({uebersicht:renderOverview, spiele:renderLib, backlog:renderBacklog, statistik:renderStats, aktivitaet:renderStats, freunde:renderFriends, wrapped:renderWrapped})[cur()]();
   afterRender();
 }
 window.addEventListener("hashchange", ()=>{ document.querySelectorAll("dialog[open]").forEach(d=>d.close()); if ($("#wrap") && $("#wrap").classList.contains("open")) closeWrapped(); route(); scrollTo(0,0); });
@@ -1120,60 +1219,135 @@ function renderOverview(){
   const pe = S.data.period || {}; S.est = !!(pe.estimated && pe.period && pe.period !== "all");
   try { renderOverviewInner(); } finally { S.est = false; }
 }
-function renderOverviewInner(){
+// Gemeinsame Werte für Übersicht und Statistik
+function ovCtx(){
   const played = S.groups.filter(g=>val(g)>0).sort((a,b)=>val(b)-val(a));
-  let h = playingBanner() + periodChips() + periodNotice();
-  if (!played.length){ $("#view").innerHTML = h + emptyState(); return; }
   const total = played.reduce((s,g)=>s+val(g),0);
   const devT = {}, platT = {};
   for (const g of played){ for (const [k,v] of Object.entries(g.devs)) devT[k]=(devT[k]||0)+v; for (const [k,v] of Object.entries(g.plats)) if (v) platT[k]=(platT[k]||0)+v; }
   const plats = Object.entries(platT).sort((a,b)=>b[1]-a[1]);
-  const lotr = total/LOTR;
-  const label = S.period==="all" ? "Insgesamt hast du" : S.period==="year" ? `${new Date().getFullYear()} hast du` : S.period==="month" ? "Diesen Monat hast du" : "In den letzten 7 Tagen hast du";
-
-  h += `<div class="bento">`;
+  return {played, total, devT, plats};
+}
+const periodLabel = () => S.period==="all" ? "Insgesamt hast du" : S.period==="year" ? `${new Date().getFullYear()} hast du` : S.period==="month" ? "Diesen Monat hast du" : "In den letzten 7 Tagen hast du";
+function heroCard(c){
+  const {played,total,plats} = c;
   const mosa = played.slice(0,16).map(g=>`<div class="poster">${img(g.covers,g.title)}</div>`);
   const fun = FUN[Math.floor(Date.now()/864e5) % FUN.length];
-  h += `<section class="card hero reveal"><div class="hmosaic">${[...mosa,...mosa].join("")}</div>
-    <svg class="wave" viewBox="0 0 360 70" aria-hidden="true"><path d="M0 45 C 40 10, 80 70, 120 40 S 200 10, 240 40 S 320 70, 360 35" fill="none" stroke="#0A1C2A" stroke-width="7" stroke-linecap="round"/></svg><div class="eyebrow">${label}</div>
+  return `<section class="card hero reveal"><div class="hmosaic">${[...mosa,...mosa].join("")}</div>
+    <svg class="wave" viewBox="0 0 360 70" aria-hidden="true"><path d="M0 45 C 40 10, 80 70, 120 40 S 200 10, 240 40 S 320 70, 360 35" fill="none" stroke="#0A1C2A" stroke-width="7" stroke-linecap="round"/></svg><div class="eyebrow">${periodLabel()}</div>
     <div class="num" data-count="${Math.round(total/60)}" data-pre="${S.est?"~":""}">0</div><div class="unit">Stunden gezockt${S.est?" (geschätzt)":""}.</div>
     <div class="sub">Das sind <b>${num(total/1440,1)} Tage</b> am Stück – oder <b>${num(total/fun[0], total/fun[0]<10?1:0)}</b> ${fun[1]}.</div>
     <div class="hstats"><div class="hstat"><b>${num(played.length)}</b><span>Spiele</span></div>
       <div class="hstat"><b>${plats.length}</b><span>Plattformen</span></div>
       <div class="hstat"><b>${hrs(total/played.length)}</b><span>Ø pro Spiel</span></div></div></section>`;
+}
+// Einheitliche Listenzeile: Cover, Titel, Info, Wert
+function lrow(g, sub, right, n){
+  return `<div class="lr" onclick="openGame('${esc(g.key)}')">${n!=null?`<span class="lrn">${n}</span>`:""}<div class="poster">${img(g.covers,g.title)}</div>
+    <div class="lrm"><b>${esc(g.title)}</b><span>${sub||""}</span></div><em>${right||""}</em></div>`;
+}
+function recentRail(){
+  const rec = [...S.groups].filter(g=>g.last && g.minutes>0).sort((a,b)=>b.last-a.last).slice(0,12);
+  if (!rec.length) return "";
+  const ago = d => { const t = (Date.now()-d)/864e5; return t<1?"heute":t<2?"gestern":t<7?`vor ${Math.floor(t)} Tagen`:fdate(d); };
+  return `<section class="card reveal"><h3>Zuletzt gespielt</h3><div class="recent">${rec.map((g,i)=>`<button class="rc ${i?"":"first"}" onclick="openGame('${esc(g.key)}')" style="--d:${i*60}ms">
+    <div class="poster">${img(g.covers,g.title)}</div><b>${esc(g.title)}</b><span>${ago(g.last)}</span></button>`).join("")}</div></section>`;
+}
+function topCard(c){
+  const t5 = c.played.slice(0,5);
+  return `<section class="card s7 reveal"><h3>Top 5 <span class="h3s">${esc(scopeLabel())}</span></h3>${t5.map((g,i)=>lrow(g, Object.entries(g.plats).filter(x=>x[1]>0).map(x=>x[0]).join(" · "), hrs(val(g)), i+1)).join("")}
+    <button class="btn ghost small" style="margin-top:12px" onclick="S.lib.view='grid';S.lib.sort='time';location.hash='#/spiele'">Alle Spiele</button></section>`;
+}
+function platCard(c){
+  const {plats, total} = c;
+  return `<section class="card s5 reveal"><h3>Nach Plattform</h3>
+    <div class="stack">${plats.map(([p,v])=>`<i style="flex:${v};background:${pcolor(p)}" title="${esc(p)}"></i>`).join("")}</div>
+    ${plats.map(([p,v])=>`<div class="pbar"><span class="dot" style="background:${pcolor(p)}"></span><span class="nm">${esc(p)}</span>
+    <span class="v" style="margin-left:auto">${hrs(v)} <small style="color:var(--muted)">${num(v/total*100)} %</small></span></div>`).join("")}</section>`;
+}
+// Ein Fun Fact im Wechsel (alle 7 Sekunden)
+function funSpot(c){
+  const FL = facts(c.played, c.total, c.plats); for (const k in FX) delete FX[k]; FL.forEach((x,i)=>FX[i]=x);
+  if (!FL.length) return "";
+  return `<section class="card s6 reveal spot"><h3>Schon gewusst?</h3><div id="spot" class="spotin"></div>
+    <div class="spotnav"><button class="btn ghost small" onclick="location.hash='#/statistik';S.stat='facts'">Alle Fun Facts</button><span id="spotdots"></span></div></section>`;
+}
+function startSpot(){
+  clearInterval(S.spotT); const el = $("#spot"); if (!el) return;
+  const keys = Object.keys(FX); if (!keys.length) return;
+  let i = Math.floor(Math.random()*keys.length);
+  const show = () => { const f = FX[keys[i % keys.length]]; if (!f || !$("#spot")) return clearInterval(S.spotT);
+    el.classList.remove("on"); void el.offsetWidth;
+    el.innerHTML = `<button class="spotb" onclick="openFact(${keys[i % keys.length]})"><i>${f.icon||"✨"}</i><small>${esc(f.t)}</small><b>${esc(f.v)}</b><span>${esc(f.s)}</span><em>${esc(f.scope)}</em></button>`;
+    el.classList.add("on"); i++; };
+  show(); S.spotT = setInterval(()=>{ if (!document.hidden) show(); }, 7000);
+}
+function backlogMini(){
+  const bl = backlogStats(); if (!bl.total) return "";
+  return `<section class="card s6 reveal"><h3>Dein PC-Backlog</h3><div class="bhero">
+      <div class="ring" style="--p:${bl.pct}"><div><div><b>${num(bl.pct)}%</b><br><span>geschafft</span></div></div></div>
+      <div><div class="bhero nums" style="margin-bottom:12px"><div><b>${bl.open}</b><span>offen</span></div><div><b>${bl.done}</b><span>durch</span></div>${bl.rest?`<div><b>${num(bl.rest/60)}</b><span>Std Story</span></div>`:""}</div>
+      <button class="btn limeb" onclick="openPicker()">🎲 Was spiele ich als Nächstes?</button></div></div></section>`;
+}
+function saleBanner(){
+  const sale = ((S.data.steam||{}).wishlist||[]).filter(w=>w.discount>0).sort((a,b)=>b.discount-a.discount);
+  if (!sale.length) return "";
+  return `<button class="banner" onclick="S.lib.view='wish';location.hash='#/spiele'"><span class="bdot"></span><b>${sale.length} ${sale.length===1?"Wunsch":"Wünsche"} im Angebot</b><span>${esc(sale[0].name)} −${sale[0].discount} %${sale.length>1?" und mehr":""}</span><em>→</em></button>`;
+}
+function renderOverviewInner(){
+  const c = ovCtx();
+  let h = playingBanner() + periodChips() + periodNotice();
+  if (!c.played.length){ $("#view").innerHTML = h + emptyState(); return; }
+  h += `<div class="bento">` + heroCard(c) + `</div>` + saleBanner() + `<div class="bento" style="margin-top:14px">`
+    + recentRail() + topCard(c) + platCard(c) + funSpot(c) + backlogMini() + `</div>`;
+  $("#view").innerHTML = h;
+  setTimeout(startSpot, 50);
+}
 
-  const t = played[0];
-  h += `<section class="card topg s7 reveal" onclick="openGame('${esc(t.key)}')">
-    <div class="bgimg">${img(t.banners, t.title)}</div><div class="rank1">#1</div>
-    <div class="in"><div class="eyebrow">Dein Spiel Nummer eins</div><div class="t">${esc(t.title)}</div>
-    <div><b style="font-size:20px">${hrs(val(t))}</b> · ${num(val(t)/total*100)} % deiner Zeit</div>
-    <div class="tagrow" style="margin-top:10px">${platTags(t.plats)}</div></div></section>`;
-
+/* ================= Statistik ================= */
+S.stat = S.stat || "act";
+function statSeg(){
+  return `<div class="seg">${[["act","Aktivität"],["ach","Erfolge"],["facts","Fun Facts"]].map(([k,l])=>`<button class="${S.stat===k?"on":""}" onclick="S.stat='${k}';route()">${l}</button>`).join("")}</div>`;
+}
+function statHead(){
+  const st = sessionStats(0), days = st.days.filter(d=>d>=dayKey(new Date(Date.now()-365*864e5))).length;
+  const ach = Object.values((S.data.steam||{}).ach||{}).reduce((s,a)=>s+a.d,0), plat = (S.data.trophies||[]).filter(t=>t.got[0]>0).length;
+  const bars = Array.from({length:28},(_,i)=>{ const d = new Date(Date.now()-(27-i)*864e5); return st.perDay[dayKey(d)]||0; });
+  const mx = Math.max(...bars, 1);
+  return `<div class="shead reveal"><div><div class="eyebrow">Statistik</div><div class="h1">Dein Rhythmus</div>
+    <div class="shs"><span><b>${days}</b> Spieltage</span><span><b>${num(ach)}</b> Erfolge</span><span><b>${plat}</b> Platins</span></div></div>
+    <div class="sbars" aria-hidden="true">${bars.map((v,i)=>`<i style="--h:${Math.max(6,v/mx*100)}%;--d:${i*25}ms"></i>`).join("")}</div></div>`;
+}
+function renderStats(){
+  const head = playingBanner() + statHead() + statSeg();
+  if (S.stat === "ach"){
+    const inner = hunterCard() + trophyCard() + achCard();
+    $("#view").innerHTML = head + (inner ? `<div class="bento">${inner}</div>` : `<div class="empty"><div class="big">🏅</div><h2>Noch keine Erfolge</h2><p class="help">Verbinde Steam (Erfolge) oder PlayStation (Trophäen) in den Einstellungen.</p></div>`);
+    return;
+  }
+  if (S.stat === "facts") return renderFacts(head);
+  renderActivity(head);
+}
+function renderFacts(head){
+  const c = ovCtx();
+  let h = head + periodChips();
+  if (!c.played.length){ $("#view").innerHTML = h + emptyState(); return; }
+  const {played, total, devT} = c;
+  h += `<div class="bento">`;
   const devs = ["PC","PlayStation","Xbox","Nintendo"].filter(k=>devT[k]);
   const pcShare = (devT.PC||0)/total*100;
   h += `<section class="card lime s5 reveal"><h3>PC vs. Konsole</h3>
     <div class="big"><span data-count="${Math.round(pcShare)}">0</span>%</div>
     <div style="font-weight:800;font-size:18px;margin-bottom:8px">${pcShare>=50?"PC-Gamer durch und durch.":"Die Couch gewinnt."}</div>
     ${devs.map(k=>`<div class="devrow"><span class="lbl">${k}</span><span class="trk"><div style="width:0" data-w="${devT[k]/total*100}%"></div></span><span class="v">${hrs(devT[k])}</span></div>`).join("")}</section>`;
-
-  const t10 = played.slice(0,10);
-  h += `<section class="card reveal"><h3>Deine Top ${t10.length}</h3><div class="rail">${t10.map((g,i)=>`
-    <div class="rk" onclick="openGame('${esc(g.key)}')"><div class="n">${i+1}</div><div class="p"><div class="poster">${img(g.covers,g.title)}</div>
-    <div class="meta">${esc(g.title)}<span>${hrs(val(g))}</span></div></div></div>`).join("")}</div></section>`;
-
-  h += `<section class="card s6 reveal"><h3>Nach Plattform</h3>${plats.map(([p,v])=>`
-    <div class="pbar"><span class="dot" style="background:${pcolor(p)}"></span><span class="nm">${esc(p)}</span>
-    <span class="trk"><div style="width:0;background:${pcolor(p)}" data-w="${v/plats[0][1]*100}%"></div></span><span class="v">${hrs(v)}</span></div>`).join("")}</section>`;
-
   const gen = {};
   for (const g of played) for (const x of g.genres) gen[x] = (gen[x]||0) + (g.devs.PC||0);
   const gl = Object.entries(gen).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,6);
-  if (gl.length) h += `<section class="card pinkc s6 reveal inv"><h3>Deine Gamer-DNA</h3>
+  if (gl.length) h += `<section class="card violetc s7 reveal"><h3>Deine Gamer-DNA</h3>
       <div class="eyebrow" style="opacity:.8">Lieblingsgenre</div><div class="mid" style="margin:4px 0 14px">${esc(gl[0][0])}</div>
-      ${gl.slice(1).map(([n,v])=>`<div class="pbar"><span class="nm">${esc(n)}</span><span class="trk"><div style="width:0" data-w="${v/gl[0][1]*100}%"></div></span><span class="v">${hrs(v)}</span></div>`).join("")}
+      ${gl.slice(1).map(([n,v])=>`<div class="pbar"><span class="nm">${esc(n)}</span><span class="trk"><div style="width:0;background:var(--violet)" data-w="${v/gl[0][1]*100}%"></div></span><span class="v">${hrs(v)}</span></div>`).join("")}
       <div class="minis">${played.filter(g=>g.genres.includes(gl[0][0])).slice(0,5).map(g=>`<div class="poster">${img(g.covers,g.title)}</div>`).join("")}</div>
-      <div class="help" style="color:#160411aa">Nur PC-Spiele, Genres aus Playnite.</div></section>`;
-
+      <div class="help">Nur PC-Spiele, Genres aus Playnite.</div></section>`;
   const dec = {};
   for (const g of played) if (g.year) { const k = Math.floor(g.year/10)*10; dec[k]=(dec[k]||0)+val(g); }
   const dl = Object.entries(dec).sort((a,b)=>a[0]-b[0]);
@@ -1182,29 +1356,14 @@ function renderOverviewInner(){
     h += `<section class="card cyanc s6 reveal"><h3>Deine Ära</h3><div class="mid">${String(best).slice(2)}er</div>
       <div style="font-weight:700;margin-top:4px">Am liebsten spielst du Spiele aus den ${best}ern.</div>
       <div class="minis">${played.filter(g=>g.year && Math.floor(g.year/10)*10==best).slice(0,5).map(g=>`<div class="poster">${img(g.covers,g.title)}</div>`).join("")}</div>
-      <div class="cols">${dl.map(([k,v])=>`<div class="c"><div style="height:0" data-h="${Math.max(3,v/mx*100)}%"></div><span>${String(k).slice(2)}er</span></div>`).join("")}</div></section>`;
+      <div class="cols">${dl.map(([k,v])=>`<div class="c"><div style="height:0;background:var(--cyan)" data-h="${Math.max(3,v/mx*100)}%"></div><span>${String(k).slice(2)}er</span></div>`).join("")}</div></section>`;
   }
-
-  const bl = backlogStats();
-  if (bl.total){
-    const span = (1+(gl.length?1:0)+(dl.length?1:0))%2 ? 6 : 12;
-    h += `<section class="card s${span} reveal"><h3>Dein PC-Backlog</h3><div class="bhero">
-      <div class="ring" style="--p:${bl.pct}"><div><div><b>${num(bl.pct)}%</b><br><span>geschafft</span></div></div></div>
-      <div><div class="bhero nums" style="margin-bottom:12px"><div><b>${bl.open}</b><span>offen</span></div><div><b>${bl.done}</b><span>durch</span></div>${bl.rest?`<div><b>${num(bl.rest/60)}</b><span>Std Story offen</span></div>`:""}</div>
-      <button class="btn limeb" onclick="openPicker()">🎲 Was spiele ich als Nächstes?</button></div></div></section>`;
-  }
-
-  const bd = badges(), got = bd.filter(b=>b.got);
-  const nextB = bd.filter(b=>!b.got).sort((a,b)=>b.p-a.p).slice(0, Math.max(0, 6-got.length));
-  h += `<section class="card reveal"><h3>Abzeichen · ${got.length} von ${bd.length}</h3>${badgeGrid([...got.slice(0,6), ...nextB])}
-    <button class="btn ghost small" style="margin-top:14px" onclick="location.hash='#/wrapped'">Alle Abzeichen ansehen</button></section>`;
-  h += freeCard() + compareCard();
-  const FL = facts(played,total,plats); for (const k in FX) delete FX[k]; FL.forEach((x,i)=>FX[i]=x);
-  const ACC = ["#A97BFF","#FFB547","#FFB547","#14F0C8","#7C8CFF","#33C3FF"];
-  h += `<section class="card reveal"><h3>Fun Facts <span class="help" style="font-weight:600;text-transform:none;letter-spacing:0">· antippen für Details</span></h3><div class="facts">${FL.map((x,i)=>
-      `<button class="fact" style="--a:${ACC[i%6]}" onclick="openFact(${i})"><div class="ft"><i>${x.icon||"✨"}</i><small>${esc(x.t)}</small></div>
-        <b>${esc(x.v)}</b><span>${esc(x.s)}</span><em>${esc(x.scope)}</em></button>`).join("")}</div></section>`;
-  h += `</div>` + sourcesLink();
+  h += compareCard().replace('class="card reveal"','class="card s6 reveal"');
+  const FL = facts(played,total,c.plats); for (const k in FX) delete FX[k]; FL.forEach((x,i)=>FX[i]=x);
+  const ACC = ["#33C3FF","#14F0C8","#A97BFF"];
+  h += `<section class="card reveal"><h3>Fun Facts <span class="h3s">antippen für Details</span></h3><div class="facts">${FL.map((x,i)=>
+      `<button class="fact" style="--a:${ACC[i%3]};--d:${i*40}ms" onclick="openFact(${i})"><div class="ft"><i>${x.icon||"✨"}</i><small>${esc(x.t)}</small></div>
+        <b>${esc(x.v)}</b><span>${esc(x.s)}</span><em>${esc(x.scope)}</em></button>`).join("")}</div></section></div>`;
   $("#view").innerHTML = h;
 }
 
@@ -1216,6 +1375,30 @@ function phead(eyebrow, title, sub, covers){
   return `<div class="phead">${strip}<div class="eyebrow">${eyebrow}</div><div class="h1">${title}</div>${sub?`<p>${sub}</p>`:""}</div>`;
 }
 const gcov = g => img(g.covers, g.title);
+// Seitenköpfe – jede Seite mit eigener Bildidee
+function fanHead(eyebrow, title, sub, covers){   // Cover-Fächer
+  const cv = (covers||[]).filter(Boolean).slice(0,5);
+  return `<div class="khead fanh reveal"><div><div class="eyebrow">${eyebrow}</div><div class="h1">${title}</div>${sub?`<p>${sub}</p>`:""}</div>
+    <div class="fan" aria-hidden="true">${cv.map((c,i)=>`<div class="poster" style="--i:${i - (cv.length-1)/2}">${c}</div>`).join("")}</div></div>`;
+}
+function blurHead(eyebrow, title, sub, g, extra){  // verschwommenes Cover + Fokus-Cover
+  return `<div class="khead blurh reveal">${g?`<div class="blurbg" style="background-image:url('${esc((g.banners||[])[0]||(g.covers||[])[0]||"")}')"></div>`:""}
+    <div><div class="eyebrow">${eyebrow}</div><div class="h1">${title}</div>${sub?`<p>${sub}</p>`:""}${extra||""}</div>
+    ${g?`<div class="focus" onclick="openGame('${esc(g.key)}')"><div class="poster">${img(g.covers,g.title)}</div><span>${g.status==="als_naechstes"?"Als Nächstes":g.status==="angefangen"?"Weiterspielen":"Tipp"}</span></div>`:""}</div>`;
+}
+function tierHead(n){
+  return `<div class="khead tierh reveal"><div><div class="eyebrow">Deine Bibliothek</div><div class="h1">Tier-Liste</div><p>${n} Spiele eingeordnet · ab 5 Stunden Spielzeit</p></div>
+    <div class="tiers" aria-hidden="true">${TIERS.map(([t,c],i)=>`<i style="background:${c};--d:${i*90}ms">${t}</i>`).join("")}</div></div>`;
+}
+function stackHead(eyebrow, title, sub, covers, tag){  // gestapelte Cover mit Etikett
+  const cv = (covers||[]).filter(Boolean).slice(0,3);
+  return `<div class="khead stackh reveal"><div><div class="eyebrow">${eyebrow}</div><div class="h1">${title}</div>${sub?`<p>${sub}</p>`:""}</div>
+    <div class="stk" aria-hidden="true">${cv.map((c,i)=>`<div class="poster" style="--i:${i}">${c}</div>`).join("")}${tag?`<span class="tagst">${tag}</span>`:""}</div></div>`;
+}
+function avatarHead(list, sub){
+  return `<div class="khead avh reveal"><div><div class="eyebrow">Steam</div><div class="h1">Freunde</div>${sub?`<p>${sub}</p>`:""}</div>
+    <div class="avs" aria-hidden="true">${list.slice(0,7).map((f,i)=>`<span style="--i:${i}">${avatar(f,52)}</span>`).join("")}</div></div>`;
+}
 const steamCov = a => img([`https://cdn.cloudflare.steamstatic.com/steam/apps/${a}/library_600x900.jpg`], "");
 function scopeLabel(){
   const n = new Date();
@@ -1362,6 +1545,23 @@ function platTags(plats){
   return Object.entries(plats).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1])
     .map(([p,v])=>`<span class="tag"><i style="background:${pcolor(p)}"></i>${esc(p)} · ${hrs(v)}</span>`).join("");
 }
+function renderFree(){
+  const fg = S.data.free_games || [], own = new Set(S.groups.map(g=>g.key));
+  const now = fg.filter(f=>f.kind==="now"), soon = fg.filter(f=>f.kind==="soon");
+  const tile = (f,i) => `<a class="freet" href="${esc(f.url)}" target="_blank" rel="noopener" style="--d:${i*60}ms"><div class="poster">${f.image?`<img src="${esc(f.image)}" alt="" loading="lazy" onerror="this.outerHTML=ph(${esc(JSON.stringify(f.title))})">`:ph(f.title)}<em class="fsrc">${esc(f.source||"Epic")}</em></div>
+    <b>${esc(f.title)}</b><span>${f.kind==="now" ? (own.has(f.key)?"✓ hast du schon":f.end?`gratis bis ${fdate(new Date(f.end))}`:"jetzt gratis") : `ab ${fdate(new Date(f.start))}`}</span></a>`;
+  let h = `<div class="gpage-h"><div class="eyebrow">Spiele</div><div class="h1">Gratis abholen</div><p class="help" style="margin:0">Epic, GOG und Prime Gaming – alle 3 Stunden aktualisiert. Neue Gratis-Spiele meldet dir Gaming Recap.</p></div>${libSeg()}`;
+  if (!fg.length){ $("#view").innerHTML = h + `<div class="empty"><div class="big">🎁</div><h2>Gerade nichts gratis</h2><p class="help">Sobald es etwas gibt, erscheint es hier.</p></div>`; return; }
+  h += now.length ? `<div class="secttl">Jetzt gratis</div><div class="freegrid">${now.map(tile).join("")}</div>` : "";
+  h += soon.length ? `<div class="secttl" style="margin-top:22px">Demnächst</div><div class="freegrid">${soon.map(tile).join("")}</div>` : "";
+  $("#view").innerHTML = h;
+}
+function renderReleases(){
+  const wl = ((S.data.steam||{}).wishlist||[]), now = Date.now()/1000;
+  const soon = wl.filter(w=>w.soon || (w.release && w.release>now)).sort((a,b)=>(a.release||9e12)-(b.release||9e12));
+  let h = `<div class="gpage-h"><div class="eyebrow">Wunschliste</div><div class="h1">Releases</div><p class="help" style="margin:0">Am Erscheinungstag bekommst du einen Hinweis.</p></div>${libSeg()}`;
+  $("#view").innerHTML = h + (soon.length ? releaseCalendar(soon) : `<div class="empty"><div class="big">🗓️</div><h2>Nichts angekündigt</h2><p class="help">Spiele auf deiner Steam-Wunschliste mit Erscheinungsdatum erscheinen hier.</p></div>`);
+}
 function freeCard(){
   const fg = (S.data.free_games||[]); if (!fg.length) return "";
   const own = new Set(S.groups.map(g=>g.key)), now = fg.filter(f=>f.kind==="now"), soon = fg.filter(f=>f.kind==="soon");
@@ -1411,20 +1611,23 @@ function sourcesBlock(){
 }
 
 /* ================= Bibliothek ================= */
-const TIERS = [["S","#ff4f6d"],["A","#FFB547"],["B","#FFB547"],["C","#33C3FF"],["D","#14F0C8"],["F","#A97BFF"]];
+const TIERS = [["S","#FF6B8B"],["A","#FFB547"],["B","#33C3FF"],["C","#14F0C8"],["D","#7C8CFF"],["F","#A97BFF"]];
 const TCOL = Object.fromEntries(TIERS);
 function libSeg(){
   const wl = ((S.data.steam||{}).wishlist||[]).length;
-  return `<div class="seg">${[["grid","Bibliothek"],["tier","Tier-Liste"],["wish",`Wunschliste${wl?` (${wl})`:""}`]]
+  const fg = (S.data.free_games||[]).filter(f=>f.kind==="now").length;
+  return `<div class="seg">${[["grid","Bibliothek"],["tier","Tier-Liste"],["wish",`Wunschliste${wl?` (${wl})`:""}`],["free",`Gratis${fg?` (${fg})`:""}`],["rel","Releases"]]
     .map(([k,l])=>`<button class="${(S.lib.view||"grid")===k?"on":""}" onclick="S.lib.view='${k}';renderLib();afterRender()">${l}</button>`).join("")}</div>`;
 }
 function renderLib(){
   if (S.lib.view === "tier") return renderTier();
   if (S.lib.view === "wish") return renderWish();
+  if (S.lib.view === "free") return renderFree();
+  if (S.lib.view === "rel") return renderReleases();
   const L = S.lib, devCounts = {};
   S.groups.forEach(g=>Object.keys(g.devs).forEach(d=>devCounts[d]=(devCounts[d]||0)+1));
   devCounts.hidden = S.allGroups.filter(g=>g.hide).length;
-  $("#view").innerHTML = `${phead("Deine Bibliothek", `${num(S.groups.length)} Spiele`, "", [...S.groups].sort((a,b)=>(b.last||0)-(a.last||0)).slice(0,18).map(gcov))}${libSeg()}
+  $("#view").innerHTML = `${fanHead("Deine Bibliothek", `${num(S.groups.length)} Spiele`, `${hrs(S.groups.reduce((s,g)=>s+g.minutes,0))} gespielt`, [...S.groups].sort((a,b)=>b.minutes-a.minutes).slice(0,5).map(gcov))}${libSeg()}
     <div class="chips">${[["","Alle"],["PC","PC"],["PlayStation","PlayStation"],["Xbox","Xbox"],["Nintendo","Nintendo"],["hidden","🙈 Ausgeblendet"]].filter(([k])=>!k||devCounts[k])
       .map(([k,l])=>`<button class="chip ${L.dev===k?"on":""}" onclick="S.lib.dev='${k}';S.lib.limit=60;route()">${l}<small>${k?devCounts[k]:S.groups.length}</small></button>`).join("")}</div>
     <div class="toolbar"><input id="q" type="search" placeholder="Spiel suchen …" value="${esc(L.q)}">
@@ -1481,7 +1684,7 @@ function renderBacklog(){
   if (!all.length){ $("#view").innerHTML = `<div class="empty"><div class="big">📚</div><h2>Noch keine PC-Spiele</h2><p class="help">Verbinde Playnite oder Steam in den Einstellungen.</p></div>`; return; }
   const counts = {}; all.forEach(g=>counts[g.status]=(counts[g.status]||0)+1);
   const filters = [["open","Alles offen",st.open],["done","Geschafft",st.done], ...STATUS.map(s=>[s.k,`${s.e} ${s.l}`,counts[s.k]||0]).filter(x=>x[2])];
-  $("#view").innerHTML = `${phead("PC-Backlog", `${st.open} offen`, "", blGames().filter(g=>SMAP[g.status].g==="open").sort((a,b)=>(b.critic||0)-(a.critic||0)).slice(0,18).map(gcov))}
+  $("#view").innerHTML = `${blurHead("PC-Backlog", `${st.open} offen`, `${st.done} durchgespielt · ${num(st.pct)} % geschafft`, blGames().find(g=>g.status==="als_naechstes") || blGames().filter(g=>g.status==="angefangen").sort((a,b)=>(b.last||0)-(a.last||0))[0] || blGames().filter(g=>SMAP[g.status].g==="open").sort((a,b)=>(b.critic||0)-(a.critic||0))[0])}
   <div class="bl-layout"><aside class="bl-aside">
     <section class="card violetc reveal"><div class="bhero">
       <div class="ring" style="--p:${st.pct}"><div><div><b>${num(st.pct)}%</b><br><span>geschafft</span></div></div></div>
@@ -1516,13 +1719,12 @@ function blist(){
 }
 
 /* ================= Aktivität ================= */
-function renderActivity(){
+function renderActivity(head){
   const st = sessionStats(0);
-  let h = playingBanner() + phead("Dein Rhythmus", "Aktivität", "", [...S.groups].filter(g=>g.last).sort((a,b)=>b.last-a.last).slice(0,18).map(gcov));
+  let h = head || "";
   if (!st.ss.length){
-    $("#view").innerHTML = h + `<div class="card hero" style="min-height:280px"><div class="eyebrow">Session-Tracker</div><div class="mid" style="margin:8px 0">Sammelt gerade.</div>
-      <div class="sub">Sobald du spielst, erscheinen hier deine Sessions: Heatmap, Serien, Uhrzeiten und dein Gamer-Typ. PC-Spiele werden live erkannt, Konsolenzeit beim nächsten Abgleich.</div></div>
-      <div class="bento" style="margin-top:14px">${hunterCard() + trophyCard() + achCard()}</div>`;
+    $("#view").innerHTML = h + `<div class="card reveal empty-act"><div class="eyebrow">Session-Tracker</div><div class="mid" style="margin:8px 0">Sammelt gerade.</div>
+      <p class="help">Sobald du spielst, erscheinen hier deine Sessions: Heatmap, Serien, Uhrzeiten und dein Gamer-Typ. PC-Spiele werden live erkannt, Konsolenzeit beim nächsten Abgleich.</p></div>`;
     return;
   }
   // Heatmap (53 Wochen)
@@ -1574,7 +1776,6 @@ function renderActivity(){
   const top30 = Object.entries(g30).sort((a,b)=>b[1]-a[1]).slice(0,6);
   h += `<section class="card s6 reveal"><h3>Letzte 30 Tage</h3>${top30.length ? top30.map(([k,v])=>`<div class="pbar"><span class="nm" style="width:150px">${esc(titleOf(k))}</span>
     <span class="trk"><div style="width:0;background:var(--lime)" data-w="${v/top30[0][1]*100}%"></div></span><span class="v">${hrs(v)}</span></div>`).join("") : `<p class="help">Nichts gespielt.</p>`}</section>`;
-  h += hunterCard() + trophyCard() + achCard();
   const cb = comebacks(), ya = yearAgo();
   if (ya.length) h += `<section class="card orangec s6 reveal"><h3>Heute vor einem Jahr</h3><div class="mid" style="font-size:clamp(28px,6vw,40px)">${esc(titleOf(ya[0][0]))}</div>
     <div style="font-weight:700;margin-top:6px">Um diese Zeit letztes Jahr hast du ${ya.map(([k,v])=>`${esc(titleOf(k))} (${hrs(v)})`).slice(0,3).join(", ")} gespielt.</div></section>`;
@@ -1597,7 +1798,7 @@ function renderTier(){
   const played = S.groups.filter(g=>g.minutes >= TIER_MIN).sort((a,b)=>b.minutes-a.minutes);
   const pool = played.filter(g=>!g.tier && (!q || g.key.includes(q)));
   const item = g => `<div class="titem" data-k="${esc(g.key)}" title="${esc(g.title)}"><div class="poster">${img(g.covers,g.title)}</div></div>`;
-  $("#view").innerHTML = `${phead("Deine Bibliothek", "Tier-Liste", "", S.groups.filter(g=>g.tier).slice(0,18).map(gcov))}${libSeg()}
+  $("#view").innerHTML = `${tierHead(S.groups.filter(g=>g.tier).length)}${libSeg()}
     <p class="help" style="margin-top:-6px">${matchMedia("(pointer:fine)").matches?"Cover in eine Reihe ziehen. Antippen öffnet das Spiel.":"Cover antippen und Rang wählen."}</p>
     ${TIERS.map(([t,c])=>`<div class="tierrow"><div class="tl" style="background:${c}">${t}</div><div class="tz" data-tier="${t}">${played.filter(g=>g.tier===t).map(item).join("")}</div></div>`).join("")}
     <div class="secttl" style="margin-top:20px">Noch nicht eingeordnet (${pool.length})</div>
@@ -1672,7 +1873,7 @@ function releaseCalendar(soon){
 }
 function renderWish(){
   const sx = S.data.steam || {}, wl = (sx.wishlist||[]).slice();
-  let h = `${phead("Steam", "Wunschliste", "", ((S.data.steam||{}).wishlist||[]).slice(0,18).map(w=>steamCov(w.appid)))}${libSeg()}`;
+  let h = `${stackHead("Steam", "Wunschliste", `${wl.length} Spiele`, wl.filter(w=>w.discount>0).concat(wl).slice(0,3).map(w=>steamCov(w.appid)), wl.some(w=>w.discount>0)?`−${Math.max(...wl.map(w=>w.discount||0))} %`:"")}${libSeg()}`;
   if (!wl.length){
     $("#view").innerHTML = h + `<div class="empty"><div class="big">💝</div><h2>Keine Wunschliste gefunden</h2><p class="help">${esc(sx.wishlist_error || "Verbinde Steam in den Einstellungen. Die Wunschliste muss in Steam öffentlich sichtbar sein.")}</p></div>`;
     return;
@@ -1693,7 +1894,7 @@ function renderWish(){
     <div class="tile"><small>Alles zusammen</small><b>${euro(sum("price"))}</b><span>${sum("orig")>sum("price")?`statt ${euro(sum("orig"))}`:"aktueller Preis"}</span></div>
     <div class="tile"><small>Kommt bald</small><b>${soon.length}</b><span>${soon[0]?esc(soon[0].name):"nichts angekündigt"}</span></div></div>`;
   if (sale.length) h += `<section class="card" style="margin-bottom:14px"><h3>🔥 Im Angebot</h3>${sale.map(row).join("")}</section>`;
-  if (soon.length) h += releaseCalendar(soon);
+  if (soon.length) h += `<button class="banner" onclick="S.lib.view='rel';renderLib();afterRender()"><span class="bdot"></span><b>${soon.length} Releases angekündigt</b><span>${esc(soon[0].name)}${soon[0].release?" · "+fdate(new Date(soon[0].release*1000)):""}</span><em>→</em></button>`;
   if (rest.length) h += `<section class="card"><h3>Weitere Wünsche</h3>${rest.map(row).join("")}</section>`;
   h += `<p class="help">Preise aus dem deutschen Steam-Store, ${sx.at?`Stand ${fdate(new Date(sx.at*1000))}`:""}. Neue Angebote meldet dir Windows, wenn Gaming Recap läuft.</p>`;
   $("#view").innerHTML = h;
@@ -1990,7 +2191,7 @@ function friendList(){
 function renderFriends(){
   const list = friendList(), fr = (S.data.steam||{}).friends || [];
   const frc = [...new Set(((S.data.steam||{}).friends||[]).flatMap(f=>(f.tops||[]).slice(0,2).map(t=>t[2])).filter(Boolean))].slice(0,18);
-  let h = phead("Steam", "Freunde", "", frc.map(steamCov));
+  let h = avatarHead(friendList().filter(f=>!f.me), `${((S.data.steam||{}).friends||[]).length} mit öffentlichem Profil`);
   if (!fr.length){ $("#view").innerHTML = h + `<div class="card hero" style="min-height:240px"><div class="mid">Noch keine Freunde geladen.</div>
     <div class="sub">Dafür brauchst du den Steam-API-Key und den Haken „Steam-Erfolge, Wunschliste, Preise und Freunde laden“ in den Einstellungen. Freunde mit privatem Profil bleiben unsichtbar.</div></div>`; return; }
   const rank = list.findIndex(f=>f.me)+1, me = list[rank-1], others = list.filter(f=>!f.me);
@@ -2470,6 +2671,8 @@ window.openGame = key => {
     <div class="dban">${img(g.banners,g.title)}</div>
     <div class="dhead"><div class="poster">${img(g.covers,g.title)}</div>
       <div><h2>${esc(g.title)}</h2><div class="tagrow">${devs.map(d=>`<span class="tag"><i style="background:${DEV_COLORS[d]}"></i>${d}</span>`).join("")}</div></div></div>
+    <div class="dstats"><div><b>${g.minutes?hrs(g.minutes):"–"}</b><span>gespielt</span></div><div><b>${g.last?fdate(g.last):"–"}</b><span>zuletzt</span></div>
+      <div><b>${g.critic||"–"}</b><span>Fachpresse</span></div><div><b>${g.hltb&&g.hltb.main?hrs(g.hltb.main):"–"}</b><span>Story</span></div></div>
     <div class="dbody"><div class="dgrid"><div>${left}</div><div>${right}</div></div></div>`;
   $("#note").onchange = e => saveMeta(g.key, {note:e.target.value});
   if (!$("#detail").open) $("#detail").showModal();
