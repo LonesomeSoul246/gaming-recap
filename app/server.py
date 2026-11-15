@@ -1279,6 +1279,8 @@ def fetch_partner(cfg):
         partner_state["error"] = "Partner-Code passt nicht – bei beiden muss derselbe Code eingetragen sein."
     except Exception as e:
         partner_state["error"] = err_text(e)
+    if partner_state["error"]:
+        partner_state["last"] = time.time() - 1500  # bei Fehlern schon nach 5 Minuten wieder versuchen
 
 
 SHARE_KEYS = ("igdb_client_id", "igdb_client_secret", "itad_key", "sgdb_key", "rawg_key")
