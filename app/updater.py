@@ -1,0 +1,122 @@
+"""
+Updates für weitergegebene Installationen.
+
+Veröffentlichen (Marvins PC): Die Programmdateien landen beim Cloud-Abgleich unter app/ im eigenen
+GitHub-Pages-Repository, dazu app/version.json mit SHA-256 jeder Datei. Keine Keys, keine Daten.
+
+Empfangen (andere PCs): Einmal am Tag version.json lesen, geänderte Dateien laden und prüfen,
+alte Fassung sichern, austauschen und über guard.py neu starten. Startet die neue Fassung nicht,
+spielt guard.py die gesicherte Fassung zurück.
+"""
+import hashlib
+import json
+import os
+import shutil
+import time
+import urllib.parse
+import urllib.request
+
+PROGRAM_FILES = [
+    "server.py", "cloud.py", "common.py", "extras.py", "hltb.py", "media.py", "notify.py", "steamx.py",
+    "tracker.py", "updater.py", "guard.py", "Start.bat", "Start mit Fenster.bat", "ANLEITUNG.txt",
+    "web/index.html", "web/sw.js", "web/manifest.webmanifest", "web/icon-192.png", "web/icon-512.png",
+    "web/apple-touch-icon.png",
+    "playnite-erweiterung/GamingRecapExport/extension.yaml",
+    "playnite-erweiterung/GamingRecapExport/GamingRecap.psm1",
+]
+
+
+def sha(b):
+    return hashlib.sha256(b).hexdigest()
+
+
+def program_files(base):
+    out = {}
+    for rel in PROGRAM_FILES:
+        p = os.path.join(base, *rel.split("/"))
+        if os.path.isfile(p):
+            with open(p, "rb") as f:
+                out[rel] = f.read()
+    return out
+
+
+def manifest(files, version):
+    hashes = {rel: sha(b) for rel, b in files.items()}
+    release = sha("".join(f"{k}:{v}" for k, v in sorted(hashes.items())).encode())[:10]
+    return {"version": version, "release": release, "at": int(time.time()), "files": hashes}
+
+
+def local_release(base, version):
+    return manifest(program_files(base), version)["release"]
+
+
+def _get(url, timeout=40):
+    req = urllib.request.Request(url, headers={"User-Agent": "GamingRecap-Updater", "Cache-Control": "no-cache"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read()
+
+
+def check(update_url, base, version):
+    """Liefert (manifest, geänderte Dateien) – leere Liste, wenn alles aktuell ist."""
+    url = update_url.rstrip("/") + "/version.json?t=" + str(int(time.time()))
+    man = json.loads(_get(url).decode("utf-8"))
+    files = man.get("files") or {}
+    if not files or any(rel not in PROGRAM_FILES and not rel.startswith(("web/", "playnite-erweiterung/")) for rel in files):
+        raise ValueError("Update-Liste ungültig")
+    local = program_files(base)
+    changed = [rel for rel, h in files.items() if sha(local.get(rel, b"")) != h]
+    return man, changed
+
+
+def apply(update_url, base, data_dir, man, changed):
+    """Lädt, prüft und tauscht die Dateien. Gibt den Sicherungsordner zurück."""
+    staged = {}
+    for rel in changed:
+        url = update_url.rstrip("/") + "/" + urllib.parse.quote(rel) + "?r=" + man["release"]
+        b = _get(url)
+        if sha(b) != man["files"][rel]:
+            raise ValueError(f"Prüfsumme passt nicht: {rel}")
+        staged[rel] = b
+    backup = os.path.join(data_dir, "app_sicherung")
+    if os.path.isdir(backup):
+        shutil.rmtree(backup, ignore_errors=True)
+    os.makedirs(backup, exist_ok=True)
+    old = program_files(base)
+    for rel, b in old.items():
+        p = os.path.join(backup, *rel.split("/"))
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        with open(p, "wb") as f:
+            f.write(b)
+    with open(os.path.join(backup, "dateien.json"), "w", encoding="utf-8") as f:
+        json.dump({"files": list(old), "new": list(staged), "release": man["release"], "at": int(time.time())}, f)
+    for rel, b in staged.items():
+        p = os.path.join(base, *rel.split("/"))
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        tmp = p + ".neu"
+        with open(tmp, "wb") as f:
+            f.write(b)
+        os.replace(tmp, p)
+    return backup
+
+
+def rollback(base, data_dir):
+    """Stellt die gesicherte Fassung wieder her (von guard.py genutzt)."""
+    backup = os.path.join(data_dir, "app_sicherung")
+    info_p = os.path.join(backup, "dateien.json")
+    if not os.path.exists(info_p):
+        return False
+    with open(info_p, encoding="utf-8") as f:
+        info = json.load(f)
+    for rel in info.get("files", []):
+        src = os.path.join(backup, *rel.split("/"))
+        if os.path.isfile(src):
+            dst = os.path.join(base, *rel.split("/"))
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            shutil.copyfile(src, dst)
+    for rel in info.get("new", []):  # durch das Update neu hinzugekommene Dateien entfernen
+        if rel not in info.get("files", []):
+            try:
+                os.remove(os.path.join(base, *rel.split("/")))
+            except OSError:
+                pass
+    return True

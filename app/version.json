@@ -1,0 +1,29 @@
+{
+ "version": "1.0",
+ "release": "d6fb38d3ef",
+ "at": 1794775648,
+ "files": {
+  "server.py": "0e63bbaf679482c510ae8ece2381803297fd6f279cb1de410b003f5b63128ca4",
+  "cloud.py": "9d02b111f1d30f34f819e3554e393040fe2f0edd44be91106ba278825cb5a2e8",
+  "common.py": "a9bddf45a9aca1796d89270cfa5efedab8cfef638e2e4c561f535536b190e080",
+  "extras.py": "19e1bc344644d36fb848562aa75c85570fbbc59fba7a5ab0cce42b8405b45034",
+  "hltb.py": "59f2fb3b9544f7ae3c495e2049738058d327c0808806910e39c68ed5b18fd8cb",
+  "media.py": "24dffc442da3b32b907de0876391f85852d2a0077050b938bd48cd62880fc6bd",
+  "notify.py": "484d108b5fc4ce8f803d28cb981dbf9d173e47472dc505b367457a89293cb04a",
+  "steamx.py": "ff12024687f096ccc97f7cf9c9ab855b8117f3fea6a194f2cd56f9f9d0fbc2b0",
+  "tracker.py": "adffa4a87c5a31dfeb840891483ea99e573109cbeea17e09d491cf16bc4df1e2",
+  "updater.py": "0820474dbdad3d99a6df7f492c0333909fffbfb2ccad2b7e619ed3e3cd720572",
+  "guard.py": "dd47b0f9a510b592a85ae0e3f113b4c45a226ca1461b7bffcf46e44bde8caa66",
+  "Start.bat": "c84a577cd800126a086370d02d516343c5cc9eda2e08e67abfa736860143362b",
+  "Start mit Fenster.bat": "c81fc23d9ed171f29d65af910e05abee25257b89cd76c29f14d4aaa6fb5c8e42",
+  "ANLEITUNG.txt": "4b3ad30ac7360bd14472efb82149c818816f4b2000fae2a929ab1ac349b134ad",
+  "web/index.html": "65237fd64ee738fdc716d4e42b9cb0628788c6fbc2f349a2952d2e41ff8ad568",
+  "web/sw.js": "c45e6524d85dfa18dd22f0d63b21f8aed8dd1a8c8dbdca7ce6c142a503561ac5",
+  "web/manifest.webmanifest": "93efa98539ecb97f826275d0c4dacf3a141b4d819d391845e3b594a5e40d8554",
+  "web/icon-192.png": "184c59cc5b50b08f224664619358e7ca5ae9eb7ae427d300a2a6044faa28c5dd",
+  "web/icon-512.png": "5bd2e5eb19bdd56575b77047c127ce9133d9942ea123d252d68f795c99edeb13",
+  "web/apple-touch-icon.png": "f38eb004a384dfd8d8ef751265f3c97cd5350a267d3b9a7180f2cab4f591e9f6",
+  "playnite-erweiterung/GamingRecapExport/extension.yaml": "728b9ea9863cd4924fc4d8a6ab15b71b747f04105e80b7e70c9f435d16f5bdcf",
+  "playnite-erweiterung/GamingRecapExport/GamingRecap.psm1": "ec77a972ed6df9d2928323af71fd46efc1f33011027d30d29f9b1c1ca606fc99"
+ }
+}

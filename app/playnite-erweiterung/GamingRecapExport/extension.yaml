@@ -1,0 +1,6 @@
+Id: GamingRecap_Export
+Name: Gaming Recap Export
+Author: Gaming Recap
+Version: 2.0
+Module: GamingRecap.psm1
+Type: Script

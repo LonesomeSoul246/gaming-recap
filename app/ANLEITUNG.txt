@@ -1,0 +1,71 @@
+GAMING RECAP 1.0 – Anleitung
+============================
+
+Alle Spielzeiten von PC (Steam, Epic, Ubisoft, EA, GOG, Xbox-PC), PlayStation und
+Xbox an einem Ort: Statistiken, PC-Backlog, Wunschliste mit Angeboten, Wrapped,
+"Wir zwei" und eine Handy-App, die auch bei ausgeschaltetem PC funktioniert.
+
+
+INSTALLATION (einmalig, ca. 15 Minuten)
+---------------------------------------
+1) PYTHON
+   https://www.python.org/downloads/ > Installer starten > GANZ UNTEN
+   "Add python.exe to PATH" anhaken > "Install Now".
+
+2) ORDNER
+   Den Ordner "GamingRecap" aus der ZIP-Datei an einen festen Ort kopieren,
+   z. B. C:\Users\<Name>\GamingRecap  (nicht im Download-Ordner lassen).
+
+3) STARTEN
+   Doppelklick auf "Start.bat". Gaming Recap läuft unsichtbar im Hintergrund,
+   der Browser öffnet http://localhost:8765 und der Einrichtungs-Assistent
+   führt durch alles Weitere:
+     - Name
+     - Keys-Datei (falls du eine bekommen hast, mit dem Passwort dazu)
+     - Playnite (https://playnite.link) + Gaming-Recap-Erweiterung
+     - Steam (API-Key + Profil)
+     - PlayStation (optional)
+     - Handy-App (GitHub-Repository + Token + eigenes Passwort)
+     - Push-Nachrichten (App "ntfy")
+     - Autostart mit Windows (empfohlen)
+   Den Assistenten kannst du jederzeit wieder öffnen:
+   Zahnrad > System > "Einrichtung".
+
+   Windows fragt beim ersten Start evtl. nach der Firewall: "Zulassen" für
+   private Netzwerke ist in Ordnung (nur nötig, wenn du die App im WLAN
+   vom Handy aus öffnen willst).
+
+
+HANDY (iPhone)
+--------------
+   Die Handy-Adresse steht in den Einstellungen unter "Handy-App".
+   In SAFARI öffnen > Teilen-Symbol > "Zum Home-Bildschirm".
+   Mit deinem Handy-Passwort entsperren. Push-Nachrichten kommen über die
+   App "ntfy" (Thema aus den Einstellungen abonnieren).
+
+
+UPDATES
+-------
+   Gaming Recap prüft einmal am Tag, ob es eine neue Fassung gibt, und
+   installiert sie automatisch (nie während du spielst). Vorher wird eine
+   Sicherung angelegt; startet die neue Fassung nicht, wird automatisch die
+   alte wiederhergestellt. Manuell: Zahnrad > Updates > "Jetzt prüfen".
+
+
+WIR ZWEI
+--------
+   Zahnrad > "Profil & Wir zwei": Beide tragen denselben Partner-Code und
+   die Handy-Adresse des anderen ein. Danach unter Freunde > "Wir zwei".
+   Geteilt werden nur Spieleliste und Spielzeiten – verschlüsselt.
+
+
+WENN ETWAS NICHT GEHT
+---------------------
+   - Zahnrad > System > "Fehlerbericht" speichert eine Textdatei ohne
+     Passwörter oder Keys – die kannst du weiterschicken.
+   - Zahnrad > System > "Protokoll" zeigt, was im Hintergrund passiert.
+   - "Start mit Fenster.bat" startet mit sichtbarem Fenster (zur Fehlersuche).
+   - Beenden: Zahnrad > System > "Beenden".
+
+   Deine Daten und Einstellungen liegen im Unterordner "daten". Diesen Ordner
+   niemals weitergeben – darin stehen deine Zugangsdaten.
