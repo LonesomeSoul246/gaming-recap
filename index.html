@@ -885,6 +885,22 @@ body::after{content:"";position:fixed;right:-15vw;bottom:-25vh;width:60vw;height
 .season .stxt{position:relative;z-index:1;min-width:0}.season small{font-size:11px;font-weight:900;letter-spacing:2px;text-transform:uppercase}
 .season b{display:block;font-size:clamp(22px,4vw,34px);font-weight:900;letter-spacing:-1px;line-height:1.1;margin:2px 0}.season span{font-size:13.5px;opacity:.85}
 .season em{position:relative;z-index:1;margin-left:auto;font-style:normal;width:46px;height:46px;flex:none;border-radius:50%;background:#0A1C2A;color:#fff;display:grid;place-items:center;font-size:16px;animation:pulse2 2s infinite}
+.wz{padding:4px 2px}.wzdots{display:flex;gap:6px;margin:4px 40px 18px 0}.wzdots i{flex:1;height:5px;border-radius:9px;background:#ffffff18}.wzdots i.done{background:var(--acc)}.wzdots i.on{background:linear-gradient(90deg,var(--acc),var(--violet))}
+.wzc h2{margin:0 0 10px;font-size:26px;letter-spacing:-.5px}.wzc p{line-height:1.5}.wzhero{font-size:54px;margin:6px 0 4px}
+.wzn{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:22px;flex-wrap:wrap}
+.wzok{padding:6px 0;font-weight:700;color:var(--muted)}.wzok.y{color:var(--lime)}
+.qbtn{all:unset;cursor:pointer;display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#ffffff14;color:var(--muted);font-size:11px;font-weight:900;margin-left:6px;vertical-align:middle;letter-spacing:0;text-transform:none;transition:background .2s,color .2s}
+.qbtn:hover{background:var(--acc);color:var(--acc-ink)}
+.hero .qhero{position:absolute;top:22px;right:22px;z-index:3}.hero .qhero .qbtn{background:#0A1C2A33;color:#0A1C2A}
+.duohero .duonames{display:flex;align-items:baseline;gap:12px;margin:2px 0 14px;font-size:clamp(26px,4vw,40px);font-weight:900;letter-spacing:-1px}
+.duonames em{font-style:normal;font-size:14px;color:var(--muted);font-weight:700}.duonames .me{color:var(--acc)}.duonames .pa{color:var(--violet)}
+.duel{margin:10px 0 14px}.duel small{display:block;font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.dl{display:grid;grid-template-columns:90px 1fr;gap:10px;align-items:center;margin:4px 0}.dl b{font-size:15px;text-align:right}
+.dbar{height:12px;border-radius:99px;background:#ffffff10;overflow:hidden;display:block}.dbar i{display:block;height:100%;border-radius:99px;transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+.dbar.me i{background:var(--acc)}.dbar.pa i{background:var(--violet)}
+.duorow{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:center;padding:8px 0;border-top:1px solid #ffffff0a;cursor:pointer}.duorow .poster{border-radius:8px}
+.duorow .dm b{display:block;font-size:14px;margin-bottom:4px}.duorow .dl{grid-template-columns:1fr 70px;margin:3px 0}.duorow .dl em{font-style:normal;font-size:12px;color:var(--muted)}
+.lg{display:inline-block;width:10px;height:10px;border-radius:3px;margin:0 4px 0 10px;vertical-align:middle}.lg.me{background:var(--acc)}.lg.pa{background:var(--violet)}
 </style>
 </head>
 <body>
@@ -1049,6 +1065,7 @@ async function load(quiet){
   if (quiet && $("dialog[open]")) { setTimeout(()=>load(true), 3000); return; }
   S.data = d; S.yearPM = undefined; S.pcache = {};
   applyEstimate(); buildGroups(); header(); quiet ? quietRoute() : route(); setTimeout(saveYearArchive, 1500);
+  if (!quiet && d.can_edit && !d.configured && !store.get("gr_wizard", 0) && !WZ.shown){ WZ.shown = true; setTimeout(()=>openWizard(0), 600); }
   if (S.data.syncing) setTimeout(()=>load(true), 3000);
 }
 
@@ -1080,7 +1097,7 @@ async function loadCloud(force){
   S.data = {last_sync:snap.last_sync, sources:snap.sources||{}, games:snap.games||[], meta, hltb:snap.hltb||{},
     sessions:snap.sessions||[], csessions:snap.csessions||[], status_log:snap.status_log||[], goals, steam:snap.steam||{}, prefs:snap.prefs||{},
     year_overrides: kvs.year_overrides, wrapped_archive: kvs.wrapped, notpc: kvs.notpc, snotes: kvs.snotes, covers: kvs.covers, paid: kvs.paid, notify: kvs.notify, critic: kvs.critic, push_ready: !!snap.push_ready, wl_deals: snap.wl_deals || {}, metacritic: snap.metacritic || {},
-    values: snap.values || {}, values_at: snap.values_at, xcovers: snap.xcovers || {},
+    values: snap.values || {}, values_at: snap.values_at, xcovers: snap.xcovers || {}, partner: snap.partner || null, me_name: snap.me_name || "",
     tracking_since: snap.tracking_since, health: snap.health || [],
     trophies: snap.trophies || [], free_games: snap.free_games || [],
     playing:[], can_edit:false, period: p ? p.info : {period:"all"}, period_minutes: p ? p.pm : null};
@@ -1520,7 +1537,7 @@ function heroCard(c){
   const mosa = played.slice(0,16).map(g=>`<div class="poster">${img(g.covers,g.title)}</div>`);
   const fun = FUN[Math.floor(Date.now()/864e5) % FUN.length];
   return `<section class="card hero x8 ohero reveal"><div class="hmosaic">${[...mosa,...mosa].join("")}</div>
-    <svg class="wave" viewBox="0 0 360 70" aria-hidden="true"><path d="M0 45 C 40 10, 80 70, 120 40 S 200 10, 240 40 S 320 70, 360 35" fill="none" stroke="#0A1C2A" stroke-width="7" stroke-linecap="round"/></svg><div class="eyebrow">${periodLabel()}</div>
+    <svg class="wave" viewBox="0 0 360 70" aria-hidden="true"><path d="M0 45 C 40 10, 80 70, 120 40 S 200 10, 240 40 S 320 70, 360 35" fill="none" stroke="#0A1C2A" stroke-width="7" stroke-linecap="round"/></svg><div class="eyebrow">${periodLabel()}</div><span class="qhero">${qi("hero")}</span>
     <div class="num" data-count="${Math.round(total/60)}" data-pre="${S.est?"~":""}">0</div><div class="unit">Stunden gezockt.</div>
     <div class="sub">Das sind <b>${num(total/1440,1)} Tage</b> am Stück – oder <b>${num(total/fun[0], total/fun[0]<10?1:0)}</b> ${fun[1]}.</div>
     <div class="hstats"><div class="hstat"><b data-count="${played.length}">0</b><span>Spiele</span></div>
@@ -1575,7 +1592,7 @@ function startSpot(){
 }
 function backlogMini(){
   const bl = backlogStats(); if (!bl.total) return "";
-  return `<section class="card x4 reveal"><h3>Dein PC-Backlog</h3><div class="bhero">
+  return `<section class="card x4 reveal"><h3>Dein PC-Backlog ${qi("backlog")}</h3><div class="bhero">
       <div class="ring" style="--p:${bl.pct}"><div><div><b>${num(bl.pct)}%</b><br><span>geschafft</span></div></div></div>
       <div><div class="bhero nums" style="margin-bottom:12px"><div><b>${bl.open}</b><span>offen</span></div><div><b>${bl.done}</b><span>durch</span></div>${bl.rest?`<div><b>${num(bl.rest/60)}</b><span>Std Story</span></div>`:""}</div>
       <div class="inl" style="flex-wrap:wrap;gap:8px"><button class="btn limeb" onclick="openPicker()">🎲 Würfeln</button>
@@ -1672,7 +1689,7 @@ function valueCard(){
   const top = [...V.list].sort((a,b)=>b.r-a.r).slice(0,5);
   const bar = (l, v, col, txt) => `<div class="vbar"><span>${l}</span><span class="trk"><div style="width:0;background:${col}" data-w="${Math.max(1,v/V.r*100)}%"></div></span><em>${txt}</em></div>`;
   const eur = c => `<i data-count="${Math.round(c/100)}">0</i> €`;
-  return `<section class="card s12 x8 reveal"><h3>💰 Bibliothekswert <span class="h3s">${V.list.length} PC-Spiele</span></h3>
+  return `<section class="card s12 x8 reveal"><h3>💰 Bibliothekswert <span class="h3s">${V.list.length} PC-Spiele</span> ${qi("value")}</h3>
     <div class="valtop">
       <div style="--c:#33C3FF"><small>Normalpreis</small><b>${eur(V.r)}</b><span>wenn du alles zum vollen Preis kaufst</span></div>
       <div style="--c:#14F0C8"><small>Heute</small><b>${eur(V.c)}</b><span>${V.r>V.c?`${num((1-V.c/V.r)*100)} % unter Normalpreis`:"gerade keine Rabatte"}</span></div>
@@ -1739,7 +1756,7 @@ function rhythmCard(){
   let mx = 0, bw = 0, bh = 0; M.forEach((r,w)=>r.forEach((v,h)=>{ if (v > mx){ mx = v; bw = w; bh = h; } }));
   const st = sessionStats(from), WDN = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
   const wdT = M.map(r=>r.reduce((a,b)=>a+b,0)), bd = wdT.indexOf(Math.max(...wdT));
-  return `<section class="card s6 x4 reveal"><h3>🕒 Wann du spielst <span class="h3s">${esc(scopeLabel())}</span></h3>
+  return `<section class="card s6 x4 reveal"><h3>🕒 Wann du spielst <span class="h3s">${esc(scopeLabel())}</span> ${qi("rhythm")}</h3>
     <div class="eyebrow" style="opacity:.8">Lieblingszeit</div><div class="mid" style="margin:4px 0 2px">${WD[bw]}, ${bh} Uhr</div>
     <div class="rhy">${M.map((r,w)=>`<span>${WD[w]}</span>${r.map((v,h)=>`<i style="--d:${(w*24+h)*4}ms;${v?`background:color-mix(in srgb,var(--cyan) ${Math.round(18+v/mx*82)}%,#181B21)`:""}" title="${WDN[w]} ${h} Uhr: ${hrs(v)}"></i>`).join("")}`).join("")}</div>
     <div class="rhyh"><span></span>${Array.from({length:24},(_,h)=>`<span>${h%6===0?h:""}</span>`).join("")}</div>
@@ -1754,14 +1771,14 @@ function renderFacts(head){
   h += `<div class="bento">`;
   const devs = ["PC","PlayStation","Xbox","Nintendo"].filter(k=>devT[k]);
   const pcShare = (devT.PC||0)/total*100;
-  h += `<section class="card lime s5 x4 reveal"><h3>PC vs. Konsole</h3>
+  h += `<section class="card lime s5 x4 reveal"><h3>PC vs. Konsole ${qi("pcvs")}</h3>
     <div class="big"><span data-count="${Math.round(pcShare)}">0</span>%</div>
     <div style="font-weight:800;font-size:18px;margin-bottom:8px">${pcShare>=50?"PC-Gamer durch und durch.":"Die Couch gewinnt."}</div>
     ${devs.map(k=>`<div class="devrow"><span class="lbl">${k}</span><span class="trk"><div style="width:0" data-w="${devT[k]/total*100}%"></div></span><span class="v">${hrs(devT[k])}</span></div>`).join("")}</section>`;
   const gen = {};
   for (const g of played) for (const x of g.genres) gen[x] = (gen[x]||0) + (g.devs.PC||0);
   const gl = Object.entries(gen).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,6);
-  if (gl.length) h += `<section class="card violetc s7 x4 reveal"><h3>Deine Gamer-DNA</h3>
+  if (gl.length) h += `<section class="card violetc s7 x4 reveal"><h3>Deine Gamer-DNA ${qi("dna")}</h3>
       <div class="eyebrow" style="opacity:.8">Lieblingsgenre</div><div class="mid" style="margin:4px 0 14px">${esc(gl[0][0])}</div>
       ${gl.slice(1).map(([n,v])=>`<div class="pbar"><span class="nm">${esc(n)}</span><span class="trk"><div style="width:0;background:var(--violet)" data-w="${v/gl[0][1]*100}%"></div></span><span class="v">${hrs(v)}</span></div>`).join("")}
       <div class="minis">${played.filter(g=>g.genres.includes(gl[0][0])).slice(0,5).map(g=>`<div class="poster">${img(g.covers,g.title)}</div>`).join("")}</div>
@@ -1771,7 +1788,7 @@ function renderFacts(head){
   const dl = Object.entries(dec).sort((a,b)=>a[0]-b[0]);
   if (dl.length){
     const mx = Math.max(...dl.map(x=>x[1])), best = dl.find(x=>x[1]===mx)[0];
-    h += `<section class="card cyanc s6 x4 reveal"><h3>Deine Ära</h3><div class="mid">${String(best).slice(2)}er</div>
+    h += `<section class="card cyanc s6 x4 reveal"><h3>Deine Ära ${qi("era")}</h3><div class="mid">${String(best).slice(2)}er</div>
       <div style="font-weight:700;margin-top:4px">Am liebsten spielst du Spiele aus den ${best}ern.</div>
       <div class="minis">${played.filter(g=>g.year && Math.floor(g.year/10)*10==best).slice(0,5).map(g=>`<div class="poster">${img(g.covers,g.title)}</div>`).join("")}</div>
       <div class="cols">${dl.map(([k,v])=>`<div class="c"><div style="height:0;background:var(--cyan)" data-h="${Math.max(3,v/mx*100)}%"></div><span>${String(k).slice(2)}er</span></div>`).join("")}</div></section>`;
@@ -2340,7 +2357,7 @@ function renderWish(){
     <div class="tile"><small>Im Angebot</small><b style="color:var(--lime)">${sale.length}</b><span>${atl?`🔥 ${atl} auf Tiefstpreis`:sale.length?`bis zu -${Math.max(...sale.map(w=>w.discount||0))} %`:"gerade keins"}</span></div>
     <div class="tile"><small>Alles zusammen</small><b>${euro(sum("price"))}</b><span>${sum("orig")>sum("price")?`statt ${euro(sum("orig"))}`:"aktueller Preis"}</span></div>
     <div class="tile"><small>Kommt bald</small><b>${soon.length}</b><span>${soon[0]?esc(soon[0].name):"nichts angekündigt"}</span></div></div>`;
-  if (sale.length) h += `<section class="card" style="margin-bottom:14px"><h3>🔥 Im Angebot & Tiefstpreise</h3>${sale.map(row).join("")}</section>`;
+  if (sale.length) h += `<section class="card" style="margin-bottom:14px"><h3>🔥 Im Angebot & Tiefstpreise ${qi("wish")}</h3>${sale.map(row).join("")}</section>`;
   if (soon.length) h += `<button class="banner" onclick="S.lib.view='rel';route()"><span class="bdot"></span><b>${soon.length} Releases angekündigt</b><span>${esc(soon[0].name)}${soon[0].release?" · "+fdate(new Date(soon[0].release*1000)):""}</span><em>→</em></button>`;
   if (rest.length) h += `<section class="card"><h3>Weitere Wünsche</h3>${rest.map(row).join("")}</section>`;
   h += `<p class="help">Preise aus dem deutschen Steam-Store${sx.at?`, Stand ${fdate(new Date(sx.at*1000))}`:""}. ${Object.keys(S.data.wl_deals||{}).length?"Kaufberater: heutiger Steam-Preis gegen den tiefsten Steam-Preis aller Zeiten (über IsThereAnyDeal, täglich). Erreicht ein Wunsch seinen Tiefstpreis, bekommst du einen Hinweis.":"Für den Kaufberater (Steam-Tiefstpreise) den IsThereAnyDeal-Key in den Einstellungen eintragen."}</p>`;
@@ -2622,10 +2639,90 @@ function friendList(){
     tops: [...st].sort((a,b)=>b.minutes-a.minutes).slice(0,6).map(g=>[g.title, g.minutes, g.appid])};
   return [...fr.map((f,i)=>({...f, idx:i})), me].sort((a,b)=>b.minutes-a.minutes);
 }
+/* ================= Wir zwei ================= */
+S.fr = S.fr || "steam";
+function friendSeg(){
+  const p = (S.data||{}).partner;
+  return `<div class="seg">${[["steam","Steam-Freunde"],["duo", p ? `💞 ${esc(p.name||"Wir zwei")}` : "💞 Wir zwei"]].map(([k,l])=>`<button class="${S.fr===k?"on":""}" onclick="S.fr='${k}';route()">${l}</button>`).join("")}</div>`;
+}
+function myDuoRows(){
+  // eigene Spiele in derselben Form wie die Partner-Daten
+  const out = new Map();
+  const ys = S.yearPM || {};
+  for (const g of S.allGroups){ if (g.hide) continue;
+    const y = g.recs.reduce((s,r)=>s+(ys[r.id]||0),0);
+    out.set(g.key, {k:g.key, t:g.title, m:g.minutes, y, own: g.owned || !g.pc, c:(g.covers||[]).find(u=>!u.startsWith("/api/img")) || g.covers[0], mp: g.features.some(x=>/multi|co-?op|koop/i.test(x)), g}); }
+  return out;
+}
+function renderDuo(head){
+  const p = S.data.partner, meName = S.data.me_name || "Du";
+  if (!p){
+    setView(head + `<div class="card" style="max-width:760px"><h3>💞 Wir zwei ${qi("duo")}</h3>
+      <div class="mid" style="margin:4px 0 10px">Verbinde dich mit jemandem</div>
+      <p>Wenn zwei Leute Gaming Recap nutzen, könnt ihr eure Apps verbinden: Wer spielt mehr, welche Spiele habt ihr beide, was könntet ihr zusammen spielen.</p>
+      <ol class="help"><li>Beide richten die Handy-App ein (GitHub).</li><li>Einer erzeugt unter <b>Einstellungen › Profil & Wir zwei</b> einen Partner-Code und schickt ihn dem anderen.</li>
+        <li>Jeder trägt dort die Handy-App-Adresse des anderen und denselben Code ein.</li></ol>
+      ${S.data.can_edit?`<button class="btn limeb" onclick="openSettings()">Einstellungen öffnen</button>`:`<p class="help">Das Einrichten geht am PC.</p>`}</div>`);
+    return;
+  }
+  if (!S.yearPM && !S._duoYear){ S._duoYear = 1; ensurePeriod("year").then(()=>{ if (S.fr === "duo" && cur() === "freunde") quietRoute(); }).catch(()=>{}); }
+  const mine = myDuoRows(), theirs = new Map((p.games||[]).map(r=>[r[0], {k:r[0], t:r[1], m:r[2], y:r[3], mo:r[4], own:!!r[5], c:r[6], mp:!!r[7], d:r[8]||[]}]));
+  const yr = new Date().getFullYear();
+  const myTot = [...mine.values()].reduce((s,x)=>s+x.m,0), myYear = [...mine.values()].reduce((s,x)=>s+x.y,0);
+  const pYear = p.year_n === yr ? p.year : 0;
+  const both = [...mine.values()].filter(x=>x.m>0 && theirs.has(x.k) && theirs.get(x.k).m>0).map(x=>[x, theirs.get(x.k)]).sort((a,b)=>(b[0].m+b[1].m)-(a[0].m+a[1].m));
+  const coop = [...mine.values()].filter(x=>x.own && theirs.has(x.k) && theirs.get(x.k).own && (x.mp || theirs.get(x.k).mp))
+    .map(x=>[x, theirs.get(x.k)]).sort((a,b)=>((b[0].g.critic||70) - (a[0].g.critic||70)) || ((a[0].m+a[1].m)-(b[0].m+b[1].m))).slice(0,8);
+  const tips = [...theirs.values()].filter(x=>x.m>=600 && !(mine.get(x.k)||{}).m).sort((a,b)=>b.m-a.m).slice(0,8);
+  const duel = (label, a, b) => { const mx = Math.max(a, b, 1);
+    return `<div class="duel"><small>${label}</small><div class="dl"><b>${hrs(a)}</b><span class="dbar me"><i style="width:0" data-w="${a/mx*100}%"></i></span></div>
+      <div class="dl"><b>${hrs(b)}</b><span class="dbar pa"><i style="width:0" data-w="${b/mx*100}%"></i></span></div></div>`; };
+  const cov = c => c ? `<img loading="lazy" src="${esc(c)}" alt="" onerror="this.remove()">` : "";
+  const lead = myTot >= p.total ? meName : p.name;
+  let h = head + `<div class="bento">
+    <section class="card s12 x8 duohero reveal"><h3>💞 Wir zwei ${qi("duo")}</h3>
+      <div class="duonames"><span class="me">${esc(meName)}</span><em>vs.</em><span class="pa">${esc(p.name)}</span></div>
+      ${duel("Gesamt", myTot, p.total)}${duel(String(yr), myYear, pYear)}
+      <p class="help" style="margin-bottom:0">${esc(lead)} liegt insgesamt vorn · ${both.length} gemeinsam gespielte Spiele · Stand ${p.at?new Date(p.at).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"}):"–"}</p></section>
+    <section class="card s12 x4 reveal"><h3>🎯 Gemeinsamkeiten</h3>
+      <div class="stat3" style="grid-template-columns:1fr 1fr"><div class="tile"><small>Beide gespielt</small><b>${both.length}</b><span>Spiele</span></div>
+        <div class="tile"><small>Beide besitzen</small><b>${[...mine.values()].filter(x=>x.own && (theirs.get(x.k)||{}).own).length}</b><span>Spiele</span></div></div>
+      ${both[0]?`<p style="margin:12px 0 0">Euer gemeinsames Lieblingsspiel: <b>${esc(both[0][0].t)}</b> – zusammen ${hrs(both[0][0].m+both[0][1].m)}.</p>`:""}</section>`;
+  if (both.length) h += `<section class="card reveal"><h3>🤝 Beide gespielt</h3>${both.slice(0,12).map(([a,b])=>{ const mx = Math.max(a.m,b.m,1);
+      return `<div class="duorow" onclick="openGame('${esc(a.k)}')"><div class="poster">${img(a.g.covers,a.t)}</div><div class="dm"><b>${esc(a.t)}</b>
+        <div class="dl"><span class="dbar me"><i style="width:${a.m/mx*100}%"></i></span><em>${hrs(a.m)}</em></div><div class="dl"><span class="dbar pa"><i style="width:${b.m/mx*100}%"></i></span><em>${hrs(b.m)}</em></div></div></div>`; }).join("")}
+      <p class="help"><span class="lg me"></span>${esc(meName)} <span class="lg pa"></span>${esc(p.name)}</p></section>`;
+  if (coop.length) h += `<section class="card s12 x6 reveal"><h3>🎮 Zusammen spielen? ${qi("coop")}</h3><p class="help" style="margin-top:0">Ihr habt beide – und es hat Mehrspieler oder Koop:</p>
+      ${coop.map(([a,b])=>gRow(a.g, a.g.critic?mcBadge(a.g.critic):"", `${esc(meName)} ${hrs(a.m)} · ${esc(p.name)} ${hrs(b.m)}`)).join("")}</section>`;
+  if (tips.length) h += `<section class="card s12 x6 reveal"><h3>💡 Tipps von ${esc(p.name)}</h3><p class="help" style="margin-top:0">Spielt ${esc(p.name)} viel – du noch gar nicht:</p>
+      ${tips.map(x=>`<div class="xrow" style="cursor:default"><div class="poster">${x.c?cov(x.c):ph(x.t)}</div><div><b>${esc(x.t)}</b><span>${esc(p.name)}: ${hrs(x.m)}${(mine.get(x.k)||{}).own?" · hast du schon":""}</span></div><em></em></div>`).join("")}</section>`;
+  setView(h + `</div>`);
+}
+
+/* ================= Erklärungen („?“) ================= */
+const EXPLAIN = {
+  hero: ["Stunden gezockt", "Alle Spielzeiten zusammen: PC (Steam und alle Launcher über Playnite) und Konsolen (PlayStation, Xbox). Bei „2026“, „Dieser Monat“ und „Letzte 7 Tage“ rechnet Gaming Recap die Differenz zu den täglich gespeicherten Ständen. Ein ~ heißt: Für den Anfang des Zeitraums gab es noch keine Aufzeichnung, der Wert ist teilweise geschätzt."],
+  value: ["Bibliothekswert", "Was deine PC-Spiele heute kosten würden – zum Normalpreis, zum aktuellen Preis und zum tiefsten Preis aller Zeiten (über IsThereAnyDeal). Was du wirklich bezahlt hast, weiß kein Store – das kannst du im Spiel-Detail eintragen. Konsolenspiele werden mit dem PC-Preis desselben Spiels geschätzt."],
+  rhythm: ["Wann du spielst", "Jedes Kästchen ist eine Stunde an einem Wochentag. Je heller, desto mehr hast du zu dieser Zeit gespielt. Grundlage sind die Sessions, die Gaming Recap am PC live misst (und Konsolen-Sessions mit bekannter Uhrzeit)."],
+  dna: ["Gamer-DNA", "Deine Spielzeit nach Genre – nur PC-Spiele, weil nur Playnite Genres liefert."],
+  era: ["Deine Ära", "Aus welchem Jahrzehnt die Spiele stammen, die du spielst – gewichtet nach deiner Spielzeit."],
+  pcvs: ["PC vs. Konsole", "Anteil deiner Spielzeit am PC im Vergleich zu PlayStation und Xbox im gewählten Zeitraum."],
+  backlog: ["PC-Backlog", "Alle PC-Spiele, die du besitzt (Stores wählbar in den Einstellungen). „Geschafft“ = durchgespielt oder komplett. Der Status wird automatisch erkannt (z. B. nie gestartet, angefangen) – du kannst ihn im Spiel-Detail ändern. Story-Dauern kommen von IGDB."],
+  duo: ["Wir zwei", "Zwei Gaming-Recap-Installationen teilen verschlüsselt ihre Spielliste und Spielzeiten (keine Keys, keine Notizen). Aktualisiert sich etwa alle 30 Minuten, wenn beide PCs laufen."],
+  coop: ["Zusammen spielen", "Spiele, die ihr beide besitzt und die laut Playnite Mehrspieler oder Koop haben – sortiert nach Wertung."],
+  wish: ["Kaufberater", "Vergleicht den heutigen Preis mit dem tiefsten Preis aller Zeiten (IsThereAnyDeal). 🔥 = so günstig wie nie, 👍 = höchstens 15 % über dem Tiefstpreis, ⏳ = war schon deutlich günstiger."],
+  tier: ["Tier-Liste", "Ordne deine Spiele von S (Meisterwerk) bis F ein. Erst ab 5 Stunden Spielzeit möglich, damit kein Spiel nach 10 Minuten bewertet wird."],
+};
+const qi = k => `<button class="qbtn" title="Was bedeutet das?" onclick="event.stopPropagation();explain('${k}')">?</button>`;
+window.explain = k => { const e = EXPLAIN[k]; if (!e) return;
+  $("#infoBody").innerHTML = `<button class="ibtn dclose" onclick="$('#info').close()">✕</button><div class="eyebrow">Erklärung</div><div class="h1" style="font-size:30px;margin:6px 0 10px">${esc(e[0])}</div><p style="line-height:1.6">${esc(e[1])}</p>`;
+  $("#info").showModal(); };
+
 function renderFriends(){
   const list = friendList(), fr = (S.data.steam||{}).friends || [];
   const frc = [...new Set(((S.data.steam||{}).friends||[]).flatMap(f=>(f.tops||[]).slice(0,2).map(t=>t[2])).filter(Boolean))].slice(0,18);
-  let h = avatarHead(friendList().filter(f=>!f.me), `${((S.data.steam||{}).friends||[]).length} mit öffentlichem Profil`);
+  let h = avatarHead(friendList().filter(f=>!f.me), `${((S.data.steam||{}).friends||[]).length} mit öffentlichem Profil`) + friendSeg();
+  if (S.fr === "duo") return renderDuo(h);
   if (!fr.length){ setView(h + `<div class="card hero" style="min-height:240px"><div class="mid">Noch keine Freunde geladen.</div>
     <div class="sub">Dafür brauchst du den Steam-API-Key und den Haken „Steam-Erfolge, Wunschliste, Preise und Freunde laden“ in den Einstellungen. Freunde mit privatem Profil bleiben unsichtbar.</div></div>`); return; }
   const rank = list.findIndex(f=>f.me)+1, me = list[rank-1], others = list.filter(f=>!f.me);
@@ -3438,6 +3535,86 @@ function cloudMenu(){
   if (!$("#settings").open) $("#settings").showModal();
 }
 
+/* ================= Einrichtungs-Assistent (erster Start am PC) ================= */
+const WZ = {step:0, c:null};
+const WZ_STEPS = ["Willkommen","Keys","Playnite","Steam","PlayStation","Handy-App","Push","Fertig"];
+window.openWizard = async step => {
+  WZ.step = step || 0;
+  try { WZ.c = await (await fetch("/api/config", {cache:"no-store"})).json(); } catch(e){ return; }
+  renderWizard();
+  if (!$("#settings").open) $("#settings").showModal();
+};
+async function wzSave(body, next = true){
+  try { if (body && Object.keys(body).length) WZ.c = await post("/api/config", body); }
+  catch(e){ alert(e.message); return; }
+  if (next){ WZ.step++; renderWizard(); }
+}
+function renderWizard(){
+  const c = WZ.c, st = WZ.step, set = x => x ? "•••• gespeichert" : "";
+  const dots = WZ_STEPS.map((n,i)=>`<i class="${i<st?"done":i===st?"on":""}" title="${n}"></i>`).join("");
+  const nav = (nextJs, label = "Weiter", skip = true) => `<div class="wzn">${st?`<button class="btn ghost" type="button" onclick="WZ.step--;renderWizard()">Zurück</button>`:"<span></span>"}
+    <div style="display:flex;gap:8px">${skip?`<button class="btn ghost" type="button" onclick="WZ.step++;renderWizard()">Überspringen</button>`:""}<button class="btn limeb" type="button" onclick="${nextJs}">${label}</button></div></div>`;
+  const ok = (b, t) => `<div class="wzok ${b?"y":""}">${b?"✓":"○"} ${t}</div>`;
+  let h = "";
+  if (st === 0) h = `<div class="wzhero">🎮</div><h2>Willkommen bei Gaming Recap</h2>
+    <p>Gaming Recap sammelt deine Spielzeiten von Steam, PlayStation, Xbox und allen PC-Launchern, zeigt Statistiken, deinen Backlog und am Jahresende dein persönliches Wrapped – am PC und auf dem Handy.</p>
+    <p class="help">Die Einrichtung dauert etwa 15 Minuten. Alles bleibt auf diesem PC; das Handy bekommt nur eine verschlüsselte Kopie.</p>
+    <label>Wie heißt du?</label><input type="text" id="wz_name" value="${esc(c.user_name||"")}" placeholder="Dein Vorname" maxlength="40">
+    ${nav(`wzSave({user_name:$('#wz_name').value})`, "Los geht's", false)}`;
+  if (st === 1) h = `<h2>🔑 Keys-Datei</h2>
+    <p>Hast du eine <b>Keys-Datei</b> bekommen (<code>gaming-recap-keys.grkeys</code>)? Sie enthält die Zugänge für Spieldauern, Preise, Cover und Wertungen – dann musst du die nicht selbst beantragen.</p>
+    ${ok(c.igdb_client_secret_set, "Spieldauern (IGDB)")}${ok(c.itad_key_set, "Preise (IsThereAnyDeal)")}${ok(c.sgdb_key_set, "Cover (SteamGridDB)")}${ok(c.rawg_key_set, "Metacritic (RAWG)")}
+    <button class="btn" type="button" style="margin-top:12px" onclick="importKeys(async()=>{WZ.c=await (await fetch('/api/config')).json();renderWizard()})">📥 Keys-Datei auswählen</button>
+    <p class="help">Das Passwort dafür bekommst du getrennt von der Datei.</p>${nav("WZ.step++;renderWizard()")}`;
+  if (st === 2) h = `<h2>🖥️ Playnite</h2>
+    <p>Playnite sammelt alle PC-Launcher (Epic, Ubisoft, EA, GOG, Xbox) an einem Ort – Gaming Recap liest von dort.</p>
+    ${ok(c.playnite_found, c.playnite_found ? "Playnite gefunden" : "Playnite nicht gefunden")}${ok(c.extension_installed, "Gaming-Recap-Erweiterung in Playnite")}
+    <ol class="help"><li>${c.playnite_found?"Playnite ist da.":`Playnite von <a href="https://playnite.link" target="_blank" rel="noopener">playnite.link</a> installieren und einmal starten.`}</li>
+      <li>In Playnite unter <i>Bibliothek › Bibliotheken konfigurieren</i> Steam, Epic, Ubisoft, EA, GOG und Xbox verbinden.</li>
+      <li>Hier „Erweiterung installieren“ klicken, dann Playnite neu starten.</li></ol>
+    <div class="inl" style="gap:8px"><button class="btn" type="button" ${c.playnite_found?"":"disabled"} onclick="post('/api/playnite/install',{}).then(()=>{toast('Installiert – Playnite neu starten');openWizard(2)}).catch(e=>alert(e.message))">${c.extension_installed?"Erweiterung neu installieren":"Erweiterung installieren"}</button>
+      <button class="btn ghost" type="button" onclick="openWizard(2)">↻ Erneut prüfen</button></div>${nav("WZ.step++;renderWizard()")}`;
+  if (st === 3) h = `<h2>🎮 Steam</h2>
+    <ol class="help"><li>Auf <a href="https://steamcommunity.com/dev/apikey" target="_blank" rel="noopener">steamcommunity.com/dev/apikey</a> einen Key erstellen (Domain: <code>localhost</code>).</li>
+      <li>In Steam: Profil › Privatsphäre › „Spieldetails“ auf <b>Öffentlich</b>.</li></ol>
+    <label>Steam Web-API-Key</label><input type="password" id="wz_sk" placeholder="${set(c.steam_api_key_set)}" autocomplete="off">
+    <label>Steam-Profil (Link oder Name)</label><input type="text" id="wz_sid" value="${esc(c.steam_id||"")}" placeholder="https://steamcommunity.com/id/deinname">
+    ${nav(`wzSave({steam_api_key:$('#wz_sk').value, steam_id:$('#wz_sid').value})`, "Speichern & weiter")}`;
+  if (st === 4) h = `<h2>🎮 PlayStation <span class="help">(optional)</span></h2>
+    <ol class="help"><li>Auf <a href="https://www.playstation.com" target="_blank" rel="noopener">playstation.com</a> anmelden.</li>
+      <li>Im selben Browser <a href="https://ca.account.sony.com/api/v1/ssocookie" target="_blank" rel="noopener">diesen Link</a> öffnen.</li>
+      <li>Den Wert hinter <code>"npsso"</code> hier einfügen. Er hält etwa 2 Monate – Gaming Recap erinnert dich rechtzeitig.</li></ol>
+    <label>NPSSO-Code</label><input type="password" id="wz_ps" placeholder="${set(c.psn_npsso_set)}" autocomplete="off">
+    ${nav(`wzSave({psn_npsso:$('#wz_ps').value})`, "Speichern & weiter")}`;
+  if (st === 5) h = `<h2>📱 Handy-App</h2>
+    <p>Damit du alles auch unterwegs siehst – auch wenn der PC aus ist. Die Daten liegen verschlüsselt in einem GitHub-Repository.</p>
+    <ol class="help"><li>Repository und Zugangs-Token bekommst du von der Person, die dir Gaming Recap gegeben hat – oder du legst sie selbst an (Anleitung in den Einstellungen).</li>
+      <li>Wähle ein eigenes Passwort (mind. 10 Zeichen) – damit entsperrst du später die Handy-App.</li></ol>
+    <label>Repository (z. B. name/gaming-recap-xyz)</label><input type="text" id="wz_repo" value="${esc(c.gh_repo||"")}">
+    <label>GitHub-Token</label><input type="password" id="wz_tok" placeholder="${set(c.gh_token_set)}" autocomplete="off">
+    <label>Dein Passwort für die Handy-App</label><input type="password" id="wz_pw" placeholder="${set(c.cloud_pass_set)}" autocomplete="new-password">
+    ${c.cloud && c.cloud.url ? `<p class="help">Handy-Adresse: <code>${esc(c.cloud.url)}</code> – auf dem iPhone in Safari öffnen, dann <b>Teilen › Zum Home-Bildschirm</b>.</p>`:""}
+    ${nav(`wzSave({gh_repo:$('#wz_repo').value, gh_token:$('#wz_tok').value, cloud_pass:$('#wz_pw').value, cloud_enabled: !!$('#wz_repo').value})`, "Speichern & weiter")}`;
+  if (st === 6) h = `<h2>🔔 Push aufs Handy</h2>
+    <ol class="help"><li>App <b>ntfy</b> installieren: <a href="https://apps.apple.com/app/ntfy/id1625396347" target="_blank" rel="noopener">iPhone</a> · <a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android</a></li>
+      <li>Hier „Erzeugen“ klicken, in ntfy auf „+“ tippen und genau dieses Thema abonnieren.</li><li>„Test senden“ – kommt die Nachricht an?</li></ol>
+    <div class="inl"><input type="text" id="wz_topic" value="${esc(c.push_topic||"")}" style="flex:1">
+      <button class="btn ghost small" type="button" onclick="$('#wz_topic').value='gr-'+crypto.getRandomValues(new Uint32Array(3)).join('').slice(0,22)">Erzeugen</button>
+      <button class="btn ghost small" type="button" onclick="post('/api/push/test',{topic:$('#wz_topic').value}).then(()=>toast('Test gesendet')).catch(e=>alert(e.message))">Test senden</button></div>
+    ${nav(`wzSave({push_topic:$('#wz_topic').value})`, "Speichern & weiter")}`;
+  if (st === 7) h = `<div class="wzhero">🎉</div><h2>Fertig${c.user_name?", "+esc(c.user_name):""}!</h2>
+    <p>Gaming Recap lädt jetzt deine Spiele. Beim ersten Mal dauert das ein paar Minuten – Spieldauern, Cover und Preise kommen im Hintergrund nach.</p>
+    ${c.autostart_supported?`<label class="check"><input type="checkbox" id="wz_auto" ${c.autostart?"":"checked"}> Mit Windows starten (empfohlen – sonst fehlen Spiel-Sessions)</label>`:""}
+    <p class="help">Alles lässt sich später unter ⚙️ Einstellungen ändern. Updates kommen automatisch.</p>
+    <div class="wzn"><button class="btn ghost" type="button" onclick="WZ.step--;renderWizard()">Zurück</button>
+      <button class="btn limeb" type="button" onclick="wzFinish()">Zur App</button></div>`;
+  $("#settingsBody").innerHTML = `<button class="ibtn dclose" onclick="$('#settings').close()">✕</button><div class="wz"><div class="wzdots">${dots}</div><div class="wzc">${h}</div></div>`;
+}
+window.wzFinish = async () => {
+  try { if ($("#wz_auto") && $("#wz_auto").checked) await post("/api/autostart", {on:true}); } catch(e){}
+  store.set("gr_wizard", 1); $("#settings").close(); post("/api/sync",{}).catch(()=>{}); setTimeout(load, 800);
+};
+
 /* ================= Benachrichtigungen (PC und Handy) ================= */
 const NCATS = [["lows","🔥","Tiefstpreis auf der Wunschliste","so günstig wie nie bei Steam"],["sales","🏷️","Neues Angebot auf der Wunschliste","sobald Steam einen Rabatt startet"],
   ["release","🗓️","Release-Tag","wenn ein Wunsch heute erscheint"],["free","🎁","Gratis-Spiele","neue Gratis-Aktionen bei Epic"],
@@ -3504,8 +3681,21 @@ window.openSettings = async () => {
       <p class="help" style="margin-top:0">Gaming Recap läuft unsichtbar im Hintergrund – ohne Fenster in der Taskleiste. Hier startest du es neu oder beendest es.</p>
       <div class="inl" style="flex-wrap:wrap;gap:8px"><button class="btn ghost small" type="button" onclick="sysAction('restart')">🔄 Neu starten</button>
         <button class="btn ghost small" type="button" onclick="sysAction('quit')">⏻ Beenden</button>
-        <button class="btn ghost small" type="button" onclick="showLog()">📜 Protokoll</button></div>
+        <button class="btn ghost small" type="button" onclick="showLog()">📜 Protokoll</button>
+        <button class="btn ghost small" type="button" onclick="downloadReport()">📄 Fehlerbericht</button>
+        <button class="btn ghost small" type="button" onclick="$('#settings').close();openWizard(0)">🧭 Einrichtung</button></div>
       <p class="help">Laufende Spiel-Sessions gehen beim Neustart nicht verloren. Nach „Beenden“ startest du es wieder über <b>Start</b> im Ordner GamingRecap (oder es startet beim nächsten Windows-Start von selbst).</p>
+    </fieldset>
+    <fieldset><legend>🔄 Updates</legend><div id="updBox"><p class="help">Lade …</p></div></fieldset>
+    <fieldset><legend>👤 Profil & 💞 Wir zwei</legend>
+      <label>Dein Name (für „Wir zwei“ und das Wrapped)</label><input type="text" id="user_name" value="${esc(c.user_name||"")}" placeholder="Dein Vorname" maxlength="40">
+      <p class="help">„Wir zwei“ verbindet zwei Gaming-Recap-Installationen: gemeinsame Spiele, wer mehr spielt, Koop-Ideen. Beide brauchen die Handy-App (GitHub) und denselben Partner-Code.</p>
+      ${cl.url ? `<p class="help" style="margin:4px 0">Deine Adresse für den Partner: <code>${esc(cl.url)}</code></p>` : ""}
+      <label>Adresse des Partners (seine Handy-App-Adresse)</label><input type="text" id="partner_url" value="${esc(c.partner_url||"")}" placeholder="https://name.github.io/gaming-recap-xyz/">
+      <label>Partner-Code (bei beiden gleich)</label>
+      <div class="inl"><input type="password" id="partner_code" placeholder="${ph2(c.partner_code_set)}" autocomplete="off" style="flex:1">
+        <button class="btn ghost small" type="button" onclick="const v='wz-'+crypto.getRandomValues(new Uint32Array(3)).join('').slice(0,18);$('#partner_code').type='text';$('#partner_code').value=v">Erzeugen</button></div>
+      <p class="help">Einer erzeugt den Code und schickt ihn dem anderen. Die geteilten Daten (Spiele und Spielzeiten) sind damit verschlüsselt.</p>
     </fieldset>
     <fieldset><legend>⬇️ Hintergrund-Downloads</legend><div id="dlBox"><p class="help">Lade Status …</p></div></fieldset>
     <fieldset><legend>🩺 Systemcheck</legend>${healthBlock() || `<p class="help">Wird beim nächsten Abgleich erstellt.</p>`}</fieldset>
@@ -3544,11 +3734,12 @@ window.openSettings = async () => {
       <label>IGDB Client-ID</label><input type="text" id="igdb_client_id" value="${esc(c.igdb_client_id||"")}" autocomplete="off">
       <label>IGDB Client-Secret</label><input type="password" id="igdb_client_secret" placeholder="${ph2(c.igdb_client_secret_set)}" autocomplete="off">
       <div class="help"><ol><li>Auf <a href="https://dev.twitch.tv/console" target="_blank" rel="noopener">dev.twitch.tv/console</a> mit deinem Twitch-Konto anmelden (Zwei-Faktor-Schutz muss an sein).</li>
-        <li>„Register Your Application“: Name z. B. <code>Gaming Recap Marvin</code>, OAuth Redirect URL <code>http://localhost</code>, Kategorie „Application Integration“, Client-Typ „Confidential“.</li>
+        <li>„Register Your Application“: Name z. B. <code>Gaming Recap privat</code>, OAuth Redirect URL <code>http://localhost</code>, Kategorie „Application Integration“, Client-Typ „Confidential“.</li>
         <li>Client-ID kopieren, „New Secret“ klicken, Secret kopieren, beides hier eintragen.</li></ol>
         Offizielle, kostenlose Schnittstelle. Ohne Zugang kannst du Spieldauern pro Spiel selbst eintragen.</div>
     </fieldset>
     <fieldset><legend>💰 Preise & 🖼️ Cover</legend>
+      <label class="check"><input type="checkbox" id="prices_steam_only" ${c.prices_steam_only!==false?"checked":""}> Nur Steam-Preise (sonst: günstigster offizieller Store)</label>
       <label>IsThereAnyDeal-API-Key (Bibliothekswert, Tiefstpreise)</label><input type="password" id="itad_key" placeholder="${ph2(c.itad_key_set)}" autocomplete="off">
       <div class="help"><ol><li>Auf <a href="https://isthereanydeal.com" target="_blank" rel="noopener">isthereanydeal.com</a> ein kostenloses Konto anlegen.</li>
         <li><a href="https://isthereanydeal.com/apps/my/" target="_blank" rel="noopener">isthereanydeal.com/apps/my</a> öffnen, „Register app“ (Name z. B. <code>Gaming Recap</code>).</li>
@@ -3561,6 +3752,9 @@ window.openSettings = async () => {
       <div class="help"><ol><li>Auf <a href="https://www.steamgriddb.com" target="_blank" rel="noopener">steamgriddb.com</a> anmelden (geht mit Steam).</li>
         <li><a href="https://www.steamgriddb.com/profile/preferences/api" target="_blank" rel="noopener">Profil › Einstellungen › API</a> öffnen und „Generate API Key“ klicken.</li>
         <li>Key kopieren und hier einfügen.</li></ol>Beide Dienste sind kostenlos. Die Keys bleiben auf deinem PC.</div>
+      <div class="inl" style="flex-wrap:wrap;gap:8px;margin-top:10px"><button class="btn ghost small" type="button" onclick="exportKeys()">🔑 Keys für jemand anderen exportieren</button>
+        <button class="btn ghost small" type="button" onclick="importKeys()">📥 Keys-Datei importieren</button></div>
+      <p class="help">Exportiert IGDB, IsThereAnyDeal, SteamGridDB und RAWG verschlüsselt mit einem Passwort deiner Wahl – keine persönlichen Zugänge.</p>
     </fieldset>
     <fieldset><legend>Steam</legend>
       <label>Steam Web-API-Key</label><input type="password" id="steam_api_key" placeholder="${ph2(c.steam_api_key_set)}" autocomplete="off">
@@ -3624,7 +3818,9 @@ window.openSettings = async () => {
     try {
       const v = id => $("#"+id).value, ch = id => $("#"+id).checked;
       await post("/api/config", {steam_api_key:v("steam_api_key"), steam_id:v("steam_id"), psn_npsso:v("psn_npsso"), xbox_api_key:v("xbox_api_key"), xbox_api_key_clear: !!($("#xbox_api_key_clear")||{}).checked,
-        playnite_export:v("playnite_export"), gh_repo:v("gh_repo"), igdb_client_id:v("igdb_client_id"), igdb_client_secret:v("igdb_client_secret"), itad_key:v("itad_key"), sgdb_key:v("sgdb_key"), rawg_key:v("rawg_key"), gh_token:v("gh_token"), cloud_pass:v("cloud_pass"),
+        playnite_export:v("playnite_export"), gh_repo:v("gh_repo"), igdb_client_id:v("igdb_client_id"), igdb_client_secret:v("igdb_client_secret"), itad_key:v("itad_key"), sgdb_key:v("sgdb_key"), rawg_key:v("rawg_key"),
+        user_name:v("user_name"), partner_url:v("partner_url"), partner_code:v("partner_code"), prices_steam_only:ch("prices_steam_only"),
+        ...($("#auto_update")?{auto_update:ch("auto_update")}:{}), ...($("#publish_updates")?{publish_updates:ch("publish_updates")}:{}), gh_token:v("gh_token"), cloud_pass:v("cloud_pass"),
         cloud_enabled:ch("cloud_enabled"), tracker:ch("tracker"), hltb:ch("hltb"), lan:ch("lan"), sync_hours:Number(v("sync_hours"))||6,
         backlog_stores:[...document.querySelectorAll(".blstore:checked")].map(e=>e.value),
         steam_extras:ch("steam_extras"), push_topic:v("push_topic"),
@@ -3633,7 +3829,48 @@ window.openSettings = async () => {
     } catch(e){ alert("Speichern fehlgeschlagen: " + e.message); $("#saveBtn").disabled = false; }
   };
   if (!$("#settings").open) $("#settings").showModal();
-  pollDownloads();
+  pollDownloads(); loadUpdBox();
+};
+async function loadUpdBox(){
+  const box = $("#updBox"); if (!box) return;
+  try {
+    const u = await (await fetch("/api/update", {cache:"no-store"})).json();
+    const when = t => t ? new Date(t*1000).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"}) : "noch nie";
+    box.innerHTML = `<p style="margin:0 0 8px"><b>Version ${esc(u.version)}</b> <span class="help" style="margin:0">· Stand ${esc(u.release)}</span></p>` + (u.source ? `
+      <p class="help" style="margin:0">Updates kommen automatisch von <code>${esc(u.source)}</code>. Zuletzt geprüft: ${when(u.last_check)}${u.latest?` · neuester Stand ${esc(u.latest)}`:""}.</p>
+      ${u.error?`<p class="bad" style="font-weight:700">${esc(u.error)}</p>`:""}${u.deferred?`<p class="help">Ein Update wartet – es wird installiert, sobald kein Spiel mehr läuft.</p>`:""}
+      ${u.latest && u.latest !== u.release ? `<p style="color:var(--lime);font-weight:800">Neues Update verfügbar.</p>` : u.latest ? `<p class="help">✓ Du bist auf dem neuesten Stand.</p>` : ""}
+      <label class="check"><input type="checkbox" id="auto_update" ${u.auto?"checked":""}> Updates automatisch installieren</label>
+      <div class="inl" style="gap:8px;margin-top:8px"><button class="btn ghost small" type="button" onclick="post('/api/update/check',{}).then(()=>{toast('Prüfe …');setTimeout(loadUpdBox,5000)})">Jetzt prüfen</button>
+        ${u.latest && u.latest !== u.release ? `<button class="btn limeb small" type="button" onclick="post('/api/update/check',{apply:true}).then(()=>{toast('Installiere Update …');setTimeout(()=>sysWait(),3000)})">Jetzt aktualisieren</button>` : ""}</div>`
+      : `<label class="check"><input type="checkbox" id="publish_updates" ${u.publisher?"checked":""}> Updates für andere bereitstellen (über deine Handy-App-Adresse)</label>
+      <p class="help">${u.publisher ? (u.published ? `Veröffentlicht: Stand ${esc(u.published)}${u.published===u.release?" ✓ aktuell":" – wird beim nächsten Upload aktualisiert"}.` : "Wird beim nächsten Upload veröffentlicht.") : "Nur Programmdateien, keine Keys und keine Daten. Andere Installationen holen sich Updates dann einmal am Tag."}</p>`);
+  } catch(e){ box.innerHTML = `<p class="help">Update-Status nicht abrufbar.</p>`; }
+}
+window.sysWait = async () => {
+  const t0 = Date.now(); await new Promise(r=>setTimeout(r, 3000));
+  while (Date.now() - t0 < 120000){ try { const r = await fetch("/api/config", {cache:"no-store"}); if (r.ok){ location.reload(); return; } } catch(e){} await new Promise(r=>setTimeout(r, 2000)); }
+};
+const dlFile = (name, text) => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], {type:"text/plain"})); a.download = name; document.body.appendChild(a); a.click(); a.remove(); };
+window.downloadReport = async () => {
+  try { const j = await (await fetch("/api/report")).json(); dlFile(`gaming-recap-fehlerbericht-${new Date().toISOString().slice(0,10)}.txt`, j.text); toast("Fehlerbericht gespeichert – ohne Keys und ohne Spieldaten"); }
+  catch(e){ toast("Ging nicht: " + e.message); }
+};
+window.exportKeys = async () => {
+  const pw = prompt("Passwort für die Keys-Datei (mind. 8 Zeichen). Sag es der anderen Person getrennt – nicht in derselben Nachricht wie die Datei.");
+  if (!pw) return;
+  try { const j = await post("/api/keys/export", {password: pw}); dlFile("gaming-recap-keys.grkeys", j.file); toast(`${j.count} Keys exportiert`); }
+  catch(e){ alert(e.message); }
+};
+window.importKeys = (after) => {
+  const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".grkeys,.txt";
+  inp.onchange = async () => {
+    const f = inp.files[0]; if (!f) return; const text = await f.text();
+    const pw = prompt("Passwort der Keys-Datei:"); if (!pw) return;
+    try { const j = await post("/api/keys/import", {file: text, password: pw}); toast(`${j.imported.length} Keys übernommen`); if (after) after(j); else openSettings(); }
+    catch(e){ alert(e.message); }
+  };
+  inp.click();
 };
 
 /* ================= Start ================= */
