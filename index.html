@@ -174,7 +174,7 @@ main{max-width:1240px;margin:0 auto;padding:4px 16px 120px}
 
 /* ---------- Bibliothek ---------- */
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
-.toolbar input{flex:1;min-width:180px}
+.toolbar input[type=search],.toolbar input[type=text]{flex:1;min-width:180px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
 @media(min-width:1000px){.grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:20px}}
 @media(max-width:480px){.grid{grid-template-columns:repeat(2,1fr);gap:10px}}
@@ -211,6 +211,7 @@ main{max-width:1240px;margin:0 auto;padding:4px 16px 120px}
 .brow .ph,.rk .ph{font-size:0}
 .brow .mid2{min-width:0}
 .brow .mid2 b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brow .mid2 b .mc{height:22px;min-width:28px;font-size:12.5px;border-radius:7px;margin-right:8px;vertical-align:1px}
 .brow .mid2 span{font-size:13px;color:var(--muted)}
 .brow .cd{display:none;color:var(--muted);font-size:14px;font-weight:600;text-align:right}
 .bhead{display:none}
@@ -367,6 +368,27 @@ textarea{width:100%;min-height:80px;resize:vertical}
 #wconf{position:absolute;inset:0;z-index:8;pointer-events:none}
 .wbars i b{transition:none}
 
+/* ---------- Wertungen ---------- */
+.mc{display:inline-grid;place-items:center;min-width:34px;height:30px;padding:0 6px;border-radius:9px;font-weight:900;font-size:15px;color:#08080c}
+.mc.g{background:#66cc33}.mc.y{background:#ffcc33}.mc.r{background:#ff4f4f;color:#fff}
+.gcard .mcb{position:absolute;top:10px;left:10px;z-index:2;box-shadow:0 4px 12px #0008}
+.scores{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 16px}
+.scores>div{border-radius:16px;padding:12px 14px;background:#ffffff08;display:flex;gap:12px;align-items:center}
+.scores small{display:block;font-size:11px;color:var(--muted);font-weight:800;letter-spacing:1px;text-transform:uppercase}
+.scores b{font-size:15px}
+.srv{font-weight:900;font-size:22px;min-width:52px;text-align:center}
+.srv.g{color:#66c0f4}.srv.y{color:#ffcc33}.srv.r{color:#ff6b6b}
+/* ---------- Mehr Bilder ---------- */
+.hero .hmosaic{position:absolute;inset:-20% -10% -20% 35%;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;transform:rotate(-12deg);opacity:.28;filter:saturate(1.2);pointer-events:none;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 40%);mask-image:linear-gradient(90deg,transparent,#000 40%);animation:wscroll 60s linear infinite}
+.hero .hmosaic .poster{border-radius:14px;box-shadow:none}
+.hero>*:not(.hmosaic){position:relative;z-index:1}
+.minis{display:flex;gap:8px;margin-top:14px}
+.minis .poster{width:54px;border-radius:9px;box-shadow:0 6px 16px #0006}
+.wback{position:absolute;inset:-12%;background-size:cover;background-position:center;filter:blur(28px) saturate(1.4);opacity:.5;z-index:0;animation:kenburns 16s ease-in-out infinite alternate;pointer-events:none}
+.wslide>*:not(.wblob):not(.wmosaic):not(.wback){position:relative;z-index:2}
+@keyframes kenburns{from{transform:scale(1.1) translate(0,0)}to{transform:scale(1.25) translate(-3%,2%)}}
+
 /* ---------- Allgemeiner Feinschliff ---------- */
 body::before{content:"";position:fixed;inset:-20% -10% auto;height:70vh;z-index:-1;pointer-events:none;opacity:.35;filter:blur(80px);
   background:radial-gradient(40% 50% at 20% 30%,#7a5cff55,transparent 70%),radial-gradient(35% 45% at 80% 20%,#ff4fa344,transparent 70%),radial-gradient(30% 40% at 60% 60%,#2ee6d633,transparent 70%);
@@ -499,6 +521,17 @@ window.imgFail = el => {
 const cleanTitle = t => String(t||"").replace(/\s*\((?:PlayStation\s?®?\s?[45]|PS[45]|Xbox One|Xbox Series X\s?\|\s?S|Windows|PC)\)/gi,"")
   .replace(/\s+(?:for\s+)?Xbox Series X\s?\|\s?S\b/gi,"").replace(/\s*-\s*Windows(?: 10)?(?: Edition)?$/i,"").replace(/\s*-\s*PC Edition$/i,"")
   .replace(/[™®](?=\w)/g," ").replace(/[™®]/g,"").replace(/\s{2,}/g," ").trim();
+const mcClass = v => v >= 75 ? "g" : v >= 50 ? "y" : "r";
+const mcBadge = (v, cls="") => v ? `<span class="mc ${mcClass(v)} ${cls}" title="Fachpresse-Wertung">${Math.round(v)}</span>` : "";
+function revLabel(p, n){
+  if (n < 10) return "Zu wenige Rezensionen";
+  if (p >= 95 && n >= 500) return "Äußerst positiv";
+  if (p >= 80) return n >= 50 ? "Sehr positiv" : "Positiv";
+  if (p >= 70) return "Größtenteils positiv";
+  if (p >= 40) return "Ausgeglichen";
+  if (p >= 20) return "Größtenteils negativ";
+  return n >= 500 ? "Äußerst negativ" : n >= 50 ? "Sehr negativ" : "Negativ";
+}
 const platLabel = r => r.device === "PC" ? r.store : r.device;
 const dayKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 function toast(msg){ const t=document.createElement("div"); t.textContent=msg;
@@ -706,6 +739,11 @@ function buildGroups(){
     const sx = d.steam || {};
     g.ach = g.appid && sx.ach ? sx.ach[g.appid] || null : null;
     g.price = g.appid && sx.prices ? sx.prices[g.appid] || null : null;
+    const scr = g.appid && sx.scores ? sx.scores[g.appid] || null : null;
+    const pnCritic = Math.max(0, ...recs.map(r=>Number(r.critic)||0));
+    g.critic = scr && scr.mc ? scr.mc : pnCritic || (g.hltb && g.hltb.critic) || null;
+    g.criticSrc = scr && scr.mc ? "Metacritic" : pnCritic ? "Fachpresse" : g.critic ? "IGDB" : null;
+    g.rev = scr && scr.rt ? {pct: scr.rp, total: scr.rt} : null;
     g.auto = autoStatus(g);
     g.status = g.meta.status || g.auto;
     g.isAuto = !g.meta.status;
@@ -864,7 +902,8 @@ function renderOverview(){
   const label = S.period==="all" ? "Insgesamt hast du" : S.period==="year" ? `${new Date().getFullYear()} hast du` : S.period==="month" ? "Diesen Monat hast du" : "In den letzten 7 Tagen hast du";
 
   h += `<div class="bento">`;
-  h += `<section class="card hero reveal"><div class="eyebrow">${label}</div>
+  const mosa = played.slice(0,16).map(g=>`<div class="poster">${img(g.covers,g.title)}</div>`);
+  h += `<section class="card hero reveal"><div class="hmosaic">${[...mosa,...mosa].join("")}</div><div class="eyebrow">${label}</div>
     <div class="num" data-count="${Math.round(total/60)}">0</div><div class="unit">Stunden gezockt.</div>
     <div class="sub">Das sind <b>${num(total/1440,1)} Tage</b> am Stück – oder <b>${num(lotr, lotr<10?1:0)}×</b> die Herr-der-Ringe-Trilogie in der Extended Edition.</div>
     <div class="hstats"><div class="hstat"><b>${num(played.length)}</b><span>Spiele</span></div>
@@ -900,6 +939,7 @@ function renderOverview(){
   if (gl.length) h += `<section class="card pinkc s6 reveal inv"><h3>Deine Gamer-DNA</h3>
       <div class="eyebrow" style="opacity:.8">Lieblingsgenre</div><div class="mid" style="margin:4px 0 14px">${esc(gl[0][0])}</div>
       ${gl.slice(1).map(([n,v])=>`<div class="pbar"><span class="nm">${esc(n)}</span><span class="trk"><div style="width:0" data-w="${v/gl[0][1]*100}%"></div></span><span class="v">${hrs(v)}</span></div>`).join("")}
+      <div class="minis">${played.filter(g=>g.genres.includes(gl[0][0])).slice(0,5).map(g=>`<div class="poster">${img(g.covers,g.title)}</div>`).join("")}</div>
       <div class="help" style="color:#160411aa">Nur PC-Spiele, Genres aus Playnite.</div></section>`;
 
   const dec = {};
@@ -909,6 +949,7 @@ function renderOverview(){
     const mx = Math.max(...dl.map(x=>x[1])), best = dl.find(x=>x[1]===mx)[0];
     h += `<section class="card cyanc s6 reveal"><h3>Deine Ära</h3><div class="mid">${String(best).slice(2)}er</div>
       <div style="font-weight:700;margin-top:4px">Am liebsten spielst du Spiele aus den ${best}ern.</div>
+      <div class="minis">${played.filter(g=>g.year && Math.floor(g.year/10)*10==best).slice(0,5).map(g=>`<div class="poster">${img(g.covers,g.title)}</div>`).join("")}</div>
       <div class="cols">${dl.map(([k,v])=>`<div class="c"><div style="height:0" data-h="${Math.max(3,v/mx*100)}%"></div><span>${String(k).slice(2)}er</span></div>`).join("")}</div></section>`;
   }
 
@@ -960,9 +1001,18 @@ function facts(played,total,plats){
     if (vals.length >= 3){ f.push(["Bester Deal", vals[0][0].title, `${euro(vals[0][1]*100)} pro Stunde`]); f.push(["Teuerster Spaß", vals[vals.length-1][0].title, `${euro(vals[vals.length-1][1]*100)} pro Stunde`]); }
     const pcMin = played.reduce((s,g)=>s+(g.devs.PC||0),0), pf = S.data.prefs||{};
     if (pcMin > 600){ const kwh = pcMin/60*(pf.watts||350)/1000; f.push(["Stromrechnung", euro(kwh*(pf.kwh_price||0.35)*100), `ca. ${num(kwh)} kWh am PC (${pf.watts||350} W angenommen)`]); }
-    const crit = S.groups.filter(g=>g.meta.rating && g.recs.some(r=>r.community));
-    if (crit.length >= 5){ const diff = crit.reduce((s,g)=>s+g.meta.rating*20-(g.recs.find(r=>r.community).community),0)/crit.length;
-      f.push(["Kritiker-Check", diff<0?"Strenger":"Milder", `als die Community, im Schnitt ${num(Math.abs(diff))} von 100 Punkten`]); }
+    const rated = played.filter(g=>g.critic);
+    if (rated.length >= 5){
+      const avg = rated.reduce((s,g)=>s+g.critic*val(g),0) / rated.reduce((s,g)=>s+val(g),0);
+      f.push(["Dein Geschmack", `Ø ${num(avg)} Punkte`, "Fachpresse-Wertung, gewichtet nach deiner Spielzeit"]);
+      const best = [...rated].sort((a,b)=>b.critic-a.critic)[0];
+      f.push(["Bestbewertet gespielt", best.title, `${best.critic} Punkte bei der Fachpresse`]);
+      const odd = rated.filter(g=>g.critic<70 && val(g)>=600).sort((a,b)=>val(b)-val(a))[0];
+      if (odd) f.push(["Gegen den Strom", odd.title, `nur ${odd.critic} Punkte – trotzdem ${hrs(val(odd))} gespielt`]);
+    }
+    const revd = played.filter(g=>g.rev && g.rev.total>=50);
+    if (revd.length >= 5){ const fav = [...revd].sort((a,b)=>b.rev.pct-a.rev.pct)[0];
+      f.push(["Liebling der Community", fav.title, `${fav.rev.pct} % positive Steam-Rezensionen`]); }
     const ach = Object.values((S.data.steam||{}).ach||{});
     if (ach.length) f.push(["Steam-Erfolge", num(ach.reduce((s,a)=>s+a.d,0)), `freigeschaltet in ${ach.filter(a=>a.d).length} Spielen`]);
     const devT2 = {}; for (const g of played) for (const [k,v] of Object.entries(g.devs)) devT2[k]=(devT2[k]||0)+v;
@@ -1033,7 +1083,7 @@ function renderLib(){
     <div class="chips">${[["","Alle"],["PC","PC"],["PlayStation","PlayStation"],["Xbox","Xbox"],["Nintendo","Nintendo"],["hidden","🙈 Ausgeblendet"]].filter(([k])=>!k||devCounts[k])
       .map(([k,l])=>`<button class="chip ${L.dev===k?"on":""}" onclick="S.lib.dev='${k}';S.lib.limit=60;route()">${l}<small>${k?devCounts[k]:S.groups.length}</small></button>`).join("")}</div>
     <div class="toolbar"><input id="q" type="search" placeholder="Spiel suchen …" value="${esc(L.q)}">
-      <select id="sort">${[["min","Meiste Spielzeit"],["last","Zuletzt gespielt"],["name","Name A–Z"],["year","Neueste zuerst"],["added","Neu in der Bibliothek"],["hltb","Kürzeste zuerst"]]
+      <select id="sort">${[["min","Meiste Spielzeit"],["last","Zuletzt gespielt"],["name","Name A–Z"],["year","Neueste zuerst"],["added","Neu in der Bibliothek"],["hltb","Kürzeste zuerst"],["critic","Beste Fachpresse"],["rev","Beste Steam-Bewertung"]]
         .map(([k,l])=>`<option value="${k}" ${L.sort===k?"selected":""}>${l}</option>`).join("")}</select>
       <label class="check" style="margin:0"><input type="checkbox" id="played" ${L.played?"checked":""}> nur gespielte</label></div>
     <div class="grid" id="grid"></div><div id="moreWrap"></div>`;
@@ -1048,9 +1098,10 @@ function libGrid(){
   const base = L.dev === "hidden" ? S.allGroups.filter(g=>g.hide) : S.groups;
   const list = base.filter(g => (!L.dev || L.dev==="hidden" || g.devs[L.dev]!==undefined) && (!q || g.key.includes(q)) && (!L.played || g.minutes>0));
   list.sort({min:(a,b)=>b.minutes-a.minutes, last:(a,b)=>(b.last||0)-(a.last||0), name:(a,b)=>a.title.localeCompare(b.title,"de"),
-    year:(a,b)=>(b.year||0)-(a.year||0), added:(a,b)=>(b.added||0)-(a.added||0), hltb:(a,b)=>hl(a)-hl(b)}[L.sort]);
+    year:(a,b)=>(b.year||0)-(a.year||0), added:(a,b)=>(b.added||0)-(a.added||0), hltb:(a,b)=>hl(a)-hl(b),
+    critic:(a,b)=>(b.critic||0)-(a.critic||0), rev:(a,b)=>((b.rev&&b.rev.total>=50)?b.rev.pct:0)-((a.rev&&a.rev.total>=50)?a.rev.pct:0)}[L.sort]);
   $("#grid").innerHTML = list.slice(0,L.limit).map(g=>`<div class="gcard" onclick="openGame('${esc(g.key)}')">
-    <div class="poster">${img(g.covers,g.title)}<div class="dev">${Object.keys(g.devs).map(d=>`<i style="background:${DEV_COLORS[d]}"></i>`).join("")}</div>
+    <div class="poster">${img(g.covers,g.title)}${mcBadge(g.critic,"mcb")}<div class="dev">${Object.keys(g.devs).map(d=>`<i style="background:${DEV_COLORS[d]}"></i>`).join("")}</div>
     <div class="ov">${g.minutes?`<b>${hrs(g.minutes)}</b>`:""}</div></div><div class="nm">${esc(g.title)}</div></div>`).join("") || `<p class="help">Nichts gefunden.</p>`;
   $("#moreWrap").innerHTML = list.length > L.limit ? `<button class="btn ghost more" onclick="S.lib.limit+=120;libGrid()">Mehr anzeigen (${list.length-L.limit})</button>` : "";
 }
@@ -1089,7 +1140,7 @@ function renderBacklog(){
     ${goalsCard()}
     <div class="bl-filters">${filters.map(([k,l,c])=>`<button class="chip ${B.f===k?"on":""}" onclick="S.bl.f='${k}';S.bl.limit=80;route()">${l}<small>${c}</small></button>`).join("")}</div>
   </aside><div>
-    <div class="toolbar"><select id="bsort">${[["added","Am längsten im Regal"],["short","Kürzeste zuerst"],["last","Zuletzt gespielt"],["min","Meiste Spielzeit"],["name","Name A–Z"],["rating","Beste Bewertung"]]
+    <div class="toolbar"><select id="bsort">${[["added","Am längsten im Regal"],["short","Kürzeste zuerst"],["last","Zuletzt gespielt"],["min","Meiste Spielzeit"],["name","Name A–Z"],["critic","Beste Fachpresse"],["rev","Beste Steam-Bewertung"]]
       .map(([k,l])=>`<option value="${k}" ${B.sort===k?"selected":""}>${l}</option>`).join("")}</select>
       <span class="help" style="margin:0">Gestrichelt = automatisch erkannt</span></div>
     <div class="bhead"><span></span><span>Spiel</span><span>Status</span><span>Gespielt</span><span>Dauer</span><span>Im Regal</span></div>
@@ -1101,11 +1152,12 @@ function blist(){
   const B = S.bl, far = new Date(8.64e15);
   const list = blGames().filter(g => B.f==="open" ? SMAP[g.status].g==="open" : B.f==="done" ? SMAP[g.status].g==="done" : g.status===B.f);
   list.sort({added:(a,b)=>(a.added||far)-(b.added||far), last:(a,b)=>(b.last||0)-(a.last||0), min:(a,b)=>b.pcMinutes-a.pcMinutes,
-    name:(a,b)=>a.title.localeCompare(b.title,"de"), rating:(a,b)=>(b.meta.rating||0)-(a.meta.rating||0),
+    name:(a,b)=>a.title.localeCompare(b.title,"de"), critic:(a,b)=>(b.critic||0)-(a.critic||0),
+    rev:(a,b)=>((b.rev&&b.rev.total>=50)?b.rev.pct:0)-((a.rev&&a.rev.total>=50)?a.rev.pct:0),
     short:(a,b)=>(a.remaining??Infinity)-(b.remaining??Infinity)}[B.sort]);
   $("#blist").innerHTML = (list.slice(0,B.limit).map(g=>`<div class="brow" onclick="openGame('${esc(g.key)}')">
     <div class="poster">${img(g.covers,g.title)}</div>
-    <div class="mid2"><b>${esc(g.title)}</b><span>${[g.pcMinutes?hrs(g.pcMinutes):"nie gestartet", g.hltb&&g.hltb.main?`Dauer ${hrs(g.hltb.main)}`:"", g.genres.slice(0,2).join(", ")].filter(Boolean).join(" · ")}</span></div>
+    <div class="mid2"><b>${mcBadge(g.critic)}${esc(g.title)}</b><span>${[g.pcMinutes?hrs(g.pcMinutes):"nie gestartet", g.hltb&&g.hltb.main?`Dauer ${hrs(g.hltb.main)}`:"", g.rev?`Steam ${g.rev.pct} %`:"", g.genres.slice(0,2).join(", ")].filter(Boolean).join(" · ")}</span></div>
     ${pill(g)}<span class="cd">${g.pcMinutes?hrs(g.pcMinutes):"–"}</span><span class="cd">${g.hltb&&g.hltb.main?hrs(g.hltb.main):"–"}</span><span class="cd">${g.added?g.added.getFullYear():"–"}</span></div>`).join("")
     || `<p class="help">Hier ist gerade nichts.</p>`)
     + (list.length > B.limit ? `<button class="btn ghost more" onclick="S.bl.limit+=150;blist()">Mehr anzeigen (${list.length-B.limit})</button>` : "");
@@ -1314,7 +1366,9 @@ function badgeCtx(){
   return {...extra, st, total, maxG, early, doneYear: doneInYear(y).length, comp: S.groups.filter(g=>g.pc&&g.status==="komplett").length,
     devCount: devs.size, groups: S.groups.length, retro: played.filter(g=>g.year && g.year<2005).reduce((m,g)=>Math.max(m,g.minutes),0),
     genres5: Object.values(gen).filter(v=>v>=300).length, rated: S.groups.filter(g=>g.meta.rating).length,
-    tiered: S.groups.filter(g=>g.tier).length, achTotal: ach.reduce((s,a)=>s+a.d,0), rare, topShare: total ? maxG/total : 0,
+    tiered: S.groups.filter(g=>g.tier).length, gourmet: played.filter(g=>(g.critic||0)>=90).length,
+    trash: played.some(g=>g.critic && g.critic<60 && g.minutes>=300) ? 1 : 0,
+    gems: played.filter(g=>g.rev && g.rev.pct>=95 && g.rev.total>=500).length, achTotal: ach.reduce((s,a)=>s+a.d,0), rare, topShare: total ? maxG/total : 0,
     unplayed: backlogStats().unplayed};
 }
 const BADGES = [
@@ -1334,7 +1388,9 @@ const BADGES = [
   ["retro","🕹️","Retro-Fan","10 Stunden in einem Spiel von vor 2005",c=>[c.retro/60,10,"Std"]],
   ["omni","🎨","Allesfresser","8 Genres mit je 5+ Stunden",c=>[c.genres5,8]],
   ["weekend","🛋️","Wochenend-Krieger","Die Hälfte deiner Zeit am Wochenende",c=>[c.st.weekend*100,50,"%"]],
-  ["critic","🧐","Kritiker","20 Spiele mit Sternen bewertet",c=>[c.rated,20]],
+  ["critic","🍷","Feinschmecker","10 Spiele mit Metascore 90+ gespielt",c=>[c.gourmet,10]],
+  ["trash","🗑️","Guilty Pleasure","5+ Stunden in einem Spiel mit Wertung unter 60",c=>[c.trash,1]],
+  ["hidden","💡","Geheimtipp-Jäger","5 Spiele mit Steam „Äußerst positiv“ gespielt",c=>[c.gems,5]],
   ["tier","📊","Tier-Meister","25 Spiele in der Tier-Liste",c=>[c.tiered,25]],
   ["ach","🎖️","Erfolgsjäger","500 Steam-Erfolge",c=>[c.achTotal,500]],
   ["rare","💎","Seltener Fund","Ein Erfolg, den unter 5 % haben",c=>[c.rare<5?1:0,1]],
@@ -1513,6 +1569,7 @@ function wrapSlides(D){
   const cover = g => `<div class="poster">${img(g.covers,g.title)}</div>`;
   const blobs = (...c) => c.map((col,i)=>`<div class="wblob" style="background:${col};width:${60+i*14}cqw;height:${60+i*14}cqw;left:${[-20,40,-10,50][i%4]}%;top:${[-10,30,60,-20][i%4]}%;animation-delay:${-i*3}s"></div>`).join("");
   const mosaic = list => `<div class="wmosaic">${[...list, ...list, ...list].slice(0,40).map(cover).join("")}</div>`;
+  const back = g => { const u = g && (g.banners||[]).concat(g.covers||[]).find(Boolean); return u ? `<div class="wback" style="background-image:url('${esc(u)}')"></div>` : ""; };
   const topCovers = D.rows.slice(0,14).map(x=>x.g);
   L.push({bg:"#12061f", html:`${mosaic(topCovers)}${blobs("#ff4fa3","#7a5cff")}
     <div class="k w-in">Gaming Recap</div><div class="xl w-in d1">${D.yr?D.year:"∞"}</div><div class="h w-in d2 split">${D.yr?"Dein Gaming-Jahr.":"Deine ganze Gaming-Geschichte."}</div>
@@ -1533,14 +1590,16 @@ function wrapSlides(D){
     <div class="h w-in d1 split">${topDev==="PC"?"Am liebsten am PC.":topDev==="PlayStation"?"Team PlayStation.":topDev==="Xbox"?"Team Xbox.":"Team Nintendo."}</div>
     <div class="wdonut" style="background:conic-gradient(${grad})"><div style="background:#0d1424">${num(D.dev[topDev]/D.total*100)}%</div></div>
     <div class="wlegend w-in d3">${devs.map(k=>`<span><i style="background:${cols[k]}"></i>${k} ${hrs(D.dev[k])}</span>`).join("")}</div>`});
-  if (D.gen.length) L.push({bg:"#05302c", fg:"#eafffb", html:`${blobs("#2ee6d6","#3d7bff")}<div class="k w-in">Deine Gamer-DNA</div><div class="h w-in d1" style="font-size:clamp(40px,13cqw,72px)">${esc(D.gen[0][0])}</div>
-    <p class="w-in d2">Dein Lieblingsgenre am PC mit ${hrs(D.gen[0][1])}.</p><div class="wlist w-in d3">${D.gen.slice(1,5).map(([n,v],i)=>`<div><i>${i+2}</i>${esc(n)}<span>${hrs(v)}</span></div>`).join("")}</div>`});
+  const genTop = D.gen.length ? D.rows.find(x=>x.g.genres.includes(D.gen[0][0])) : null;
+  if (D.gen.length) L.push({bg:"#05302c", fg:"#eafffb", html:`${back(genTop&&genTop.g)}${blobs("#2ee6d6","#3d7bff")}<div class="k w-in">Deine Gamer-DNA</div><div class="h w-in d1" style="font-size:clamp(40px,13cqw,72px)">${esc(D.gen[0][0])}</div>
+    <p class="w-in d2">Dein Lieblingsgenre am PC mit ${hrs(D.gen[0][1])}.</p><div class="wlist w-in d3">${D.gen.slice(1,5).map(([n,v],i)=>`<div><i>${i+2}</i>${esc(n)}<span>${hrs(v)}</span></div>`).join("")}</div>
+    <div class="wpost w-in d4">${D.rows.filter(x=>x.g.genres.includes(D.gen[0][0])).slice(0,4).map(x=>cover(x.g)).join("")}</div>`});
   const fr = franchises(D.rows.map(x=>x.g), g=>{ const r = D.rows.find(y=>y.g===g); return r ? r.m : 0; })[0];
-  if (fr && fr.games.length >= 2) L.push({bg:"#24103a", html:`${blobs("#b26bff","#ff4fa3")}<div class="k w-in">Deine Lieblingsreihe</div>
+  if (fr && fr.games.length >= 2) L.push({bg:"#24103a", html:`${back(fr.games[0])}${blobs("#b26bff","#ff4fa3")}<div class="k w-in">Deine Lieblingsreihe</div>
     <div class="h w-in d1" style="font-size:clamp(36px,11cqw,64px)">${esc(fr.name)}</div><p class="w-in d2">${fr.games.length} Teile, zusammen ${hrs(fr.minutes)}.</p>
     <div class="wpost w-in d3">${fr.games.slice(0,4).map(cover).join("")}</div>`});
   const cons = D.rows.filter(x=>(x.devs.PlayStation||0)+(x.devs.Xbox||0)>0).sort((a,b)=>((b.devs.PlayStation||0)+(b.devs.Xbox||0))-((a.devs.PlayStation||0)+(a.devs.Xbox||0)))[0];
-  if (cons && D.dev.PC) L.push({bg:"#071a3d", html:`${blobs("#3d7bff","#2ecc40")}<div class="k w-in">Konsolen-Krone</div>
+  if (cons && D.dev.PC) L.push({bg:"#071a3d", html:`${back(cons.g)}${blobs("#3d7bff","#2ecc40")}<div class="k w-in">Konsolen-Krone</div>
     <div class="wtop1" style="margin-top:6px"><div class="w-in d1">${cover(cons.g)}</div></div>
     <div class="h w-in d2" style="text-align:center;font-size:clamp(28px,9cqw,46px)">${esc(cons.g.title)}</div>
     <p class="w-in d3" style="text-align:center">${hrs((cons.devs.PlayStation||0)+(cons.devs.Xbox||0))} auf der Couch.</p>`});
@@ -1550,7 +1609,7 @@ function wrapSlides(D){
       ${D.rows.slice(1,n).reverse().map((x,i)=>`<div class="wrow w-in d${i+2}"><div class="r">${n-i}</div>${cover(x.g)}<b>${esc(x.g.title)}</b><span>${hrs(x.m)}</span></div>`).join("")}`});
   }
   const t = D.rows[0];
-  L.push({bg:"#0b0610", cls:"wtop1", confetti:true, html:`${blobs("#ff4fa3","#ffd23f","#7a5cff")}<div class="k w-in" style="text-align:center">Trommelwirbel … deine Nummer eins</div>
+  L.push({bg:"#0b0610", cls:"wtop1", confetti:true, html:`${back(t.g)}${blobs("#ff4fa3","#ffd23f","#7a5cff")}<div class="k w-in" style="text-align:center">Trommelwirbel … deine Nummer eins</div>
     <div class="wflip">${cover(t.g)}</div><div class="h w-in d4" style="text-align:center;font-size:clamp(28px,9cqw,48px)">${esc(t.g.title)}</div>
     <p class="w-in d5" style="text-align:center"><b>${hrs(t.m)}</b> · ${num(t.m/D.total*100)} % deiner Zeit</p>`});
   if (D.st.ss.length >= 3){
@@ -1559,9 +1618,20 @@ function wrapSlides(D){
       <p class="w-in d2">${num(D.st.night*100)} % deiner PC-Zeit lag zwischen 22 und 5 Uhr.</p>
       <div class="cols thin w-in d3" style="height:150px">${D.st.hours.map((v,i)=>`<div class="c"><div style="height:${Math.max(2,v/mx*100)}%;background:#fff"></div><span style="color:#fff">${i%6===0?i:""}</span></div>`).join("")}</div>`});
     const lg = D.st.longest;
+    const lgG = S.gmap.get(lg[0]);
     L.push({bg:"#ff9a3d", fg:"#1d1000", html:`${blobs("#ffd23f","#ff4fa3")}<div class="k w-in">Rekorde</div>
+      ${lgG?`<div class="minis w-in d1" style="margin:0 0 6px"><div class="poster" style="width:70px">${img(lgG.covers,lgG.title)}</div></div>`:""}
       <div class="h w-in d1">${hrs(lg[2]/60)} am Stück.</div><p class="w-in d2">Deine längste Session: ${esc(titleOf(lg[0]))} am ${fdate(new Date(lg[1]*1000))}.</p>
       <div class="h w-in d3" style="margin-top:26px">${D.st.best} Tage in Folge.</div><p class="w-in d4">Deine längste Serie.${D.bestMonth?` Stärkster Monat: <b>${new Date(Number(D.bestMonth[0].split("-")[0]), Number(D.bestMonth[0].split("-")[1]),1).toLocaleDateString("de-DE",{month:"long"})}</b> mit ${hrs(D.bestMonth[1])}.`:""}</p>`});
+  }
+  const ratedW = D.rows.filter(x=>x.g.critic);
+  if (ratedW.length >= 5){
+    const avg = ratedW.reduce((s,x)=>s+x.g.critic*x.m,0)/ratedW.reduce((s,x)=>s+x.m,0);
+    const bestW = [...ratedW].sort((a,b)=>b.g.critic-a.g.critic)[0];
+    L.push({bg:"#14200c", html:`${back(bestW.g)}${blobs("#66cc33","#c8f135")}<div class="k w-in">Dein Geschmack</div>
+      <div class="xl w-in d1" data-count="${Math.round(avg)}">0</div><div class="h w-in d2 split">Punkte im Schnitt.</div>
+      <p class="w-in d3">So bewertet die Fachpresse, was du spielst – gewichtet nach deiner Zeit.</p>
+      <div class="wrow w-in d4"><div class="r">★</div>${cover(bestW.g)}<b>${esc(bestW.g.title)}</b><span>${mcBadge(bestW.g.critic)}</span></div>`});
   }
   if (D.done.length) L.push({bg:"#3b1a7a", confetti:true, html:`${blobs("#7a5cff","#ff4fa3")}<div class="k w-in">Backlog</div><div class="xl w-in d1" data-count="${D.done.length}">0</div>
     <div class="h w-in d2 split">Spiele durchgespielt.</div><div class="wpost w-in d3">${D.done.slice(0,4).map(cover).join("")}</div>
@@ -1724,8 +1794,11 @@ window.openGame = key => {
       : `<p class="help">${!g.pc?"Konsolenspiele zählen in die Statistik, aber nicht in den Backlog.":!g.owned?"Nicht im Backlog: Der Store ist dort ausgeschlossen (Einstellungen) oder das Spiel ist geliehen.":"In Playnite ausgeblendet, daher nicht im Backlog."}</p>`}
     <div class="secttl">Tier-Liste</div>
     <div class="tpick">${TIERS.map(([t,c])=>`<button style="background:${c}" class="${g.tier===t?"on":""}" onclick="setTier('${esc(g.key)}', ${g.tier===t?"null":`'${t}'`})">${t}</button>`).join("")}</div>
-    <div class="secttl">Deine Bewertung</div>
-    <div class="stars">${[1,2,3,4,5].map(i=>`<button class="${(g.meta.rating||0)>=i?"on":""}" onclick="setRating('${esc(g.key)}',${i})">★</button>`).join("")}</div>
+    <div class="secttl">Wertungen</div>
+    <div class="scores">
+      <div>${g.critic ? mcBadge(g.critic) : `<span class="mc" style="background:#ffffff14;color:var(--muted)">–</span>`}<div><small>${g.criticSrc==="Metacritic"?"Metacritic":"Fachpresse"}</small><b>${g.critic ? (g.critic>=90?"Meisterwerk":g.critic>=75?"Sehr gut":g.critic>=50?"Gemischt":"Schwach") : "keine Wertung"}</b></div></div>
+      <div>${g.rev ? `<span class="srv ${g.rev.pct>=70?"g":g.rev.pct>=40?"y":"r"}">${g.rev.pct}%</span>` : `<span class="srv" style="color:var(--muted)">–</span>`}<div><small>Steam-Spieler</small><b>${g.rev ? `${revLabel(g.rev.pct, g.rev.total)}` : g.appid ? "lädt …" : "nicht auf Steam"}</b>${g.rev?`<div class="help" style="margin:0">${num(g.rev.total)} Rezensionen</div>`:""}</div></div>
+    </div>
     <div class="secttl">Notiz</div><textarea id="note" placeholder="z. B. Bei Kapitel 3 aufgehört …">${esc(g.meta.note||"")}</textarea>
     <button class="btn ghost small" style="margin-top:14px" onclick="setHide('${esc(g.key)}', ${g.hide?"false":"true"})">${g.hide?"👁 Wieder in der Statistik zeigen":"🙈 Kein Spiel / aus der Statistik ausblenden"}</button>`;
   $("#detailBody").innerHTML = `<button class="ibtn dclose" onclick="$('#detail').close()">✕</button>
@@ -1789,6 +1862,7 @@ const MOODS = {
   chill: g => (g.remaining==null || g.remaining < 900) && !g.genres.some(x=>/shooter|horror|soulslike|competitive/i.test(x)),
   story: g => g.genres.some(x=>/rpg|rollenspiel|adventure|abenteuer|story|visual novel/i.test(x)),
   friends: g => g.features.some(x=>/multi|co-?op|koop/i.test(x)),
+  top: g => (g.critic||0) >= 85 || (g.rev && g.rev.total >= 500 && g.rev.pct >= 92),
 };
 window.openPicker = () => { PK.pick = null; renderPicker(); $("#picker").showModal(); };
 function pickerPool(){
@@ -1806,7 +1880,7 @@ function renderPicker(){
     <h2 id="pkTitle">${g?esc(g.title):"Lass den Würfel entscheiden"}</h2>
     <div class="why">${g?pickWhy(g):`${pool.length} Spiele im Topf`}</div>
     <div class="opts">${[["open","Alles offen"],["als_naechstes","🎯 Als Nächstes"],["angefangen","▶️ Angefangen"],["ungespielt","📦 Nie gestartet"],["pausiert","⏸️ Pausiert"]].map(([k,l])=>chip(k,l,0,"pool")).join("")}</div>
-    <div class="opts">${[["","Jede Stimmung"],["chill","😌 Entspannt"],["story","📖 Story-Abend"],["friends","👥 Mit Freunden"]].map(([k,l])=>chip(k,l,0,"mood")).join("")}</div>
+    <div class="opts">${[["","Jede Stimmung"],["chill","😌 Entspannt"],["story","📖 Story-Abend"],["friends","👥 Mit Freunden"],["top","⭐ Top bewertet"]].map(([k,l])=>chip(k,l,0,"mood")).join("")}</div>
     <div class="opts">${[["","Jede Länge"],["s","⚡ Kurz (< 10 Std)"],["m","Mittel (10–30)"],["l","Lang (30+)"]].map(([k,l])=>chip(k,l,0,"len")).join("")}</div>
     <div class="opts"><select onchange="PK.genre=this.value;PK.pick=null;renderPicker()"><option value="">Alle Genres</option>${genres.map(x=>`<option ${PK.genre===x?"selected":""}>${esc(x)}</option>`).join("")}</select>
       <label class="check" style="margin:0"><input type="checkbox" ${PK.inst?"checked":""} onchange="PK.inst=this.checked;PK.pick=null;renderPicker()"> nur installierte</label></div>
