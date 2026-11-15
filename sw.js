@@ -1,5 +1,5 @@
 // Gaming Recap – Service Worker (nur in der Handy-App auf GitHub Pages aktiv)
-const CACHE = "gaming-recap-f92b86389bbc";
+const CACHE = "gaming-recap-643f1972a3f3";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", e => {

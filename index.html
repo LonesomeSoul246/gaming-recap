@@ -221,6 +221,8 @@ main{max-width:1240px;margin:0 auto;padding:4px 16px 120px}
   .bhead{display:grid;grid-template-columns:52px 1fr 150px 90px 90px 90px;gap:14px;padding:0 10px 8px;font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
   .bhead span:nth-child(n+4){text-align:right}
 }
+.pc-chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:#ffffff10;margin:4px 4px 0 0;color:var(--ink)}
+.pc-chip i{width:7px;height:7px;border-radius:50%;display:inline-block}
 .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;font-size:12.5px;font-weight:800;white-space:nowrap;justify-self:start}
 .pill.auto{outline:1.5px dashed #ffffff55;outline-offset:-1.5px}
 
@@ -590,10 +592,10 @@ const edits = () => store.get("gr_edits", []);
 /* ================= Daten laden ================= */
 async function load(){
   if (CLOUD) return loadCloud();
-  S.yearPM = undefined;
+  S.yearPM = undefined; S.pcache = {};
   try { S.data = await (await fetch(`/api/data?period=${S.period}`)).json(); }
   catch(e){ $("#view").innerHTML = `<div class="empty"><div class="big">📡</div><h2>Keine Verbindung</h2><p class="help">Läuft Gaming Recap noch auf deinem PC?</p></div>`; return; }
-  applyEstimate(); buildGroups(); header(); route();
+  applyEstimate(); buildGroups(); header(); route(); setTimeout(saveYearArchive, 1500);
   if (S.data.syncing) setTimeout(load, 2500);
 }
 
@@ -609,22 +611,22 @@ async function loadCloud(force){
     // Bereits vom PC übernommene Änderungen aus der Warteschlange entfernen
     const meta = S.snap.meta || {};
     store.set("gr_edits", edits().filter(e => {
-      if (e.kind === "kv") return !(S.snap.goals_updated && Date.parse(S.snap.goals_updated) >= e.ts);
+      if (e.kind === "kv") return e.key === "goals" ? !(S.snap.goals_updated && Date.parse(S.snap.goals_updated) >= e.ts) : Date.now() - e.ts < 3*864e5;
       const m = meta[norm(e.key)]; return !(m && m.updated && Date.parse(m.updated) >= e.ts) && Date.now()-e.ts < 30*86400e3; }));
   }
   const snap = S.snap, meta = {...(snap.meta||{})};
-  let goals = snap.goals || {};
+  let goals = snap.goals || {}; const kvs = {year_overrides: snap.year_overrides || {}, wrapped: snap.wrapped_archive || {}};
   for (const e of edits()){
-    if (e.kind === "kv"){ if (e.key === "goals") goals = e.value; continue; }
+    if (e.kind === "kv"){ if (e.key === "goals") goals = e.value; else kvs[e.key] = e.value; continue; }
     const k = norm(e.key); meta[k] = {...(meta[k]||{}), ...pick(e,["status","rating","note","tier","hide"]), updated:new Date(e.ts).toISOString()};
   }
   const p = S.period === "all" ? null : (snap.periods||{})[S.period];
   S.data = {last_sync:snap.last_sync, sources:snap.sources||{}, games:snap.games||[], meta, hltb:snap.hltb||{},
     sessions:snap.sessions||[], status_log:snap.status_log||[], goals, steam:snap.steam||{}, prefs:snap.prefs||{},
+    year_overrides: kvs.year_overrides, wrapped_archive: kvs.wrapped,
     playing:[], can_edit:false, period: p ? p.info : {period:"all"}, period_minutes: p ? p.pm : null};
-  S.yearPM = (snap.periods||{}).year ? snap.periods.year.pm : null; S.yearInfo = (snap.periods||{}).year ? {...snap.periods.year.info} : null;
-  if (S.yearInfo && !S.yearInfo.complete){ S.yearPM = estimateYear(new Date().getFullYear(), S.yearPM); S.yearInfo.estimated = true; }
-  applyEstimate(); buildGroups(); header(); route(); flushEdits();
+  S.pcache = {}; S.yearPM = undefined; S.yearInfo = undefined;
+  applyEstimate(); buildGroups(); header(); route(); flushEdits(); setTimeout(saveYearArchive, 1500);
 }
 const pick = (o, ks) => Object.fromEntries(ks.filter(k=>k in o).map(k=>[k,o[k]]));
 
@@ -648,29 +650,63 @@ function lockScreen(err){
   $("#pw").focus();
 }
 
-/* ================= Schätzung fürs laufende Jahr =================
-   Die Plattformen liefern nur Gesamtzeiten. Solange der Verlauf das Jahr noch nicht
-   abdeckt, verteilen wir die Spielzeit gleichmäßig zwischen erstem und letztem Spieltag
-   und nehmen den Anteil, der in dieses Jahr fällt. */
-function estimateYear(year, base){
-  const ys = new Date(year,0,1), now = new Date(), out = {...(base||{})};
+/* ================= Schätzung für Zeiträume =================
+   Die Plattformen liefern nur Gesamtzeiten. Bis der Verlauf einen Zeitraum vollständig
+   abdeckt, schätzen wir den Anteil je Spiel:
+   - Steam-Spiele mit Erfolgen: Anteil der Erfolge, die im Jahr freigeschaltet wurden
+   - sonst: jüngere Spielzeit zählt stärker (Halbwertszeit 1 Jahr) zwischen erstem und letztem Spieltag
+   - Steam "letzte 2 Wochen" für Woche und Monat
+   - eigene Korrekturen (pro Spiel) haben immer Vorrang
+   Gemessene Zuwächse seit Start der Aufzeichnung kommen jeweils oben drauf. */
+const HALF = 365*864e5, LN2 = Math.log(2);
+function periodStartDate(p){ const n = new Date(); if (p==="year") return new Date(n.getFullYear(),0,1); if (p==="month") return new Date(n.getFullYear(),n.getMonth(),1); if (p==="week") return new Date(Date.now()-7*864e5); return null; }
+function estimatePeriod(p, measured){
+  const ps = periodStartDate(p), now = new Date(), year = now.getFullYear(), out = {};
+  const ach = (S.data.steam||{}).ach || {};
   for (const r of S.data.games){
-    const mins = r.minutes||0, last = pdate(r.last_played);
-    if (!mins || !last || last < ys) continue;
-    let first = pdate(r.first_played);
-    const ry = Number(r.release_year), rel = ry >= 1970 && ry <= year ? new Date(ry,0,1) : null;
-    if (!first) first = rel && rel > new Date(last - 3*365*864e5) ? rel : new Date(last - 2*365*864e5);
-    const end = last > now ? now : last;
-    const share = first >= ys ? 1 : Math.max(0, Math.min(1, (end - ys) / Math.max(1, end - first)));
-    const v = Math.round(mins * share);
-    if (v > (out[r.id]||0)) out[r.id] = v;
+    const delta = measured ? (measured[r.id]||0) : 0, base = Math.max(0, (r.minutes||0) - delta), last = pdate(r.last_played);
+    let est = 0;
+    if (base && last && last >= ps){
+      const end = last > now ? now : last;
+      let first = pdate(r.first_played);
+      const ry = Number(r.release_year);
+      if (!first && ry >= 1970 && ry <= year) first = new Date(ry,0,1);
+      let share = null;
+      const a = r.steam_appid && ach[r.steam_appid];
+      if (p === "year" && a && a.d >= 3 && (a.y||{})[year]) share = (a.y[year]||0) / a.d;
+      if (share === null && (p === "week" || p === "month") && r.two_weeks) share = Math.min(base, r.two_weeks * Math.min(2, (now-ps)/(14*864e5))) / base;
+      if (share === null){
+        if (first && first >= ps) share = 1;
+        else {
+          const lam = LN2 / HALF, win = 1 - Math.exp(-lam * (end - ps));
+          const norm = first ? 1 - Math.exp(-lam * Math.max(end - first, end - ps)) : 1;
+          share = norm > 0 ? win / norm : 1;
+        }
+      }
+      est = Math.round(base * Math.max(0, Math.min(1, share)));
+    }
+    if (est + delta > 0) out[r.id] = est + delta;
+  }
+  // Eigene Korrekturen (pro Spiel) – nur fürs Jahr
+  const ov = p === "year" ? ((S.data.year_overrides||{})[String(year)] || {}) : {};
+  if (Object.keys(ov).length){
+    const byKey = {};
+    for (const r of S.data.games){ const k = norm(r.title); (byKey[k] = byKey[k] || []).push(r); }
+    for (const [k, mins] of Object.entries(ov)){
+      const recs = byKey[k]; if (!recs) continue;
+      const sum = recs.reduce((s,r)=>s+(out[r.id]||0),0);
+      if (sum > 0) for (const r of recs) out[r.id] = Math.round(mins * (out[r.id]||0) / sum);
+      else { const top = [...recs].sort((a,b)=>(b.minutes||0)-(a.minutes||0))[0]; for (const r of recs) delete out[r.id]; out[top.id] = mins; }
+    }
   }
   return out;
 }
 function applyEstimate(){
   const p = S.data.period || {};
-  if (p.period === "year" && !p.complete){ S.data.period_minutes = estimateYear(new Date().getFullYear(), S.data.period_minutes); p.estimated = true; }
+  if (p.period && p.period !== "all" && !p.complete){ S.data.period_minutes = estimatePeriod(p.period, S.data.period_minutes); p.estimated = true; }
 }
+// für alte Aufrufe
+const estimateYear = (year, base) => estimatePeriod("year", base);
 
 /* ================= Gruppen bauen ================= */
 function autoStatus(g){
@@ -712,6 +748,7 @@ function buildGroups(){
     g.devs[r.device] = (g.devs[r.device]||0) + pmins;
     if (r.device === "PC"){
       g.pc = true; g.pcMinutes += mins;
+      g.pcStores = g.pcStores || new Set(); g.pcStores.add(r.store);
       if (!r.family && backlogStores().includes(r.store)) g.owned = true;
       if (!r.hidden) g.hidden = false;
       (r.genres||[]).forEach(x=>g.genres.add(x)); (r.features||[]).forEach(x=>g.features.add(x));
@@ -722,6 +759,7 @@ function buildGroups(){
       if (r.installed) g.installed = true;
       if (r.completion && !g.completion) g.completion = r.completion;
     }
+    if (r.device !== "PC") g.consoleMin = (g.consoleMin||0) + mins;
     const l = pdate(r.last_played); if (l && (!g.last || l > g.last)) g.last = l;
     const f = pdate(r.first_played); if (f && (!g.first || f < g.first)) g.first = f;
   }
@@ -1107,7 +1145,13 @@ function libGrid(){
 }
 
 /* ================= Backlog ================= */
-const blGames = () => S.groups.filter(g=>g.pc && !g.hidden && g.owned);
+const consoleOnly = g => !g.pcMinutes && (g.consoleMin||0) > 0;
+const blGames = () => S.groups.filter(g=>g.pc && !g.hidden && g.owned && !consoleOnly(g));
+function platChips(g){
+  const seen = new Map();
+  for (const r of g.recs){ const l = platLabel(r); if (!seen.has(l)) seen.set(l, 0); seen.set(l, seen.get(l) + (r.minutes||0)); }
+  return [...seen.entries()].sort((a,b)=>b[1]-a[1]).map(([l,m])=>`<span class="pc-chip" title="${esc(l)}${m?" · "+hrs(m):""}"><i style="background:${pcolor(l)}"></i>${esc(l)}</span>`).join("");
+}
 function backlogStats(){
   const b = blGames(); let open=0, done=0, unplayed=0, rest=0, known=0;
   for (const g of b){ const gr = SMAP[g.status].g; if (gr==="open"){ open++; if (g.remaining!=null){ rest+=g.remaining; known++; } } if (gr==="done") done++; if (g.status==="ungespielt") unplayed++; }
@@ -1157,7 +1201,7 @@ function blist(){
     short:(a,b)=>(a.remaining??Infinity)-(b.remaining??Infinity)}[B.sort]);
   $("#blist").innerHTML = (list.slice(0,B.limit).map(g=>`<div class="brow" onclick="openGame('${esc(g.key)}')">
     <div class="poster">${img(g.covers,g.title)}</div>
-    <div class="mid2"><b>${mcBadge(g.critic)}${esc(g.title)}</b><span>${[g.pcMinutes?hrs(g.pcMinutes):"nie gestartet", g.hltb&&g.hltb.main?`Dauer ${hrs(g.hltb.main)}`:"", g.rev?`Steam ${g.rev.pct} %`:"", g.genres.slice(0,2).join(", ")].filter(Boolean).join(" · ")}</span></div>
+    <div class="mid2"><b>${mcBadge(g.critic)}${esc(g.title)}</b><span>${[g.pcMinutes?hrs(g.pcMinutes):"nie gestartet", g.hltb&&g.hltb.main?`Dauer ${hrs(g.hltb.main)}`:"", g.rev?`Steam ${g.rev.pct} %`:"", g.genres.slice(0,2).join(", ")].filter(Boolean).join(" · ")}</span><div>${platChips(g)}</div></div>
     ${pill(g)}<span class="cd">${g.pcMinutes?hrs(g.pcMinutes):"–"}</span><span class="cd">${g.hltb&&g.hltb.main?hrs(g.hltb.main):"–"}</span><span class="cd">${g.added?g.added.getFullYear():"–"}</span></div>`).join("")
     || `<p class="help">Hier ist gerade nichts.</p>`)
     + (list.length > B.limit ? `<button class="btn ghost more" onclick="S.bl.limit+=150;blist()">Mehr anzeigen (${list.length-B.limit})</button>` : "");
@@ -1512,71 +1556,132 @@ function friendsCard(){
 
 /* ================= Wrapped ================= */
 const W = {mode:"year", slides:[], i:0, t0:0, paused:false, raf:0, DUR:7000, data:null};
-async function ensureYear(){
-  if (S.yearPM !== undefined && S.yearPM !== null) return;
-  if (CLOUD) return;
-  try { const d = await (await fetch("/api/data?period=year")).json(); S.yearPM = d.period_minutes || {}; S.yearInfo = d.period || {}; } catch(e){ S.yearPM = {}; S.yearInfo = {}; }
-  if (!S.yearInfo.complete){ S.yearPM = estimateYear(new Date().getFullYear(), S.yearPM); S.yearInfo.estimated = true; }
+// Zeitraum-Daten (gemessen + geschätzt), einmal pro Ladevorgang
+async function ensurePeriod(p){
+  S.pcache = S.pcache || {};
+  if (S.pcache[p]) return S.pcache[p];
+  let pm = {}, info = {};
+  if (CLOUD){ const x = ((S.snap||{}).periods||{})[p]; if (x){ pm = {...(x.pm||{})}; info = {...(x.info||{})}; } }
+  else { try { const d = await (await fetch("/api/data?period="+p)).json(); pm = d.period_minutes || {}; info = d.period || {}; } catch(e){} }
+  if (!info.complete){ pm = estimatePeriod(p, pm); info.estimated = true; }
+  S.pcache[p] = {pm, info};
+  if (p === "year"){ S.yearPM = pm; S.yearInfo = info; }
+  return S.pcache[p];
+}
+const ensureYear = () => ensurePeriod("year");
+const MON = () => new Date().toLocaleDateString("de-DE",{month:"long"});
+function kw(d){ const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const day = t.getUTCDay()||7; t.setUTCDate(t.getUTCDate()+4-day); const y0 = new Date(Date.UTC(t.getUTCFullYear(),0,1)); return Math.ceil(((t-y0)/864e5+1)/7); }
+function wrapModes(){
+  const y = new Date().getFullYear();
+  const arch = Object.keys(S.data.wrapped_archive||{}).filter(k=>/^\d{4}$/.test(k) && Number(k) < y).sort().reverse();
+  return [["year",String(y)],["month",MON()],["week","Diese Woche"],["all","Alle Zeiten"], ...arch.map(a=>["arch:"+a, a])];
+}
+// Laufendes Jahr fürs Archiv sichern (höchstens einmal pro Tag). Ab dem 1.1. bleibt es eingefroren.
+async function saveYearArchive(){
+  const y = String(new Date().getFullYear()), today = new Date().toISOString().slice(0,10);
+  const cur = (S.data.wrapped_archive||{})[y];
+  if (cur && String(cur.saved||"").slice(0,10) === today) return;
+  const {pm, info} = await ensurePeriod("year"), games = {};
+  for (const g of S.groups){ const devs = {}; let m = 0;
+    for (const r of g.recs){ const v = pm[r.id]||0; if (v){ m += v; devs[r.device] = (devs[r.device]||0) + v; } }
+    if (m > 0) games[g.key] = [m, devs]; }
+  if (!Object.keys(games).length) return;
+  const all = {...(S.data.wrapped_archive||{}), [y]: {saved: new Date().toISOString(), estimated: !!info.estimated, games}};
+  try { await saveKv("wrapped", all); S.data.wrapped_archive = all; } catch(e){}
 }
 function renderWrapped(){
-  const y = new Date().getFullYear(), bd = badges(), got = bd.filter(b=>b.got).length;
-  $("#view").innerHTML = `<section class="card hero reveal" style="min-height:58vh;justify-content:center;text-align:center;align-items:center">
+  const bd = badges(), got = bd.filter(b=>b.got).length;
+  if (!wrapModes().some(m=>m[0]===W.mode)) W.mode = "year";
+  $("#view").innerHTML = `<section class="card hero reveal in" style="min-height:58vh;justify-content:center;text-align:center;align-items:center">
     <div class="eyebrow">Dein Gaming Recap</div><div class="num" style="font-size:clamp(70px,20vw,170px)">Wrapped</div>
-    <div class="sub" style="margin:10px auto 18px">Dein Spieljahr als Story: Stunden, Top-Spiele, dein Gamer-Typ, Rekorde und Abzeichen. Am Ende gibt's ein Bild zum Teilen.</div>
-    <div class="chips" style="justify-content:center">${[["year",String(y)],["all","Alle Zeiten"]].map(([k,l])=>`<button class="chip ${W.mode===k?"on":""}" onclick="W.mode='${k}';renderWrapped()">${l}</button>`).join("")}</div>
+    <div class="sub" style="margin:10px auto 18px">Deine Story: Stunden, Top-Spiele, dein Gamer-Typ, Rekorde und Abzeichen. Am Ende gibt's ein Bild zum Teilen.</div>
+    <div class="chips" style="justify-content:center;flex-wrap:wrap">${wrapModes().map(([k,l])=>`<button class="chip ${W.mode===k?"on":""}" onclick="W.mode='${k}';renderWrapped();afterRender()">${esc(l)}</button>`).join("")}</div>
     <button class="btn limeb" style="font-size:18px;padding:18px 34px" onclick="startWrapped()">▶ Story starten</button>
     <div class="sub" id="wrapHint" style="margin:14px auto 0;font-size:14px;opacity:.85"></div></section>
     <div class="h1" style="font-size:32px;margin-top:28px">Abzeichen <span style="color:var(--muted)">${got}/${bd.length}</span></div>
     ${badgeGrid(bd.sort((a,b)=>(b.got-a.got)||(b.p-a.p)))}`;
-  if (W.mode === "year") ensureYear().then(()=>{
-    const el = $("#wrapHint"); if (!el) return;
-    const info = S.yearInfo || {}, has = Object.values(S.yearPM||{}).some(v=>v>0) || (S.data.sessions||[]).some(x=>x[1] >= new Date(y,0,1)/1000);
-    el.innerHTML = !has ? `Für ${y} gibt es noch keine Daten: Gaming Recap zeichnet ab jetzt auf. Bis dahin zeigt die Story <b>alle Zeiten</b>.`
-      : info.estimated ? `${y} ist geschätzt aus deinen Spieldaten (erster und letzter Spieltag je Spiel). Ab jetzt misst Gaming Recap genau mit.`
-      : info.complete === false && info.tracking_since ? `Hinweis: Für ${y} zählt alles ab dem ${fdate(new Date(info.tracking_since))}, dem Start der Aufzeichnung.` : "";
+  saveYearArchive();
+  const m = W.mode, el = () => $("#wrapHint");
+  if (m.startsWith("arch:")){ const a = (S.data.wrapped_archive||{})[m.slice(5)] || {}; el().innerHTML = `Archiv – eingefroren am ${a.saved?fdate(new Date(a.saved)):"–"}${a.estimated?", teils geschätzt":""}.`; return; }
+  if (m === "all") return;
+  ensurePeriod(m).then(({pm, info})=>{
+    if (!el()) return;
+    const has = Object.values(pm).some(v=>v>0);
+    el().innerHTML = !has ? `Für diesen Zeitraum gibt es noch keine Spielzeit.` : info.estimated
+      ? `Teils geschätzt: Die Plattformen liefern nur Gesamtzeiten. Steam-Erfolge, Spieldaten und deine Korrekturen fließen ein – korrigieren kannst du in den Spiel-Details. Ab ${info.tracking_since?fdate(new Date(info.tracking_since)):"heute"} misst Gaming Recap genau mit.` : "";
   });
 }
+function wrapRange(m){
+  const n = new Date(), y = n.getFullYear();
+  if (m === "year") return [new Date(y,0,1), n];
+  if (m === "month") return [new Date(y,n.getMonth(),1), n];
+  if (m === "week") return [new Date(Date.now()-7*864e5), n];
+  if (m.startsWith("arch:")){ const a = Number(m.slice(5)); return [new Date(a,0,1), new Date(a+1,0,1)]; }
+  return [new Date(0), n];
+}
 function wrappedData(){
-  const year = new Date().getFullYear(), yr = W.mode === "year", pm = yr ? (S.yearPM||{}) : null;
-  const ys = yr ? new Date(year,0,1)/1000 : 0;
-  const rows = S.groups.map(g=>{
-    const devs = {}; let m = 0;
-    for (const r of g.recs){ const v = pm ? (pm[r.id]||0) : (r.minutes||0); m += v; devs[r.device] = (devs[r.device]||0)+v; }
-    return {g, m, devs};
-  }).filter(x=>x.m>0).sort((a,b)=>b.m-a.m);
+  const m = W.mode, now = new Date(), year = m.startsWith("arch:") ? Number(m.slice(5)) : now.getFullYear();
+  const [from, to] = wrapRange(m), fs = from/1000, ts2 = to/1000;
+  let rows;
+  if (m.startsWith("arch:")){
+    const games = ((S.data.wrapped_archive||{})[m.slice(5)]||{}).games || {};
+    rows = Object.entries(games).map(([k,[mins,devs]])=>{ const g = S.gmap.get(k); return g ? {g, m:mins, devs:{...devs}} : null; }).filter(Boolean);
+  } else {
+    const pm = m === "all" ? null : ((S.pcache||{})[m]||{}).pm || {};
+    rows = S.groups.map(g=>{ const devs = {}; let mm = 0;
+      for (const r of g.recs){ const v = pm ? (pm[r.id]||0) : (r.minutes||0); mm += v; devs[r.device] = (devs[r.device]||0)+v; }
+      return {g, m:mm, devs}; });
+  }
+  rows = rows.filter(x=>x.m>0).sort((a,b)=>b.m-a.m);
   const total = rows.reduce((s,x)=>s+x.m,0);
-  const dev = {}; rows.forEach(x=>Object.entries(x.devs).forEach(([k,v])=>dev[k]=(dev[k]||0)+v));
-  const plat = {}; rows.forEach(x=>x.g.recs.forEach(r=>{ const v = pm ? (pm[r.id]||0) : (r.minutes||0); if (v) plat[platLabel(r)]=(plat[platLabel(r)]||0)+v; }));
+  const dev = {}; rows.forEach(x=>Object.entries(x.devs).forEach(([k,v])=>{ if (v) dev[k]=(dev[k]||0)+v; }));
+  const plat = {};
+  rows.forEach(x=>{ const ms = x.g.recs.reduce((s,r)=>s+(r.minutes||0),0) || 1;
+    x.g.recs.forEach(r=>{ const share = Object.keys(x.devs).length ? (x.devs[r.device]||0) * ((r.minutes||0) / Math.max(1, x.g.recs.filter(q=>q.device===r.device).reduce((s,q)=>s+(q.minutes||0),0))) : 0;
+      if (share > 0) plat[platLabel(r)] = (plat[platLabel(r)]||0) + share; }); });
   const gen = {}; rows.forEach(x=>x.g.genres.forEach(n=>gen[n]=(gen[n]||0)+(x.devs.PC||0)));
-  const st = sessionStats(ys);
+  const st = sessionStats(m === "all" ? 0 : fs);
+  st.ss = st.ss.filter(x=>x[1] < ts2);
   const months = {}; for (const [k,s,sec] of st.ss){ const d = new Date(s*1000), mk = `${d.getFullYear()}-${d.getMonth()}`; months[mk]=(months[mk]||0)+sec/60; }
-  const bestMonth = Object.entries(months).sort((a,b)=>b[1]-a[1])[0];
-  const done = (yr ? doneInYear(String(year)) : S.groups.filter(g=>g.pc && DONE.has(g.status)).map(g=>g.key)).map(k=>S.gmap.get(k)).filter(Boolean);
-  const added = yr ? addedInYear(year).length : blGames().length;
+  const bestMonth = (m === "year" || m.startsWith("arch:")) ? Object.entries(months).sort((a,b)=>b[1]-a[1])[0] : null;
+  const inRange = at => { const t = Date.parse(at); return t >= +from && t < +to; };
+  const doneKeys = m === "all" ? S.groups.filter(g=>g.pc && DONE.has(g.status)).map(g=>g.key)
+    : [...new Set((S.data.status_log||[]).filter(([k,stt,at])=>DONE.has(stt) && inRange(at)).map(x=>x[0]))];
+  const done = doneKeys.map(k=>S.gmap.get(k)).filter(g=>g && DONE.has(g.status));
+  const added = m === "all" ? blGames().length : blGames().filter(g=>g.added && g.added >= from && g.added < to).length;
   const ach = Object.values((S.data.steam||{}).ach||{});
-  const achN = yr ? ach.reduce((s,a)=>s+((a.y||{})[year]||0),0) : ach.reduce((s,a)=>s+a.d,0);
-  const rare = ach.filter(a=>a.r && (!yr || (a.r[2] && new Date(a.r[2]*1000).getFullYear()===year))).sort((a,b)=>a.r[1]-b.r[1])[0];
+  const yearly = m === "year" || m.startsWith("arch:");
+  const achN = m === "all" ? ach.reduce((s,a)=>s+a.d,0) : yearly ? ach.reduce((s,a)=>s+((a.y||{})[year]||0),0) : 0;
+  const rare = ach.filter(a=>a.r && (m === "all" || (yearly && a.r[2] && new Date(a.r[2]*1000).getFullYear()===year))).sort((a,b)=>a.r[1]-b.r[1])[0];
   const bd = badges().filter(b=>b.got);
   const fr = (S.data.steam||{}).friends || [];
   const mySteam = S.groups.reduce((s,g)=>s+g.recs.filter(r=>r.store==="Steam").reduce((a,r)=>a+(r.minutes||0),0),0);
-  const rank = fr.length ? [...fr.map(f=>f.minutes), mySteam].sort((a,b)=>b-a).indexOf(mySteam)+1 : 0;
-  return {year, yr, rows, total, dev, plat:Object.entries(plat).sort((a,b)=>b[1]-a[1]), gen:Object.entries(gen).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]),
-    st, bestMonth, done, added, achN, rare, bd, rank, friends: fr.length, info: yr ? (S.yearInfo||{}) : {}};
+  const rank = m === "all" && fr.length ? [...fr.map(f=>f.minutes), mySteam].sort((a,b)=>b-a).indexOf(mySteam)+1 : 0;
+  const mon = from.toLocaleDateString("de-DE",{month:"long"});
+  const T = {
+    year: {label:String(year), lead:`${year} hast du`, big:String(year), title:"Dein Gaming-Jahr.", share:String(year)},
+    month:{label:mon, lead:`Im ${mon} hast du`, big:mon.slice(0,3)+".", title:`Dein Gaming-${mon}.`, share:`${mon.toUpperCase()} ${year}`},
+    week: {label:"diese Woche", lead:"In den letzten 7 Tagen hast du", big:`KW ${kw(now)}`, title:"Deine Gaming-Woche.", share:`KW ${kw(now)}`},
+    all:  {label:"aller Zeiten", lead:"Insgesamt hast du", big:"∞", title:"Deine ganze Gaming-Geschichte.", share:"RECAP"},
+  }[m] || {label:String(year), lead:`${year} hast du`, big:String(year), title:`Dein Gaming-Jahr ${year}.`, share:String(year)};
+  const info = m.startsWith("arch:") ? {estimated: ((S.data.wrapped_archive||{})[m.slice(5)]||{}).estimated} : m === "all" ? {} : (((S.pcache||{})[m]||{}).info || {});
+  return {year, yr: m !== "all", mode: m, ...T, rows, total, dev, plat:Object.entries(plat).sort((a,b)=>b[1]-a[1]), gen:Object.entries(gen).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]),
+    st, bestMonth, done, added, achN, rare, bd, rank, friends: fr.length, info};
 }
 const FUN = [[686,"× Herr der Ringe (Extended)"],[510,"Flüge nach New York"],[2700,"× Breaking Bad komplett"],[90,"Fußballspiele"],[42,"Marathons (im Schnitt)"]];
 function wrapSlides(D){
-  const L = [], label = D.yr ? String(D.year) : "aller Zeiten";
+  const L = [], label = D.label;
   const cover = g => `<div class="poster">${img(g.covers,g.title)}</div>`;
   const blobs = (...c) => c.map((col,i)=>`<div class="wblob" style="background:${col};width:${60+i*14}cqw;height:${60+i*14}cqw;left:${[-20,40,-10,50][i%4]}%;top:${[-10,30,60,-20][i%4]}%;animation-delay:${-i*3}s"></div>`).join("");
   const mosaic = list => `<div class="wmosaic">${[...list, ...list, ...list].slice(0,40).map(cover).join("")}</div>`;
   const back = g => { const u = g && (g.banners||[]).concat(g.covers||[]).find(Boolean); return u ? `<div class="wback" style="background-image:url('${esc(u)}')"></div>` : ""; };
   const topCovers = D.rows.slice(0,14).map(x=>x.g);
   L.push({bg:"#12061f", html:`${mosaic(topCovers)}${blobs("#ff4fa3","#7a5cff")}
-    <div class="k w-in">Gaming Recap</div><div class="xl w-in d1">${D.yr?D.year:"∞"}</div><div class="h w-in d2 split">${D.yr?"Dein Gaming-Jahr.":"Deine ganze Gaming-Geschichte."}</div>
-    <p class="w-in d3">${D.yr && D.info && D.info.estimated ? "Geschätzt aus deinen Spieldaten. " : ""}Tippe rechts für weiter, links für zurück. Gedrückt halten pausiert.</p>`});
+    <div class="k w-in">Gaming Recap</div><div class="xl w-in d1" style="${D.big.length>5?"font-size:clamp(56px,22cqw,120px)":""}">${esc(D.big)}</div><div class="h w-in d2 split">${esc(D.title)}</div>
+    <p class="w-in d3">${D.info && D.info.estimated ? "Teils geschätzt aus deinen Spieldaten. " : ""}Tippe rechts für weiter, links für zurück. Gedrückt halten pausiert.</p>`});
   if (!D.total){ L.push({bg:"#15141c", html:`<div class="h">Noch keine Spielzeit ${D.yr?"in diesem Jahr":""} erfasst.</div><p>Schau wieder vorbei, wenn ein paar Abgleiche gelaufen sind.</p>`}); return L; }
   const fun = FUN[Math.floor(Math.random()*FUN.length)];
-  L.push({bg:"#2a0f5a", html:`${blobs("#7a5cff","#3d7bff","#ff4fa3")}<div class="k w-in">${D.yr?`${D.year} hast du`:"Insgesamt hast du"}</div>
+  L.push({bg:"#2a0f5a", html:`${blobs("#7a5cff","#3d7bff","#ff4fa3")}<div class="k w-in">${esc(D.lead)}</div>
     <div class="xl w-in d1" data-count="${Math.round(D.total/60)}">0</div><div class="h w-in d2 split">Stunden gezockt.</div>
     <p class="w-in d3">Das sind <b>${num(D.total/1440,1)} Tage</b> am Stück.</p><p class="w-in d4">Oder <b>${num(D.total/fun[0], D.total/fun[0]<10?1:0)} ${fun[1]}</b>.</p>`});
   L.push({bg:"#3a0d1f", html:`${blobs("#ff8a3d","#ff4fa3")}<div class="k w-in">Gespielt</div><div class="xl w-in d1" data-count="${D.rows.length}">0</div><div class="h w-in d2 split">verschiedene Spiele.</div>
@@ -1630,8 +1735,8 @@ function wrapSlides(D){
     const bestW = [...ratedW].sort((a,b)=>b.g.critic-a.g.critic)[0];
     L.push({bg:"#14200c", html:`${back(bestW.g)}${blobs("#66cc33","#c8f135")}<div class="k w-in">Dein Geschmack</div>
       <div class="xl w-in d1" data-count="${Math.round(avg)}">0</div><div class="h w-in d2 split">Punkte im Schnitt.</div>
-      <p class="w-in d3">So bewertet die Fachpresse, was du spielst – gewichtet nach deiner Zeit.</p>
-      <div class="wrow w-in d4"><div class="r">★</div>${cover(bestW.g)}<b>${esc(bestW.g.title)}</b><span>${mcBadge(bestW.g.critic)}</span></div>`});
+      <p class="w-in d3">So bewertet die Fachpresse, was du spielst – gewichtet nach deiner Zeit (${ratedW.length} bewertete Spiele).</p>
+      ${[...ratedW].sort((a,b)=>b.g.critic-a.g.critic||b.m-a.m).slice(0,4).map((x,i)=>`<div class="wrow w-in d${Math.min(5,i+3)}"><div class="r">${i+1}</div>${cover(x.g)}<b>${esc(x.g.title)}</b><span>${mcBadge(x.g.critic)}</span></div>`).join("")}`});
   }
   if (D.done.length) L.push({bg:"#3b1a7a", confetti:true, html:`${blobs("#7a5cff","#ff4fa3")}<div class="k w-in">Backlog</div><div class="xl w-in d1" data-count="${D.done.length}">0</div>
     <div class="h w-in d2 split">Spiele durchgespielt.</div><div class="wpost w-in d3">${D.done.slice(0,4).map(cover).join("")}</div>
@@ -1671,9 +1776,9 @@ function splitWords(root){
   });
 }
 window.startWrapped = async () => {
-  if (W.mode === "year") await ensureYear();
+  if (["year","month","week"].includes(W.mode)) await ensurePeriod(W.mode);
   W.data = wrappedData();
-  if (W.mode === "year" && !W.data.total){ W.mode = "all"; W.data = wrappedData(); toast(`Noch keine Daten für ${new Date().getFullYear()} – zeige alle Zeiten`); } W.slides = wrapSlides(W.data); W.i = 0;
+  if (!W.data.total && W.mode !== "all"){ W.mode = "all"; W.data = wrappedData(); toast("Für diesen Zeitraum gibt es noch keine Spielzeit – zeige alle Zeiten"); } W.slides = wrapSlides(W.data); W.i = 0;
   let el = $("#wrap");
   if (!el){ el = document.createElement("div"); el.id = "wrap"; document.body.appendChild(el); }
   el.innerHTML = `<div class="wstage" id="wstage"><div class="wbars">${W.slides.map(()=>"<i><b></b></i>").join("")}</div>
@@ -1728,7 +1833,7 @@ async function shareWrapped(){
   blob(900,1650,700,"#ff8a3daa"); blob(150,300,600,"#c8f13555");
   const txt = (t, y, size, weight=900, col="#fff", xx=90) => { x.fillStyle = col; x.font = `${weight} ${size}px ${F}`; x.fillText(t, xx, y); };
   const fit = (t, max, size) => { x.font = `900 ${size}px ${F}`; while (x.measureText(t).width > max && size > 30) { size -= 4; x.font = `900 ${size}px ${F}`; } return size; };
-  txt(`MEIN GAMING ${D.yr?D.year:"RECAP"}`, 180, 46, 800, "#ffffffcc");
+  txt(`MEIN GAMING ${D.share}`, 180, 46, 800, "#ffffffcc");
   txt(num(Math.round(D.total/60)), 420, fit(num(Math.round(D.total/60)), 900, 260));
   txt("Stunden gezockt", 500, 64, 800);
   txt(`${D.rows.length} Spiele · ${D.plat.length} Plattformen`, 580, 42, 600, "#ffffffdd");
@@ -1751,7 +1856,7 @@ async function shareWrapped(){
   if (y < 1700 && D.bd.length) line("ABZEICHEN", `${D.bd.length} freigeschaltet`);
   if (D.bd.length){ x.font = `64px ${F}`; x.fillText(D.bd.slice(0,10).map(b=>b.e).join(" "), 90, Math.min(y+40, 1790)); }
   txt("🎮 Gaming Recap", 1870, 34, 800, "#ffffffbb");
-  const file = await new Promise(r=>c.toBlob(b=>r(new File([b], `gaming-recap-${D.yr?D.year:"alle"}.png`, {type:"image/png"})), "image/png"));
+  const file = await new Promise(r=>c.toBlob(b=>r(new File([b], `gaming-recap-${D.mode.replace(":","-")}-${D.year}.png`, {type:"image/png"})), "image/png"));
   try {
     if (navigator.canShare && navigator.canShare({files:[file]})) { await navigator.share({files:[file], title:"Mein Gaming Recap"}); return; }
   } catch(e){ if (e.name === "AbortError") return; }
@@ -1760,8 +1865,30 @@ async function shareWrapped(){
 }
 
 /* ================= Detailansicht ================= */
+function yearBlock(g){
+  const y = new Date().getFullYear(), pm = S.yearPM, info = S.yearInfo || {};
+  if (!pm || !info.estimated) return "";
+  const est = g.recs.reduce((s,r)=>s+(pm[r.id]||0),0), ov = ((S.data.year_overrides||{})[y]||{})[g.key];
+  return `<div class="secttl">Spielzeit ${y} ${ov!=null?"(von dir korrigiert)":"(geschätzt)"}</div>
+    <div class="inl" style="flex-wrap:wrap"><b style="font-size:18px;margin-right:6px">${est?hrs(est):"0 Std"}</b>
+      <input type="number" id="yrOv" min="0" step="1" placeholder="Std" value="${ov!=null?Math.round(ov/60):""}">
+      <button class="btn ghost small" onclick="saveYearOv('${esc(g.key)}')">Korrigieren</button>
+      ${ov!=null?`<button class="btn ghost small" onclick="saveYearOv('${esc(g.key)}', true)">↺ Schätzung</button>`:""}</div>
+    <p class="help">Für ${y} gibt es keine genauen Daten der Plattformen. Wenn du weißt, wie viel du gespielt hast, trag es hier ein – Recap und Wrapped übernehmen das.</p>`;
+}
+window.saveYearOv = async (key, reset) => {
+  const y = String(new Date().getFullYear()), all = JSON.parse(JSON.stringify(S.data.year_overrides||{}));
+  all[y] = all[y] || {};
+  const v = parseFloat(($("#yrOv")||{}).value);
+  if (reset || !(v >= 0)) delete all[y][key]; else all[y][key] = Math.round(v*60);
+  try { await saveKv("year_overrides", all); S.data.year_overrides = all; } catch(e){ toast("Speichern fehlgeschlagen"); return; }
+  toast("Gespeichert");
+  if (CLOUD){ S.pcache = {}; buildGroups(); await ensurePeriod("year"); route(); openGame(key); }
+  else { await load(); await ensurePeriod("year"); openGame(key); }
+};
 window.openGame = key => {
   const g = S.gmap.get(key); if (!g) return;
+  if (!(S.pcache||{}).year) ensurePeriod("year").then(()=>{ if ($("#detail").open && S.gmap.get(key)) openGame(key); });
   const devs = Object.keys(g.devs), H = g.hltb;
   let tempo = "";
   const ref = H ? (g.status==="komplett" && H.comp ? H.comp : H.main) : null;
@@ -1780,7 +1907,8 @@ window.openGame = key => {
       ${g.first?`<div><small>Zum ersten Mal</small><b>${fdate(g.first)}</b></div>`:""}
       ${g.year?`<div><small>Erschienen</small><b>${g.year}</b></div>`:""}
       ${g.devsList.length?`<div><small>Studio</small><b>${esc(g.devsList.slice(0,2).join(", "))}</b></div>`:""}</div>
-    ${g.recs.length>1?`<div class="secttl">Nach Plattform</div><div class="tagrow">${g.recs.map(r=>`<span class="tag"><i style="background:${pcolor(platLabel(r))}"></i>${esc(platLabel(r))} · ${hrs(r.minutes||0)}</span>`).join("")}</div>`:""}
+    <div class="secttl">Plattformen</div><div class="tagrow">${g.recs.map(r=>`<span class="tag"><i style="background:${pcolor(platLabel(r))}"></i>${esc(platLabel(r))} · ${r.minutes?hrs(r.minutes):"nie gespielt"}${r.family?" · geliehen":""}</span>`).join("")}</div>
+    ${yearBlock(g)}
     ${g.genres.length?`<div class="secttl">Genres</div><div class="tagrow">${g.genres.map(x=>`<span class="tag">${esc(x)}</span>`).join("")}</div>`:""}
     ${hltbBlock}
     ${g.ach && g.ach.t ? `<div class="secttl">Steam-Erfolge</div><div class="goal"><div class="gtop"><span>${g.ach.d} von ${g.ach.t}</span><span>${num(g.ach.d/g.ach.t*100)} %</span></div>
@@ -1788,10 +1916,10 @@ window.openGame = key => {
       ${g.ach.r?`<p class="help">Seltenster: <b>${esc(g.ach.r[0])}</b> – nur ${num(g.ach.r[1],1)} % haben ihn.</p>`:""}</div>` : ""}
     ${g.price && g.price.orig ? `<div class="secttl">Preis</div><p style="margin:4px 0">${euro(g.price.orig)} im Steam-Store${g.price.discount?` (gerade -${g.price.discount} %)`:""}${g.minutes>=60?` · <b>${euro(g.price.orig/(g.minutes/60))} pro Stunde</b>`:""}</p>` : ""}
     ${g.appid ? `<a class="btn ghost small" style="margin-top:10px" href="https://store.steampowered.com/app/${esc(g.appid)}/" target="_blank" rel="noopener">Im Steam-Store ↗</a>` : ""}`;
-  const right = `${g.pc && !g.hidden && g.owned ? `<div class="secttl">Backlog-Status ${g.isAuto?"<span style='text-transform:none;letter-spacing:0'>(automatisch erkannt)</span>":""}</div>
+  const right = `${g.pc && !g.hidden && g.owned && !consoleOnly(g) ? `<div class="secttl">Backlog-Status ${g.isAuto?"<span style='text-transform:none;letter-spacing:0'>(automatisch erkannt)</span>":""}</div>
       <div class="sgrid">${STATUS.map(s=>`<button style="color:${s.c}" class="${g.status===s.k?"on":""}" onclick="setStatus('${esc(g.key)}','${s.k}')"><span style="color:var(--ink)">${s.e} ${s.l}</span></button>`).join("")}
       ${g.isAuto?"":`<button onclick="setStatus('${esc(g.key)}',null)" style="color:var(--muted)">↺ Automatisch</button>`}</div>`
-      : `<p class="help">${!g.pc?"Konsolenspiele zählen in die Statistik, aber nicht in den Backlog.":!g.owned?"Nicht im Backlog: Der Store ist dort ausgeschlossen (Einstellungen) oder das Spiel ist geliehen.":"In Playnite ausgeblendet, daher nicht im Backlog."}</p>`}
+      : `<p class="help">${!g.pc?"Konsolenspiele zählen in die Statistik, aber nicht in den Backlog.":consoleOnly(g)?"Nur auf der Konsole gespielt, daher nicht im Backlog.":!g.owned?"Nicht im Backlog: Der Store ist dort ausgeschlossen (Einstellungen) oder das Spiel ist geliehen.":"In Playnite ausgeblendet, daher nicht im Backlog."}</p>`}
     <div class="secttl">Tier-Liste</div>
     <div class="tpick">${TIERS.map(([t,c])=>`<button style="background:${c}" class="${g.tier===t?"on":""}" onclick="setTier('${esc(g.key)}', ${g.tier===t?"null":`'${t}'`})">${t}</button>`).join("")}</div>
     <div class="secttl">Wertungen</div>
@@ -1825,8 +1953,9 @@ window.setStatus = async (key, st) => { await saveMeta(key,{status:st}); openGam
 window.setHide = async (key, h) => { await saveMeta(key,{hide:h}); toast(h?"Ausgeblendet":"Wieder sichtbar"); $("#detail").close(); route(); };
 window.setTier = async (key, t, reopen=true) => { await saveMeta(key,{tier:t}); if (reopen && $("#detail").open) openGame(key); if (cur()==="spiele" && S.lib.view==="tier") renderLib(); };
 async function saveKv(key, value){
-  if (CLOUD){ const q = edits(); q.push({kind:"kv", key, value, ts:Date.now()}); store.set("gr_edits", q); S.data.goals = value; header(); flushEdits(); return; }
-  await post("/api/kv", {key, value}); S.data.goals = value;
+  const field = key === "goals" ? "goals" : key === "wrapped" ? "wrapped_archive" : key;
+  if (CLOUD){ const q = edits().filter(e=>!(e.kind==="kv" && e.key===key && !e.sent)); q.push({kind:"kv", key, value, ts:Date.now()}); store.set("gr_edits", q); S.data[field] = value; header(); flushEdits(); return; }
+  await post("/api/kv", {key, value}); S.data[field] = value;
 }
 window.setRating = async (key, n) => { const g = S.gmap.get(key); await saveMeta(key,{rating: g.meta.rating===n ? 0 : n}); openGame(key); };
 window.saveHltb = async key => {
