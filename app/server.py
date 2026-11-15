@@ -1812,8 +1812,9 @@ def cloud_sync(force=False):
                 files["app/version.json"] = json.dumps(man, indent=1).encode()
         if cfg.get("partner_code"):
             try:
-                pdata = cloud.encrypt(partner_summary(cfg), cfg["partner_code"])
-                ph = hashlib.sha256(json.dumps(partner_summary(cfg, stable=True), sort_keys=True, default=str).encode()).hexdigest()
+                pdata = cloud.encrypt(partner_summary(cfg), cfg["partner_code"].strip())
+                # Code mit in den Hash: nach einem Code-Wechsel muss neu verschlüsselt hochgeladen werden
+                ph = hashlib.sha256((cfg["partner_code"].strip() + "|" + json.dumps(partner_summary(cfg, stable=True), sort_keys=True, default=str)).encode()).hexdigest()
                 if ph != cloud_state.get("partner_hash"):
                     files["partner.enc"] = pdata
                     cloud_state["partner_hash_new"] = ph
