@@ -221,6 +221,10 @@ main{max-width:1240px;margin:0 auto;padding:4px 16px 120px}
   .bhead{display:grid;grid-template-columns:52px 1fr 150px 90px 90px 90px;gap:14px;padding:0 10px 8px;font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
   .bhead span:nth-child(n+4){text-align:right}
 }
+details.adv{border:1px solid #ffffff1a;border-radius:16px;padding:12px 14px;margin:14px 0}
+details.adv>summary{cursor:pointer;font-weight:800;list-style:none}
+details.adv>summary::before{content:"▸ ";color:var(--muted)}details.adv[open]>summary::before{content:"▾ "}
+details.adv[open]>summary{margin-bottom:6px}
 .pc-chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:#ffffff10;margin:4px 4px 0 0;color:var(--ink)}
 .pc-chip i{width:7px;height:7px;border-radius:50%;display:inline-block}
 .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;font-size:12.5px;font-weight:800;white-space:nowrap;justify-self:start}
@@ -501,7 +505,8 @@ const S = {data:null, snap:null, period:"all", groups:[], gmap:new Map(),
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const num = (n,d=0) => Number(n).toLocaleString("de-DE",{maximumFractionDigits:d,minimumFractionDigits:d});
-function hrs(min){ if (min < 60) return `${Math.round(min)} Min`; const h=min/60; return `${num(h, h<10?1:0)} Std`; }
+// S.est: gerade wird ein geschätzter Zeitraum gezeichnet -> Zeiten mit "~"
+function hrs(min){ const t = S.est ? "~" : ""; if (min < 60) return `${t}${Math.round(min)} Min`; const h=min/60; return `${t}${num(h, h<10?1:0)} Std`; }
 function pdate(s){ if(!s) return null; const d=new Date(String(s).replace(" ","T")); return isNaN(d)||d.getFullYear()<1990?null:d; }
 const fdate = d => d ? d.toLocaleDateString("de-DE",{day:"numeric",month:"short",year:"numeric"}) : "–";
 // Muss identisch zu norm_title()/PLATFORM_SUFFIX in common.py bleiben
@@ -679,7 +684,8 @@ function estimatePeriod(p, measured){
       let share = null;
       const a = r.steam_appid && ach[r.steam_appid];
       if (p === "year" && a && a.d >= 3 && (a.y||{})[year]) share = (a.y[year]||0) / a.d;
-      if (share === null && (p === "week" || p === "month") && r.two_weeks) share = Math.min(base, r.two_weeks * Math.min(2, (now-ps)/(14*864e5))) / base;
+      let tw = false;
+      if (share === null && (p === "week" || p === "month") && r.two_weeks){ share = Math.min(r.minutes||0, r.two_weeks * Math.min(1, (now-ps)/(14*864e5))) / base; tw = true; }
       if (share === null){
         if (first && first >= ps) share = 1;
         else {
@@ -688,9 +694,23 @@ function estimatePeriod(p, measured){
           share = norm > 0 ? win / norm : 1;
         }
       }
-      est = Math.round(base * Math.max(0, Math.min(1, share)));
+      est = Math.round(base * Math.max(0, Math.min(tw ? 99 : 1, share)));
+      // Steam "letzte 2 Wochen" enthält die gemessene Zeit schon
+      if (tw){ if (Math.max(est, delta) > 0) out[r.id] = Math.max(est, delta); continue; }
     }
     if (est + delta > 0) out[r.id] = est + delta;
+  }
+  // Aufgezeichnete PC-Sessions sind exakt: mindestens so viel zählen
+  const sess = {};
+  for (const [k, st, sec] of (S.data.sessions||[])) if (st*1000 >= +ps) sess[k] = (sess[k]||0) + sec/60;
+  if (Object.keys(sess).length){
+    const pcBy = {};
+    for (const r of S.data.games) if (r.device === "PC"){ const k = norm(r.title); (pcBy[k] = pcBy[k] || []).push(r); }
+    for (const [k, mins] of Object.entries(sess)){
+      const recs = pcBy[k]; if (!recs) continue;
+      const cur = recs.reduce((s,r)=>s+(out[r.id]||0),0);
+      if (mins > cur){ const top = [...recs].sort((a,b)=>(b.minutes||0)-(a.minutes||0))[0]; out[top.id] = (out[top.id]||0) + Math.round(mins - cur); }
+    }
   }
   // Eigene Korrekturen (pro Spiel) – nur fürs Jahr
   const ov = p === "year" ? ((S.data.year_overrides||{})[String(year)] || {}) : {};
@@ -841,7 +861,7 @@ function quietRoute(){
 function afterRender(){
   if (S.quiet){
     document.querySelectorAll(".reveal").forEach(el=>{ el.style.transition = "none"; el.classList.add("in");
-      el.querySelectorAll("[data-count]").forEach(c=>c.textContent = num(Number(c.dataset.count), Number(c.dataset.dec||0)));
+      el.querySelectorAll("[data-count]").forEach(c=>c.textContent = (c.dataset.pre||"") + num(Number(c.dataset.count), Number(c.dataset.dec||0)));
       el.querySelectorAll("[data-w]").forEach(c=>{ c.style.transition = "none"; c.style.width = c.dataset.w; });
       el.querySelectorAll("[data-h]").forEach(c=>{ c.style.transition = "none"; c.style.height = c.dataset.h; }); });
     document.querySelectorAll(".heatwrap").forEach(el=>el.scrollLeft = el.scrollWidth);
@@ -854,7 +874,7 @@ function afterRender(){
 function animate(root){
   root.querySelectorAll("[data-count]").forEach(el=>{
     const to = Number(el.dataset.count), dec = Number(el.dataset.dec||0), t0 = performance.now(), dur = 1400;
-    const step = t => { const p = Math.min(1,(t-t0)/dur), e = 1-Math.pow(1-p,4); el.textContent = num(to*e, dec); if (p<1) requestAnimationFrame(step); };
+    const step = t => { const p = Math.min(1,(t-t0)/dur), e = 1-Math.pow(1-p,4); el.textContent = (el.dataset.pre||"") + num(to*e, dec); if (p<1) requestAnimationFrame(step); };
     requestAnimationFrame(step);
   });
   root.querySelectorAll("[data-w]").forEach(el=>requestAnimationFrame(()=>{ el.style.width = el.dataset.w; }));
@@ -911,7 +931,7 @@ function periodNotice(){
   const p = S.data.period||{};
   if (!p.period || p.period === "all") return "";
   if (!p.tracking_since) return `<div class="notice">📈 Der Verlauf startet mit dem ersten Abgleich.</div>`;
-  if (p.estimated) return `<div class="notice">📊 <b>${new Date().getFullYear()} ist geschätzt:</b> Die Plattformen liefern nur Gesamtzeiten. Wir verteilen jede Spielzeit zwischen erstem und letztem Spieltag und zählen den Teil, der in dieses Jahr fällt. Ab ${p.tracking_since?fdate(new Date(p.tracking_since)):"heute"} misst Gaming Recap genau mit.</div>`;
+  if (p.estimated) return `<div class="notice">📊 <b>Werte mit ~ sind geschätzt:</b> Die Plattformen liefern nur Gesamtzeiten. Steam-Erfolge, Spieldaten und deine Korrekturen (im Spiel-Detail) fließen ein. Ab ${p.tracking_since?fdate(new Date(p.tracking_since)):"heute"} misst Gaming Recap genau mit.</div>`;
   if (!p.complete) return `<div class="notice">📈 Aufgezeichnet wird seit ${fdate(new Date(p.tracking_since))}. Die Plattformen liefern nur Gesamtzeiten, deshalb zählt dieser Zeitraum ab dann.</div>`;
   return "";
 }
@@ -946,6 +966,10 @@ function setupChecklist(){
     <div style="margin-top:16px"><button class="btn limeb" onclick="openSettings()">Einstellungen öffnen</button></div></section>`;
 }
 function renderOverview(){
+  const pe = S.data.period || {}; S.est = !!(pe.estimated && pe.period && pe.period !== "all");
+  try { renderOverviewInner(); } finally { S.est = false; }
+}
+function renderOverviewInner(){
   const played = S.groups.filter(g=>val(g)>0).sort((a,b)=>val(b)-val(a));
   let h = playingBanner() + periodChips() + periodNotice();
   if (!played.length){ $("#view").innerHTML = h + emptyState(); return; }
@@ -959,7 +983,7 @@ function renderOverview(){
   h += `<div class="bento">`;
   const mosa = played.slice(0,16).map(g=>`<div class="poster">${img(g.covers,g.title)}</div>`);
   h += `<section class="card hero reveal"><div class="hmosaic">${[...mosa,...mosa].join("")}</div><div class="eyebrow">${label}</div>
-    <div class="num" data-count="${Math.round(total/60)}">0</div><div class="unit">Stunden gezockt.</div>
+    <div class="num" data-count="${Math.round(total/60)}" data-pre="${S.est?"~":""}">0</div><div class="unit">Stunden gezockt${S.est?" (geschätzt)":""}.</div>
     <div class="sub">Das sind <b>${num(total/1440,1)} Tage</b> am Stück – oder <b>${num(lotr, lotr<10?1:0)}×</b> die Herr-der-Ringe-Trilogie in der Extended Edition.</div>
     <div class="hstats"><div class="hstat"><b>${num(played.length)}</b><span>Spiele</span></div>
       <div class="hstat"><b>${plats.length}</b><span>Plattformen</span></div>
@@ -1591,20 +1615,31 @@ const MON = () => new Date().toLocaleDateString("de-DE",{month:"long"});
 function kw(d){ const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const day = t.getUTCDay()||7; t.setUTCDate(t.getUTCDate()+4-day); const y0 = new Date(Date.UTC(t.getUTCFullYear(),0,1)); return Math.ceil(((t-y0)/864e5+1)/7); }
 function wrapModes(){
   const y = new Date().getFullYear();
-  const arch = Object.keys(S.data.wrapped_archive||{}).filter(k=>/^\d{4}$/.test(k) && Number(k) < y).sort().reverse();
-  return [["year",String(y)],["month",MON()],["week","Diese Woche"],["all","Alle Zeiten"], ...arch.map(a=>["arch:"+a, a])];
+  const n = new Date(), curM = `${y}-${String(n.getMonth()+1).padStart(2,"0")}`;
+  const keys = Object.keys(S.data.wrapped_archive||{});
+  const months = keys.filter(k=>/^\d{4}-\d{2}$/.test(k) && k < curM).sort().reverse().slice(0,3);
+  const years = keys.filter(k=>/^\d{4}$/.test(k) && Number(k) < y).sort().reverse();
+  return [["year",String(y)],["month",MON()],["week","Diese Woche"],["all","Alle Zeiten"],
+    ...months.map(a=>["arch:"+a, monLabel(a)]), ...years.map(a=>["arch:"+a, a])];
 }
-// Laufendes Jahr fürs Archiv sichern (höchstens einmal pro Tag). Ab dem 1.1. bleibt es eingefroren.
+const monLabel = k => new Date(Number(k.slice(0,4)), Number(k.slice(5,7))-1, 1).toLocaleDateString("de-DE",{month:"long", year:"numeric"});
+// Laufendes Jahr und laufenden Monat fürs Archiv sichern (höchstens einmal pro Tag). Ab dem 1.1. bleibt es eingefroren.
 async function saveYearArchive(){
-  const y = String(new Date().getFullYear()), today = new Date().toISOString().slice(0,10);
-  const cur = (S.data.wrapped_archive||{})[y];
-  if (cur && String(cur.saved||"").slice(0,10) === today) return;
-  const {pm, info} = await ensurePeriod("year"), games = {};
-  for (const g of S.groups){ const devs = {}; let m = 0;
-    for (const r of g.recs){ const v = pm[r.id]||0; if (v){ m += v; devs[r.device] = (devs[r.device]||0) + v; } }
-    if (m > 0) games[g.key] = [m, devs]; }
-  if (!Object.keys(games).length) return;
-  const all = {...(S.data.wrapped_archive||{}), [y]: {saved: new Date().toISOString(), estimated: !!info.estimated, games}};
+  const n = new Date(), y = String(n.getFullYear()), m = `${y}-${String(n.getMonth()+1).padStart(2,"0")}`, today = n.toISOString().slice(0,10);
+  const arch = S.data.wrapped_archive || {};
+  if (arch[y] && String(arch[y].saved||"").slice(0,10) === today && arch[m] && String(arch[m].saved||"").slice(0,10) === today) return;
+  const all = {...arch};
+  for (const [p, key] of [["year", y], ["month", m]]){
+    const {pm, info} = await ensurePeriod(p), games = {};
+    for (const g of S.groups){ const devs = {}; let mm = 0;
+      for (const r of g.recs){ const v = pm[r.id]||0; if (v){ mm += v; devs[r.device] = (devs[r.device]||0) + v; } }
+      if (mm > 0) games[g.key] = [mm, devs]; }
+    if (Object.keys(games).length) all[key] = {saved: n.toISOString(), estimated: !!info.estimated, games};
+  }
+  // nur die letzten 6 Monate behalten, Jahre immer
+  const ms = Object.keys(all).filter(k=>/^\d{4}-\d{2}$/.test(k)).sort().reverse();
+  ms.slice(6).forEach(k=>delete all[k]);
+  if (JSON.stringify(all) === JSON.stringify(arch)) return;
   try { await saveKv("wrapped", all); S.data.wrapped_archive = all; } catch(e){}
 }
 function renderWrapped(){
@@ -1634,11 +1669,13 @@ function wrapRange(m){
   if (m === "year") return [new Date(y,0,1), n];
   if (m === "month") return [new Date(y,n.getMonth(),1), n];
   if (m === "week") return [new Date(Date.now()-7*864e5), n];
-  if (m.startsWith("arch:")){ const a = Number(m.slice(5)); return [new Date(a,0,1), new Date(a+1,0,1)]; }
+  if (m.startsWith("arch:")){ const k = m.slice(5), a = Number(k.slice(0,4));
+    if (k.length > 4){ const mo = Number(k.slice(5,7))-1; return [new Date(a,mo,1), new Date(a,mo+1,1)]; }
+    return [new Date(a,0,1), new Date(a+1,0,1)]; }
   return [new Date(0), n];
 }
 function wrappedData(){
-  const m = W.mode, now = new Date(), year = m.startsWith("arch:") ? Number(m.slice(5)) : now.getFullYear();
+  const m = W.mode, now = new Date(), year = m.startsWith("arch:") ? Number(m.slice(5,9)) : now.getFullYear();
   const [from, to] = wrapRange(m), fs = from/1000, ts2 = to/1000;
   let rows;
   if (m.startsWith("arch:")){
@@ -1661,14 +1698,14 @@ function wrappedData(){
   const st = sessionStats(m === "all" ? 0 : fs);
   st.ss = st.ss.filter(x=>x[1] < ts2);
   const months = {}; for (const [k,s,sec] of st.ss){ const d = new Date(s*1000), mk = `${d.getFullYear()}-${d.getMonth()}`; months[mk]=(months[mk]||0)+sec/60; }
-  const bestMonth = (m === "year" || m.startsWith("arch:")) ? Object.entries(months).sort((a,b)=>b[1]-a[1])[0] : null;
+  const bestMonth = (m === "year" || (m.startsWith("arch:") && m.length === 9)) ? Object.entries(months).sort((a,b)=>b[1]-a[1])[0] : null;
   const inRange = at => { const t = Date.parse(at); return t >= +from && t < +to; };
   const doneKeys = m === "all" ? S.groups.filter(g=>g.pc && DONE.has(g.status)).map(g=>g.key)
     : [...new Set((S.data.status_log||[]).filter(([k,stt,at])=>DONE.has(stt) && inRange(at)).map(x=>x[0]))];
   const done = doneKeys.map(k=>S.gmap.get(k)).filter(g=>g && DONE.has(g.status));
   const added = m === "all" ? blGames().length : blGames().filter(g=>g.added && g.added >= from && g.added < to).length;
   const ach = Object.values((S.data.steam||{}).ach||{});
-  const yearly = m === "year" || m.startsWith("arch:");
+  const yearly = m === "year" || (m.startsWith("arch:") && m.length === 9);
   const achN = m === "all" ? ach.reduce((s,a)=>s+a.d,0) : yearly ? ach.reduce((s,a)=>s+((a.y||{})[year]||0),0) : 0;
   const rare = ach.filter(a=>a.r && (m === "all" || (yearly && a.r[2] && new Date(a.r[2]*1000).getFullYear()===year))).sort((a,b)=>a.r[1]-b.r[1])[0];
   const bd = badges().filter(b=>b.got);
@@ -1681,13 +1718,19 @@ function wrappedData(){
     month:{label:mon, lead:`Im ${mon} hast du`, big:mon.slice(0,3)+".", title:`Dein Gaming-${mon}.`, share:`${mon.toUpperCase()} ${year}`},
     week: {label:"diese Woche", lead:"In den letzten 7 Tagen hast du", big:`KW ${kw(now)}`, title:"Deine Gaming-Woche.", share:`KW ${kw(now)}`},
     all:  {label:"aller Zeiten", lead:"Insgesamt hast du", big:"∞", title:"Deine ganze Gaming-Geschichte.", share:"RECAP"},
-  }[m] || {label:String(year), lead:`${year} hast du`, big:String(year), title:`Dein Gaming-Jahr ${year}.`, share:String(year)};
+  }[m] || (m.length > 9 ? (()=>{ const ml = from.toLocaleDateString("de-DE",{month:"long"});
+      return {label:`${ml} ${year}`, lead:`Im ${ml} ${year} hast du`, big:ml.slice(0,3)+".", title:`Dein Gaming-${ml}.`, share:`${ml.toUpperCase()} ${year}`}; })()
+    : {label:String(year), lead:`${year} hast du`, big:String(year), title:`Dein Gaming-Jahr ${year}.`, share:String(year)});
   const info = m.startsWith("arch:") ? {estimated: ((S.data.wrapped_archive||{})[m.slice(5)]||{}).estimated} : m === "all" ? {} : (((S.pcache||{})[m]||{}).info || {});
   return {year, yr: m !== "all", mode: m, ...T, rows, total, dev, plat:Object.entries(plat).sort((a,b)=>b[1]-a[1]), gen:Object.entries(gen).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]),
     st, bestMonth, done, added, achN, rare, bd, rank, friends: fr.length, info};
 }
 const FUN = [[686,"× Herr der Ringe (Extended)"],[510,"Flüge nach New York"],[2700,"× Breaking Bad komplett"],[90,"Fußballspiele"],[42,"Marathons (im Schnitt)"]];
 function wrapSlides(D){
+  S.est = !!(D.info && D.info.estimated);
+  try { return wrapSlidesInner(D); } finally { S.est = false; }
+}
+function wrapSlidesInner(D){
   const L = [], label = D.label;
   const cover = g => `<div class="poster">${img(g.covers,g.title)}</div>`;
   const blobs = (...c) => c.map((col,i)=>`<div class="wblob" style="background:${col};width:${60+i*14}cqw;height:${60+i*14}cqw;left:${[-20,40,-10,50][i%4]}%;top:${[-10,30,60,-20][i%4]}%;animation-delay:${-i*3}s"></div>`).join("");
@@ -1700,7 +1743,7 @@ function wrapSlides(D){
   if (!D.total){ L.push({bg:"#15141c", html:`<div class="h">Noch keine Spielzeit ${D.yr?"in diesem Jahr":""} erfasst.</div><p>Schau wieder vorbei, wenn ein paar Abgleiche gelaufen sind.</p>`}); return L; }
   const fun = FUN[Math.floor(Math.random()*FUN.length)];
   L.push({bg:"#2a0f5a", html:`${blobs("#7a5cff","#3d7bff","#ff4fa3")}<div class="k w-in">${esc(D.lead)}</div>
-    <div class="xl w-in d1" data-count="${Math.round(D.total/60)}">0</div><div class="h w-in d2 split">Stunden gezockt.</div>
+    <div class="xl w-in d1" data-count="${Math.round(D.total/60)}" data-pre="${D.info&&D.info.estimated?"~":""}">0</div><div class="h w-in d2 split">Stunden gezockt.</div>
     <p class="w-in d3">Das sind <b>${num(D.total/1440,1)} Tage</b> am Stück.</p><p class="w-in d4">Oder <b>${num(D.total/fun[0], D.total/fun[0]<10?1:0)} ${fun[1]}</b>.</p>`});
   L.push({bg:"#3a0d1f", html:`${blobs("#ff8a3d","#ff4fa3")}<div class="k w-in">Gespielt</div><div class="xl w-in d1" data-count="${D.rows.length}">0</div><div class="h w-in d2 split">verschiedene Spiele.</div>
     <p class="w-in d3">${D.rows.filter(x=>x.m>=600).length} davon mit mehr als 10 Stunden, auf ${D.plat.length} Plattformen.</p>
@@ -2119,9 +2162,12 @@ window.openSettings = async () => {
         <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Token erstellen</a>: „Only select repositories“ › gaming-recap, Permissions › Contents: <b>Read and write</b>.</li>
         <li>Alles hier eintragen und speichern.</li></ol>
         Das Repository ist öffentlich, deine Daten darin sind aber mit dem Passwort verschlüsselt. Nimm ein Passwort, das du sonst nirgends nutzt. Der Token steckt verschlüsselt in der Kopie, damit das Handy Änderungen zurückschicken kann.</div>
-      ${c.cloud_enabled?`<button class="btn ghost small" type="button" id="pushBtn" style="margin-top:10px">Jetzt hochladen</button>`:""}
+      ${c.cloud_enabled?`<button class="btn ghost small" type="button" id="pushBtn" style="margin-top:10px">Jetzt hochladen</button>
+        <button class="btn ghost small" type="button" id="restoreBtn" style="margin-top:10px">Aus Backup wiederherstellen</button>
+        <p class="help">Einmal am Tag wird ein verschlüsseltes Backup (Status, Tier-Liste, Ziele, Korrekturen, Sessions, Verlauf) ins Repository gelegt${cl.backup_day?` – zuletzt am ${esc(cl.backup_day)}`:""}. Wiederherstellen ergänzt nur Fehlendes, es wird nichts überschrieben.</p>`:""}
     </fieldset>
 
+    <details class="adv"><summary>⚙️ Zugänge & Erweitert <span class="help">(Playnite, IGDB, Steam, PlayStation, Xbox, Sonstiges)</span></summary>
     <fieldset><legend>🖥️ Playnite (alle PC-Launcher)</legend>
       <div class="src">${c.playnite_found?`<span class="ok">●</span> Playnite gefunden`:`<span class="bad">✕</span> Playnite nicht gefunden – <a href="https://playnite.link" target="_blank" rel="noopener">playnite.link</a>`}</div>
       <div class="src">${c.extension_installed?`<span class="ok">●</span> Erweiterung installiert`:`<span class="bad">✕</span> Erweiterung fehlt`}</div>
@@ -2132,7 +2178,6 @@ window.openSettings = async () => {
     <fieldset><legend>⏱️ Session-Tracker & Spieldauern</legend>
       <label class="check"><input type="checkbox" id="tracker" ${c.tracker?"checked":""}> Laufende PC-Spiele erkennen und Sessions speichern</label>
       <div class="help">${c.tracker_supported?"Funktioniert, solange Gaming Recap läuft.":"Nur unter Windows verfügbar."} Änderung wirkt nach einem Neustart.</div>
-      ${c.autostart_supported?`<label class="check" style="margin-top:12px"><input type="checkbox" id="autostartChk" ${c.autostart?"checked":""} onchange="setAutostart(this)"> Mit Windows starten (minimiert) – damit keine Tage fehlen</label>`:""}
       <label class="check" style="margin-top:12px"><input type="checkbox" id="hltb" ${c.hltb?"checked":""}> Spieldauern („Time to Beat“) und Cover von IGDB laden</label>
       <label>IGDB Client-ID</label><input type="text" id="igdb_client_id" value="${esc(c.igdb_client_id||"")}" autocomplete="off">
       <label>IGDB Client-Secret</label><input type="password" id="igdb_client_secret" placeholder="${ph2(c.igdb_client_secret_set)}" autocomplete="off">
@@ -2152,27 +2197,31 @@ window.openSettings = async () => {
       <li>Im selben Browser <a href="https://ca.account.sony.com/api/v1/ssocookie" target="_blank" rel="noopener">diesen Link</a> öffnen.</li>
       <li>Den Wert hinter <code>"npsso"</code> einfügen.</li></ol>Wie ein Passwort behandeln. Hält ca. 2 Monate.</div>
     </fieldset>
-    <fieldset><legend>Xbox Series X <span class="help">(experimentell)</span></legend>
+    <fieldset><legend>Xbox Series X</legend>
+      <p class="help" style="margin-top:0"><b>Nicht nötig:</b> Deine Xbox-Spiele kommen über Playnite (Xbox-Bibliothek). Den Key brauchst du nur, wenn Playnite keine Xbox-Spiele liefert.</p>
+      ${c.xbox_api_key_set?`<label class="check"><input type="checkbox" id="xbox_api_key_clear"> Gespeicherten OpenXBL-Key löschen</label>`:""}
       <label>OpenXBL-API-Key</label><input type="password" id="xbox_api_key" placeholder="${ph2(c.xbox_api_key_set)}" autocomplete="off">
       <div class="help"><ol><li>Auf <a href="https://xbl.io" target="_blank" rel="noopener">xbl.io</a> mit deinem Microsoft-Konto anmelden.</li>
       <li>Unter „API Keys“ einen Key erstellen und hier einfügen.</li></ol>Drittanbieter-Dienst. Spielzeiten kommen in Portionen.</div>
-    </fieldset>
-    <fieldset><legend>📚 Backlog</legend>
-      <div class="help" style="margin-top:0">Welche PC-Stores zählen in deinen Backlog? Konsolen und geliehene Spiele sind nie dabei.</div>
-      ${[...new Set([...DEFAULT_BL_STORES, ...S.data.games.filter(g=>g.device==="PC").map(g=>g.store)])].map(st=>`<label class="check" style="margin-top:8px"><input type="checkbox" class="blstore" value="${esc(st)}" ${backlogStores().includes(st)?"checked":""}> ${esc(st)}</label>`).join("")}
-    </fieldset>
-    <fieldset><legend>🔔 Extras & Hinweise</legend>
-      <label class="check"><input type="checkbox" id="steam_extras" ${c.steam_extras?"checked":""}> Steam-Erfolge, Wunschliste, Preise und Freunde laden</label>
-      <label class="check" style="margin-top:10px"><input type="checkbox" id="notify_sales" ${c.notify_sales?"checked":""}> Windows-Hinweis bei Angeboten auf der Wunschliste</label>
-      <label class="check" style="margin-top:10px"><input type="checkbox" id="notify_weekly" ${c.notify_weekly?"checked":""}> Wochen-Recap jeden Montag</label>
-      <label>Pausen-Erinnerung nach … Stunden am Stück (0 = aus)</label><input type="number" id="pause_hours" min="0" max="24" step="0.5" value="${c.pause_hours||0}">
-      <label>Leistung deines PCs beim Zocken (Watt, für die Stromrechnung)</label><input type="number" id="watts" min="50" max="2000" value="${c.watts||350}">
-      <label>Strompreis (€ pro kWh)</label><input type="number" id="kwh_price" min="0" max="5" step="0.01" value="${c.kwh_price||0.35}">
     </fieldset>
     <fieldset><legend>Sonstiges</legend>
       <label>Automatisch abgleichen alle … Stunden</label><input type="number" id="sync_hours" min="1" max="48" value="${c.sync_hours}">
       <label class="check" style="margin-top:14px"><input type="checkbox" id="lan" ${c.lan?"checked":""}> Zusätzlich im Heim-WLAN freigeben</label>
       <div class="help">Brauchst du mit der Handy-App eigentlich nicht mehr. Wirkt nach einem Neustart.</div>
+    </fieldset>
+    </details>
+    <fieldset><legend>📚 Backlog</legend>
+      <div class="help" style="margin-top:0">Welche PC-Stores zählen in deinen Backlog? Konsolen und geliehene Spiele sind nie dabei.</div>
+      ${[...new Set([...DEFAULT_BL_STORES, ...S.data.games.filter(g=>g.device==="PC").map(g=>g.store)])].map(st=>`<label class="check" style="margin-top:8px"><input type="checkbox" class="blstore" value="${esc(st)}" ${backlogStores().includes(st)?"checked":""}> ${esc(st)}</label>`).join("")}
+    </fieldset>
+    <fieldset><legend>🔔 Extras & Hinweise</legend>
+      ${c.autostart_supported?`<label class="check" style="margin-bottom:10px"><input type="checkbox" id="autostartChk" ${c.autostart?"checked":""} onchange="setAutostart(this)"> Mit Windows starten (minimiert) – damit keine Tage fehlen</label>`:""}
+      <label class="check"><input type="checkbox" id="steam_extras" ${c.steam_extras?"checked":""}> Steam-Erfolge, Wunschliste, Preise und Freunde laden</label>
+      <label class="check" style="margin-top:10px"><input type="checkbox" id="notify_sales" ${c.notify_sales?"checked":""}> Windows-Hinweis bei Angeboten auf der Wunschliste</label>
+      <label class="check" style="margin-top:10px"><input type="checkbox" id="notify_weekly" ${c.notify_weekly?"checked":""}> Wochen-Recap jeden Montag und Monats-Wrapped am 1.</label>
+      <label>Pausen-Erinnerung nach … Stunden am Stück (0 = aus)</label><input type="number" id="pause_hours" min="0" max="24" step="0.5" value="${c.pause_hours||0}">
+      <label>Leistung deines PCs beim Zocken (Watt, für die Stromrechnung)</label><input type="number" id="watts" min="50" max="2000" value="${c.watts||350}">
+      <label>Strompreis (€ pro kWh)</label><input type="number" id="kwh_price" min="0" max="5" step="0.01" value="${c.kwh_price||0.35}">
     </fieldset>
     <div style="display:flex;gap:10px;justify-content:flex-end"><button class="btn ghost" type="button" onclick="$('#settings').close()">Abbrechen</button>
       <button class="btn limeb" type="button" id="saveBtn">Speichern</button></div>`;
@@ -2180,12 +2229,17 @@ window.openSettings = async () => {
     try { const r = await post("/api/playnite/install",{}); alert("Installiert nach:\n" + r.path + "\n\nStarte Playnite jetzt neu."); openSettings(); }
     catch(e){ alert(e.message); }
   };
+  if ($("#restoreBtn")) $("#restoreBtn").onclick = async () => {
+    if (!confirm("Backup aus dem Repository laden? Es wird nur ergänzt, was hier fehlt.")) return;
+    try { const r = await post("/api/backup/restore",{}); toast(`${r.restored} Einträge wiederhergestellt`); setTimeout(load, 500); }
+    catch(e){ alert(e.message); }
+  };
   if ($("#pushBtn")) $("#pushBtn").onclick = async () => { await post("/api/cloud/push",{}); toast("Lade hoch …"); setTimeout(openSettings, 8000); };
   $("#saveBtn").onclick = async () => {
     $("#saveBtn").disabled = true;
     try {
       const v = id => $("#"+id).value, ch = id => $("#"+id).checked;
-      await post("/api/config", {steam_api_key:v("steam_api_key"), steam_id:v("steam_id"), psn_npsso:v("psn_npsso"), xbox_api_key:v("xbox_api_key"),
+      await post("/api/config", {steam_api_key:v("steam_api_key"), steam_id:v("steam_id"), psn_npsso:v("psn_npsso"), xbox_api_key:v("xbox_api_key"), xbox_api_key_clear: !!($("#xbox_api_key_clear")||{}).checked,
         playnite_export:v("playnite_export"), gh_repo:v("gh_repo"), igdb_client_id:v("igdb_client_id"), igdb_client_secret:v("igdb_client_secret"), gh_token:v("gh_token"), cloud_pass:v("cloud_pass"),
         cloud_enabled:ch("cloud_enabled"), tracker:ch("tracker"), hltb:ch("hltb"), lan:ch("lan"), sync_hours:Number(v("sync_hours"))||6,
         backlog_stores:[...document.querySelectorAll(".blstore:checked")].map(e=>e.value),
