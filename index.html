@@ -868,7 +868,7 @@ body::after{content:"";position:fixed;right:-15vw;bottom:-25vh;width:60vw;height
 .btn.on{background:var(--ink);color:var(--bg)}
 .eplan{display:grid;gap:8px;margin:4px 0 10px}
 .erow{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:8px 10px;border-radius:14px;background:#ffffff08;border:1px solid #ffffff10;cursor:pointer;text-align:left;animation:fanIn .45s backwards;animation-delay:var(--d);transition:background .2s}
-.erow:hover{background:#ffffff12}.erow .poster{border-radius:8px}
+.erow:hover{background:#ffffff12}.eplan.big .erow{grid-template-columns:64px 1fr auto;padding:10px 12px}.eplan.big .erow b{font-size:16px}.erow .poster{border-radius:8px}
 .erow small{display:block;font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--cyan)}
 .erow b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.erow span{font-size:12px;color:var(--muted)}.erow .em{min-width:0}
 /* Hero: gleiche Größe in jedem Zeitraum */
@@ -1567,8 +1567,8 @@ function backlogMini(){
   return `<section class="card x4 reveal"><h3>Dein PC-Backlog</h3><div class="bhero">
       <div class="ring" style="--p:${bl.pct}"><div><div><b>${num(bl.pct)}%</b><br><span>geschafft</span></div></div></div>
       <div><div class="bhero nums" style="margin-bottom:12px"><div><b>${bl.open}</b><span>offen</span></div><div><b>${bl.done}</b><span>durch</span></div>${bl.rest?`<div><b>${num(bl.rest/60)}</b><span>Std Story</span></div>`:""}</div>
-      <div class="inl" style="flex-wrap:wrap;gap:8px"><button class="btn limeb" onclick="openPicker()">🎲 Was spiele ich als Nächstes?</button>
-      <button class="btn ghost" onclick="openPicker(120)">⏱ Abend planen</button></div></div></div></section>`;
+      <div class="inl" style="flex-wrap:wrap;gap:8px"><button class="btn limeb" onclick="openPicker()">🎲 Würfeln</button>
+      <button class="btn ghost" onclick="openPlanner()">⏱ Abend planen</button></div></div></div></section>`;
 }
 function saleBanner(){
   const sale = ((S.data.steam||{}).wishlist||[]).filter(w=>w.discount>0).sort((a,b)=>b.discount-a.discount);
@@ -2112,7 +2112,7 @@ function renderBacklog(){
       <div class="bhero nums"><div><b>${st.done}</b><span>durch</span></div><div><b>${st.unplayed}</b><span>nie gestartet</span></div>
         ${st.rest?`<div><b>${num(st.rest/60)}</b><span>Std Story offen</span></div>`:""}</div></div>
       <div style="opacity:.9;margin:14px 0 16px;font-size:14px">${forecast(st)}${st.rest&&st.known<st.open?` <span style="opacity:.75">(Spieldauer für ${st.known} von ${st.open} Spielen bekannt)</span>`:""}</div>
-      <button class="btn" onclick="openPicker()">🎲 Was spiele ich als Nächstes?</button></section>
+      <div class="inl" style="flex-wrap:wrap;gap:8px"><button class="btn" onclick="openPicker()">🎲 Würfeln</button><button class="btn ghost" onclick="openPlanner()">⏱ Abend planen</button></div></section>
     ${goalsCard()}
     <div class="bl-filters">${filters.map(([k,l,c])=>`<button class="chip ${B.f===k?"on":""}" onclick="S.bl.f='${k}';S.bl.limit=80;route()">${l}<small>${c}</small></button>`).join("")}</div>
   </aside><div>
@@ -3321,7 +3321,21 @@ const MOODS = {
   friends: g => g.features.some(x=>/multi|co-?op|koop/i.test(x)),
   top: g => (g.critic||0) >= 85 || (g.rev && g.rev.total >= 500 && g.rev.pct >= 92),
 };
-window.openPicker = t => { PK.pick = null; if (t != null) PK.time = t; renderPicker(); $("#picker").showModal(); };
+window.openPicker = () => { PK.pick = null; renderPicker(); $("#picker").showModal(); };
+// Abend-Planer: eigenes Fenster
+window.openPlanner = t => {
+  if (t != null) PK.time = t; if (!PK.time) PK.time = 120;
+  const plan = evePlan(PK.time);
+  $("#infoBody").innerHTML = `<button class="ibtn dclose" onclick="$('#info').close()">✕</button>
+    <div class="eyebrow">⏱ Abend-Planer</div><div class="h1" style="font-size:clamp(28px,6vw,40px);margin:6px 0 4px;padding-right:44px">Wie viel Zeit hast du heute?</div>
+    <div class="opts" style="justify-content:flex-start;margin:12px 0 16px">${[[60,"1 Std"],[120,"2 Std"],[180,"3 Std"],[300,"4 Std +"]].map(([k,l])=>`<button class="chip ${PK.time===k?"on":""}" onclick="openPlanner(${k})">${l}</button>`).join("")}</div>
+    ${plan.length ? `<div class="eplan big">${plan.map((x,i)=>`<div class="erow" style="--d:${i*70}ms" onclick="$('#info').close();openGame('${esc(x.g.key)}')">
+        <div class="poster">${img(x.g.covers,x.g.title)}</div><div class="em"><small>${esc(x.tag)}</small><b>${esc(x.g.title)}</b><span>${esc(x.why)}</span></div>
+        ${x.g.status!=="als_naechstes"?`<button class="btn ghost small" title="Als Nächstes merken" onclick="event.stopPropagation();saveMeta('${esc(x.g.key)}',{status:'als_naechstes'}).then(()=>{openPlanner();quietRoute();toast('Als Nächstes gemerkt')})">🎯 Merken</button>`:`<span class="tag">🎯 gemerkt</span>`}</div>`).join("")}</div>
+      <p class="help">Vorschläge aus deinem PC-Backlog: was du heute durchspielen kannst, wo du gut weiterkommst und kurze Perlen. Grundlage sind die Story-Dauer (IGDB) und deine bisherige Spielzeit.</p>`
+      : `<p class="help">Für diese Zeit passt gerade nichts – für Vorschläge braucht es Spieldauern (IGDB) oder Spiele mit Status „Als Nächstes“.</p>`}`;
+  if (!$("#info").open) $("#info").showModal();
+};
 /* Abend-Planer: Was passt in die Zeit, die ich heute habe? */
 function evePlan(t){
   const out = [];
@@ -3353,12 +3367,6 @@ function renderPicker(){
   const chip = (k,l,v,f) => `<button class="chip ${PK[f]===k?"on":""}" onclick="PK.${f}='${k}';PK.pick=null;renderPicker()">${l}</button>`;
   $("#pickerBody").innerHTML = `<button class="ibtn dclose" onclick="$('#picker').close()">✕</button><div class="pk">
     <div class="eyebrow">Was spiele ich als Nächstes?</div>
-    <div class="secttl" style="margin:10px 0 6px">⏱ Abend-Planer: Wie viel Zeit hast du heute?</div>
-    <div class="opts">${[[0,"Egal"],[60,"1 Std"],[120,"2 Std"],[180,"3 Std"],[300,"4 Std +"]].map(([k,l])=>`<button class="chip ${PK.time===k?"on":""}" onclick="PK.time=${k};renderPicker()">${l}</button>`).join("")}</div>
-    ${PK.time ? (()=>{ const plan = evePlan(PK.time); return plan.length ? `<div class="eplan">${plan.map((x,i)=>`<div class="erow" style="--d:${i*70}ms" onclick="$('#picker').close();openGame('${esc(x.g.key)}')">
-        <div class="poster">${img(x.g.covers,x.g.title)}</div><div class="em"><small>${esc(x.tag)}</small><b>${esc(x.g.title)}</b><span>${esc(x.why)}</span></div>
-        ${x.g.status!=="als_naechstes"?`<button class="btn ghost small" title="Als Nächstes merken" onclick="event.stopPropagation();saveMeta('${esc(x.g.key)}',{status:'als_naechstes'}).then(()=>{renderPicker();quietRoute();toast('Als Nächstes gemerkt')})">🎯</button>`:""}</div>`).join("")}</div>`
-        : `<p class="help">Für diese Zeit passt gerade nichts – für Vorschläge braucht es Spieldauern (IGDB).</p>`; })() : ""}
     <div class="slot" id="slot"><div class="poster">${g?img(g.covers,g.title):ph("?")}</div></div>
     <h2 id="pkTitle">${g?esc(g.title):"Lass den Würfel entscheiden"}</h2>
     <div class="why">${g?pickWhy(g):`${pool.length} Spiele im Topf`}</div>
