@@ -871,6 +871,10 @@ body::after{content:"";position:fixed;right:-15vw;bottom:-25vh;width:60vw;height
 .erow:hover{background:#ffffff12}.erow .poster{border-radius:8px}
 .erow small{display:block;font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--cyan)}
 .erow b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.erow span{font-size:12px;color:var(--muted)}.erow .em{min-width:0}
+/* Hero: gleiche Größe in jedem Zeitraum */
+.hstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));max-width:420px;flex-wrap:nowrap}
+.hstat{min-width:0}.hstat b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hstat span{white-space:nowrap}
+@media(max-width:640px){.hero{min-height:440px}.hstat{padding:10px 12px}.hstat b{font-size:20px}}
 </style>
 </head>
 <body>
@@ -1506,7 +1510,7 @@ function heroCard(c){
   const fun = FUN[Math.floor(Date.now()/864e5) % FUN.length];
   return `<section class="card hero x8 ohero reveal"><div class="hmosaic">${[...mosa,...mosa].join("")}</div>
     <svg class="wave" viewBox="0 0 360 70" aria-hidden="true"><path d="M0 45 C 40 10, 80 70, 120 40 S 200 10, 240 40 S 320 70, 360 35" fill="none" stroke="#0A1C2A" stroke-width="7" stroke-linecap="round"/></svg><div class="eyebrow">${periodLabel()}</div>
-    <div class="num" data-count="${Math.round(total/60)}" data-pre="${S.est?"~":""}">0</div><div class="unit">Stunden gezockt${S.est?" (geschätzt)":""}.</div>
+    <div class="num" data-count="${Math.round(total/60)}" data-pre="${S.est?"~":""}">0</div><div class="unit">Stunden gezockt.</div>
     <div class="sub">Das sind <b>${num(total/1440,1)} Tage</b> am Stück – oder <b>${num(total/fun[0], total/fun[0]<10?1:0)}</b> ${fun[1]}.</div>
     <div class="hstats"><div class="hstat"><b data-count="${played.length}">0</b><span>Spiele</span></div>
       <div class="hstat"><b data-count="${plats.length}">0</b><span>Plattformen</span></div>
@@ -1808,7 +1812,7 @@ function scopeLabel(){
   if (S.period === "year") return String(n.getFullYear());
   if (S.period === "month") return n.toLocaleDateString("de-DE",{month:"long", year:"numeric"});
   if (S.period === "week") return "letzte 7 Tage";
-  return "alle Zeiten";
+  return "Gesamt";
 }
 const fy = g => { const d = g.first || g.added; return d && d.getFullYear() > 1990 ? d.getFullYear() : null; };
 const FX = {};  // Detail-Inhalte der aktuell gezeigten Fakten
@@ -1872,7 +1876,7 @@ function facts(played,total,plats){
         () => `<div class="calc"><div><small>PC-Spielzeit</small><b>${hrs(pcMin)}</b></div><div>×</div><div><small>Leistung</small><b>${W_} W</b></div><div>×</div><div><small>Strompreis</small><b>${num(P_,2)} €/kWh</b></div><div>=</div><div><small>Kosten</small><b>${euro(kwh*P_*100)}</b></div></div>
           ${yr?`<p>Davon ${new Date().getFullYear()}: <b>${euro(yr/60*W_/1000*P_*100)}</b> (${hrs(yr)}${S.yearInfo&&S.yearInfo.estimated?", teils geschätzt":""}).</p>`:""}
           <p class="help">Gerechnet mit dem heutigen Strompreis über deine gesamte PC-Spielzeit (so weit Steam und die Launcher zurück zählen). Watt und Preis änderst du in den Einstellungen unter „Extras“.</p>
-          <div class="secttl" style="margin-top:14px">Die größten Stromfresser</div>${[...pcGames].sort((a,b)=>b.devs.PC-a.devs.PC).slice(0,8).map(g=>gRow(g, euro(g.devs.PC/60*W_/1000*P_*100), hrs(g.devs.PC))).join("")}`, "alle Zeiten", "⚡");
+          <div class="secttl" style="margin-top:14px">Die größten Stromfresser</div>${[...pcGames].sort((a,b)=>b.devs.PC-a.devs.PC).slice(0,8).map(g=>gRow(g, euro(g.devs.PC/60*W_/1000*P_*100), hrs(g.devs.PC))).join("")}`, "Gesamt", "⚡");
     }
     const rated = played.filter(g=>g.critic);
     if (rated.length >= 5){
@@ -2700,7 +2704,7 @@ function wrapModes(){
   const keys = Object.keys(S.data.wrapped_archive||{});
   const months = keys.filter(k=>/^\d{4}-\d{2}$/.test(k) && k < curM).sort().reverse().slice(0,3);
   const years = keys.filter(k=>/^\d{4}$/.test(k) && Number(k) < y).sort().reverse();
-  return [["year",String(y)],["month",MON()],["week","Diese Woche"],["all","Alle Zeiten"],
+  return [["year",String(y)],["month",MON()],["week","Diese Woche"],["all","Gesamt"],
     ...months.map(a=>["arch:"+a, monLabel(a)]), ...years.map(a=>["arch:"+a, a])];
 }
 const monLabel = k => new Date(Number(k.slice(0,4)), Number(k.slice(5,7))-1, 1).toLocaleDateString("de-DE",{month:"long", year:"numeric"});
@@ -2811,7 +2815,7 @@ function wrappedData(){
     year: {label:String(year), lead:`${year} hast du`, big:String(year), title:"Dein Gaming-Jahr.", share:String(year)},
     month:{label:mon, lead:`Im ${mon} hast du`, big:mon.slice(0,3)+".", title:`Dein Gaming-${mon}.`, share:`${mon.toUpperCase()} ${year}`},
     week: {label:"diese Woche", lead:"In den letzten 7 Tagen hast du", big:`KW ${kw(now)}`, title:"Deine Gaming-Woche.", share:`KW ${kw(now)}`},
-    all:  {label:"aller Zeiten", lead:"Insgesamt hast du", big:"∞", title:"Deine ganze Gaming-Geschichte.", share:"RECAP"},
+    all:  {label:"Gesamt", lead:"Insgesamt hast du", big:"∞", title:"Deine ganze Gaming-Geschichte.", share:"RECAP"},
   }[m] || (m.length > 9 ? (()=>{ const ml = from.toLocaleDateString("de-DE",{month:"long"});
       return {label:`${ml} ${year}`, lead:`Im ${ml} ${year} hast du`, big:ml.slice(0,3)+".", title:`Dein Gaming-${ml}.`, share:`${ml.toUpperCase()} ${year}`}; })()
     : {label:String(year), lead:`${year} hast du`, big:String(year), title:`Dein Gaming-Jahr ${year}.`, share:String(year)});
@@ -2995,7 +2999,7 @@ function splitWords(root){
 window.startWrapped = async () => {
   if (["year","month","week"].includes(W.mode)) await ensurePeriod(W.mode);
   W.data = wrappedData();
-  if (!W.data.total && W.mode !== "all"){ W.mode = "all"; W.data = wrappedData(); toast("Für diesen Zeitraum gibt es noch keine Spielzeit – zeige alle Zeiten"); } W.slides = wrapSlides(W.data); W.i = 0;
+  if (!W.data.total && W.mode !== "all"){ W.mode = "all"; W.data = wrappedData(); toast("Für diesen Zeitraum gibt es noch keine Spielzeit – zeige Gesamt"); } W.slides = wrapSlides(W.data); W.i = 0;
   let el = $("#wrap");
   if (!el){ el = document.createElement("div"); el.id = "wrap"; document.body.appendChild(el); }
   el.innerHTML = `<div class="wstage" id="wstage"><div class="wbars">${W.slides.map(()=>"<i><b></b></i>").join("")}</div>
