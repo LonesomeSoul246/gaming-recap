@@ -85,7 +85,7 @@ main{max-width:1240px;margin:0 auto;padding:4px 16px 120px}
 .hero .unit{font-size:clamp(22px,5vw,34px);font-weight:800;letter-spacing:-.5px}
 .hero .sub{margin-top:10px;font-size:16px;opacity:.9;max-width:560px}
 .hstats{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
-.hstat{background:#0000002e;backdrop-filter:blur(6px);border-radius:18px;padding:10px 16px}
+.hstat{background:#0000002e;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-radius:18px;padding:10px 16px}
 .hstat b{font-size:22px;font-weight:900;display:block;line-height:1.1}
 .hstat span{font-size:12px;opacity:.8}
 
@@ -293,7 +293,7 @@ details.adv[open]>summary{margin-bottom:6px}
 
 /* ---------- Dialoge ---------- */
 dialog{border:0;padding:0;background:#14161B;color:var(--ink);max-width:640px;width:100%;border-radius:30px;max-height:92vh;overflow:hidden}
-dialog::backdrop{background:#000b;backdrop-filter:blur(4px)}
+dialog::backdrop{background:#000b;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 @media(max-width:640px){dialog{margin:auto 0 0;border-radius:30px 30px 0 0;max-height:94vh;max-width:100%}}
 @media(min-width:1000px){#detail{max-width:900px}}
 dialog[open]{animation:up .35s cubic-bezier(.2,.7,.2,1)}
@@ -561,14 +561,7 @@ html,body{background:radial-gradient(1200px 520px at 50% -120px,#242B37 0%,#1012
 .hstat{background:#0A1C2A1f;backdrop-filter:none}
 .hero .wave{position:absolute;left:-20px;bottom:10px;width:360px;height:70px;opacity:.22;z-index:0}
 /* Bilder im Hintergrund: Streifen hinter Seitenköpfen */
-.phead{position:relative;border-radius:var(--r);overflow:hidden;padding:22px 22px 18px;margin:4px 0 16px;background:var(--panel);border:1px solid #ffffff10}
-.phead .strip{position:absolute;inset:-30% -5% -30% 40%;display:grid;grid-template-columns:repeat(6,1fr);gap:10px;transform:rotate(-10deg);opacity:.35;pointer-events:none;
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 45%);mask-image:linear-gradient(90deg,transparent,#000 45%)}
-.phead .strip .poster{border-radius:12px;box-shadow:none}
-.phead>*:not(.strip){position:relative;z-index:1}
-.phead .h1{margin:4px 0 4px}
-.phead .eyebrow{color:var(--acc);opacity:1}
-.phead p{margin:2px 0 0;color:var(--muted);font-size:14px;max-width:520px}
 .blurbg{position:absolute;inset:-20%;background-size:cover;background-position:center;filter:blur(36px) saturate(1.3);opacity:.35;pointer-events:none}
 .facts .fact{background:linear-gradient(160deg,color-mix(in srgb,var(--a) 14%,#181B21),#15171C 70%)}
 
@@ -884,6 +877,7 @@ body::after{content:"";position:fixed;right:-15vw;bottom:-25vh;width:60vw;height
 .sw{appearance:none;-webkit-appearance:none;width:44px;height:26px;border-radius:99px;background:#ffffff22;position:relative;flex:none;cursor:pointer;transition:background .25s;margin:0}
 .sw::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .25s cubic-bezier(.3,1.4,.5,1)}
 .sw:checked{background:var(--acc)}.sw:checked::after{transform:translateX(18px)}
+.logbox{max-height:60vh;overflow:auto;background:#0b0c0f;border:1px solid #ffffff12;border-radius:12px;padding:12px;font:12px/1.5 ui-monospace,Consolas,monospace;white-space:pre-wrap;word-break:break-word;color:#cfd6e4}
 </style>
 </head>
 <body>
@@ -930,7 +924,6 @@ const STATUS = [
   {k:"ignoriert",     l:"Kein Interesse", e:"🙈", c:"#5b586b", g:"out"},
 ];
 const SMAP = Object.fromEntries(STATUS.map(s=>[s.k,s]));
-const LOTR = 686;
 const WD = ["Mo","Di","Mi","Do","Fr","Sa","So"];
 const ICONS = {
   friends:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.6c2.5.2 4.3 1.9 5 5"/></svg>',
@@ -950,7 +943,7 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt
 const num = (n,d=0) => Number(n).toLocaleString("de-DE",{maximumFractionDigits:d,minimumFractionDigits:d});
 // S.est: gerade wird ein geschätzter Zeitraum gezeichnet -> Zeiten mit "~"
 function hrs(min){ const t = S.est ? "~" : ""; if (min < 60) return `${t}${Math.round(min)} Min`; const h=min/60; return `${t}${num(h, h<10?1:0)} Std`; }
-function pdate(s){ if(!s) return null; const d=new Date(String(s).replace(" ","T")); return isNaN(d)||d.getFullYear()<1990?null:d; }
+function pdate(s){ if(!s) return null; const d=new Date(String(s).replace(" ","T").replace(/(\.\d{3})\d+/,"$1")); return isNaN(d)||d.getFullYear()<1990?null:d; }
 const fdate = d => d ? d.toLocaleDateString("de-DE",{day:"numeric",month:"short",year:"numeric"}) : "–";
 // Muss identisch zu norm_title()/PLATFORM_SUFFIX in common.py bleiben
 const PLATFORM_SUFFIX = /\((?:playstation ?[45]|ps[45]|xbox one|xbox series x ?\| ?s|windows|pc)\)|\b(?:for )?xbox series x ?\| ?s\b|\bxbox one edition\b|-\s*windows(?: 10)?(?: edition)?\b|\bpc edition\b|\bfor windows 10\b|\bstandard edition\b/g;
@@ -1071,7 +1064,7 @@ async function loadCloud(force){
       const m = meta[norm(e.key)]; return !(m && m.updated && Date.parse(m.updated) >= e.ts) && Date.now()-e.ts < 30*86400e3; }));
   }
   const snap = S.snap, meta = {...(snap.meta||{})};
-  let goals = snap.goals || {}; const kvs = {year_overrides: snap.year_overrides || {}, wrapped: snap.wrapped_archive || {}, notpc: snap.notpc || {}, snotes: snap.snotes || {}, covers: snap.covers || {}, paid: snap.paid || {}, notify: snap.notify || null};
+  let goals = snap.goals || {}; const kvs = {year_overrides: snap.year_overrides || {}, wrapped: snap.wrapped_archive || {}, notpc: snap.notpc || {}, snotes: snap.snotes || {}, covers: snap.covers || {}, paid: snap.paid || {}, notify: snap.notify || null, critic: snap.critic || {}};
   for (const e of edits()){
     if (e.kind === "kv"){ if (e.key === "goals") goals = e.value; else kvs[e.key] = e.value; continue; }
     const k = norm(e.key); meta[k] = {...(meta[k]||{}), ...pick(e,["status","rating","note","tier","hide"]), updated:new Date(e.ts).toISOString()};
@@ -1079,7 +1072,7 @@ async function loadCloud(force){
   const p = S.period === "all" ? null : (snap.periods||{})[S.period];
   S.data = {last_sync:snap.last_sync, sources:snap.sources||{}, games:snap.games||[], meta, hltb:snap.hltb||{},
     sessions:snap.sessions||[], csessions:snap.csessions||[], status_log:snap.status_log||[], goals, steam:snap.steam||{}, prefs:snap.prefs||{},
-    year_overrides: kvs.year_overrides, wrapped_archive: kvs.wrapped, notpc: kvs.notpc, snotes: kvs.snotes, covers: kvs.covers, paid: kvs.paid, notify: kvs.notify, push_ready: !!snap.push_ready, wl_deals: snap.wl_deals || {}, metacritic: snap.metacritic || {},
+    year_overrides: kvs.year_overrides, wrapped_archive: kvs.wrapped, notpc: kvs.notpc, snotes: kvs.snotes, covers: kvs.covers, paid: kvs.paid, notify: kvs.notify, critic: kvs.critic, push_ready: !!snap.push_ready, wl_deals: snap.wl_deals || {}, metacritic: snap.metacritic || {},
     values: snap.values || {}, values_at: snap.values_at, xcovers: snap.xcovers || {},
     tracking_since: snap.tracking_since, health: snap.health || [],
     trophies: snap.trophies || [], free_games: snap.free_games || [],
@@ -1181,7 +1174,6 @@ function applyEstimate(){
   if (p.period && p.period !== "all" && !p.complete){ S.data.period_minutes = estimatePeriod(p.period, S.data.period_minutes); p.estimated = true; }
 }
 // für alte Aufrufe
-const estimateYear = (year, base) => estimatePeriod("year", base);
 
 /* ================= Gruppen bauen ================= */
 function autoStatus(g){
@@ -1260,9 +1252,9 @@ function buildGroups(){
     const scr = g.appid && sx.scores ? sx.scores[g.appid] || null : null;
     const pnCritic = Math.max(0, ...recs.map(r=>Number(r.critic)||0));
     // Wertung: Metacritic (RAWG) > Metacritic (Steam) > Fachpresse-Schnitt von IGDB (auch über Playnite)
-    const rm = (d.metacritic||{})[g.key];
-    g.critic = rm ? rm[0] : scr && scr.mc ? scr.mc : pnCritic || (g.hltb && g.hltb.critic) || null;
-    g.criticSrc = rm || (scr && scr.mc) ? "Metacritic" : g.critic ? "IGDB" : null;
+    const rm = (d.metacritic||{})[g.key], own = (d.critic||{})[g.key];
+    g.critic = own || (rm ? rm[0] : scr && scr.mc ? scr.mc : pnCritic || (g.hltb && g.hltb.critic) || null);
+    g.criticSrc = own ? "Selbst" : rm || (scr && scr.mc) ? "Metacritic" : g.critic ? "IGDB" : null;
     g.mcSlug = rm ? rm[1] : null;
     g.rev = scr && scr.rt ? {pct: scr.rp, total: scr.rt} : null;
     g.auto = autoStatus(g);
@@ -1776,11 +1768,6 @@ function renderFacts(head){
 
 /* Fun Facts: jeder Fakt hat Titel, Wert, Unterzeile, Zeitraum und eine Detail-Ansicht */
 // Seitenkopf mit Cover-Streifen im Hintergrund
-function phead(eyebrow, title, sub, covers){
-  const cv = (covers||[]).filter(Boolean).slice(0,18);
-  const strip = cv.length ? `<div class="strip">${[...cv,...cv].slice(0,24).map(c=>`<div class="poster">${c}</div>`).join("")}</div>` : "";
-  return `<div class="phead">${strip}<div class="eyebrow">${eyebrow}</div><div class="h1">${title}</div>${sub?`<p>${sub}</p>`:""}</div>`;
-}
 const gcov = g => img(g.covers, g.title);
 // Seitenköpfe – jede Seite mit eigener Bildidee
 function fanHead(eyebrow, title, sub, covers){   // Cover-Fächer
@@ -1806,7 +1793,6 @@ function avatarHead(list, sub){
   return `<div class="khead avh reveal"><div><div class="eyebrow">Steam</div><div class="h1">Freunde</div>${sub?`<p>${sub}</p>`:""}</div>
     <div class="avs" aria-hidden="true">${list.slice(0,7).map((f,i)=>`<span style="--i:${i}">${avatar(f,52)}</span>`).join("")}</div></div>`;
 }
-const steamCov = a => img([`https://cdn.cloudflare.steamstatic.com/steam/apps/${a}/library_600x900.jpg`,`https://cdn.cloudflare.steamstatic.com/steam/apps/${a}/header.jpg`], "");
 // Wunschliste: Steam liefert für neue Spiele Bildpfade mit Prüfsumme (w.cover) – alte Pfade nur als Rückfall
 const wlImgs = w => [w.cover, `https://cdn.cloudflare.steamstatic.com/steam/apps/${w.appid}/library_600x900.jpg`, w.header, `https://cdn.cloudflare.steamstatic.com/steam/apps/${w.appid}/header.jpg`].filter(Boolean);
 const wlCov = w => img(wlImgs(w), w.name);
@@ -1826,7 +1812,6 @@ function scopeLabel(){
   if (S.period === "week") return "letzte 7 Tage";
   return "Gesamt";
 }
-const fy = g => { const d = g.first || g.added; return d && d.getFullYear() > 1990 ? d.getFullYear() : null; };
 const FX = {};  // Detail-Inhalte der aktuell gezeigten Fakten
 function gRow(g, right, sub){ return `<div class="xrow" onclick="$('#info').close();openGame('${esc(g.key)}')"><div class="poster">${img(g.covers,g.title)}</div>
   <div><b>${esc(g.title)}</b>${sub?`<span>${sub}</span>`:""}</div><em>${right}</em></div>`; }
@@ -1957,15 +1942,11 @@ function tempoStats(){
   const r = done.map(g => g.pcMinutes / (g.status==="komplett" && g.hltb.comp ? g.hltb.comp : g.hltb.main)).sort((a,b)=>a-b);
   return {pct: (r[Math.floor(r.length/2)] - 1) * 100, n: done.length};
 }
-function platTags(plats){
-  return Object.entries(plats).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1])
-    .map(([p,v])=>`<span class="tag"><i style="background:${pcolor(p)}"></i>${esc(p)} · ${hrs(v)}</span>`).join("");
-}
 function renderFree(){
   const fg = S.data.free_games || [], own = new Set(S.groups.map(g=>g.key));
   const now = fg.filter(f=>f.kind==="now"), soon = fg.filter(f=>f.kind==="soon");
   const tile = (f,i) => `<a class="freet" href="${esc(f.url)}" target="_blank" rel="noopener" style="--d:${i*60}ms"><div class="poster">${f.image?`<img src="${esc(f.image)}" alt="" loading="lazy" onerror="this.outerHTML=ph(${esc(JSON.stringify(f.title))})">`:ph(f.title)}<em class="fsrc">${esc(f.source||"Epic")}</em></div>
-    <b>${esc(f.title)}</b><span>${f.kind==="now" ? (own.has(f.key)?"✓ hast du schon":f.end?`gratis bis ${fdate(new Date(f.end))}`:"jetzt gratis") : `ab ${fdate(new Date(f.start))}`}</span></a>`;
+    <b>${esc(f.title)}</b><span>${f.kind==="now" ? (own.has(f.key)?"✓ hast du schon":f.end?`gratis bis ${fdate(pdate(f.end))}`:"jetzt gratis") : `ab ${fdate(pdate(f.start))}`}</span></a>`;
   let h = `<div class="gpage-h"><div class="eyebrow">Spiele</div><div class="h1">Gratis abholen</div><p class="help" style="margin:0">Epic, GOG und Prime Gaming – alle 3 Stunden aktualisiert. Neue Gratis-Spiele meldet dir Gaming Recap.</p></div>${libSeg()}`;
   if (!fg.length){ setView(h + `<div class="empty"><div class="big">🎁</div><h2>Gerade nichts gratis</h2><p class="help">Sobald es etwas gibt, erscheint es hier.</p></div>`); return; }
   h += now.length ? `<div class="secttl">Jetzt gratis</div><div class="freegrid">${now.map(tile).join("")}</div>` : "";
@@ -1977,13 +1958,6 @@ function renderReleases(){
   const soon = wl.filter(w=>w.soon || (w.release && w.release>now)).sort((a,b)=>(a.release||9e12)-(b.release||9e12));
   let h = `<div class="gpage-h"><div class="eyebrow">Wunschliste</div><div class="h1">Releases</div><p class="help" style="margin:0">Am Erscheinungstag bekommst du einen Hinweis.</p></div>${libSeg()}`;
   setView(h + (soon.length ? releaseCalendar(soon) : `<div class="empty"><div class="big">🗓️</div><h2>Nichts angekündigt</h2><p class="help">Spiele auf deiner Steam-Wunschliste mit Erscheinungsdatum erscheinen hier.</p></div>`));
-}
-function freeCard(){
-  const fg = (S.data.free_games||[]); if (!fg.length) return "";
-  const own = new Set(S.groups.map(g=>g.key)), now = fg.filter(f=>f.kind==="now"), soon = fg.filter(f=>f.kind==="soon");
-  const tile = f => `<a class="freeg" href="${esc(f.url)}" target="_blank" rel="noopener"><div class="poster">${f.image?`<img src="${esc(f.image)}" alt="" loading="lazy" onerror="this.outerHTML=ph(${esc(JSON.stringify(f.title))})">`:ph(f.title)}<em class="fsrc">${esc(f.source||"Epic")}</em></div>
-    <b>${esc(f.title)}</b><span>${f.kind==="now" ? (own.has(f.key)?"✓ hast du schon":f.end?`gratis bis ${fdate(new Date(f.end))}`:"jetzt gratis") : `ab ${fdate(new Date(f.start))}`}</span></a>`;
-  return `<section class="card reveal"><h3>🎁 Gratis abholen <span class="help" style="font-weight:600;text-transform:none;letter-spacing:0">· Epic, GOG, Prime Gaming</span></h3><div class="freerail">${now.map(tile).join("")}${soon.length?`<div class="freesep">Demnächst</div>`+soon.map(tile).join(""):""}</div></section>`;
 }
 // Dieser Monat/dieses Jahr gegen den vorigen Zeitraum (aus dem Wrapped-Archiv)
 function compareCard(){
@@ -2010,6 +1984,28 @@ function healthBlock(){
   return `<div class="hlist">${[...H].sort((a,b)=>order[a.level]-order[b.level]).map(h=>`<div class="hitem"><span style="color:${col[h.level]}">${ic[h.level]}</span>
     <div><b>${esc(h.k)}</b> <span class="help" style="margin:0">${esc(h.msg)}</span>${h.fix && h.level!=="ok"?`<div class="hfix">→ ${esc(h.fix)}</div>`:""}</div></div>`).join("")}</div>`;
 }
+window.sysAction = async what => {
+  if (what === "quit" && !confirm("Gaming Recap beenden? Bis zum nächsten Start werden keine Sessions erfasst.")) return;
+  try { await post("/api/" + what, {}); } catch(e){ toast("Ging nicht: " + e.message); return; }
+  $("#settings").close();
+  if (what === "quit"){ setView(`<div class="empty"><div class="big">⏻</div><h2>Gaming Recap ist beendet</h2><p class="help">Starte es wieder über <b>Start</b> im Ordner GamingRecap.</p></div>`); return; }
+  toast("Starte neu …");
+  const t0 = Date.now();
+  await new Promise(r=>setTimeout(r, 2500));
+  while (Date.now() - t0 < 60000){
+    try { const r = await fetch("/api/config", {cache:"no-store"}); if (r.ok){ location.reload(); return; } } catch(e){}
+    await new Promise(r=>setTimeout(r, 1500));
+  }
+  toast("Neustart dauert ungewöhnlich lange – starte Gaming Recap über Start im Ordner.");
+};
+window.showLog = async () => {
+  try {
+    const j = await (await fetch("/api/log", {cache:"no-store"})).json();
+    $("#infoBody").innerHTML = `<button class="ibtn dclose" onclick="$('#info').close()">✕</button><div class="eyebrow">System</div><div class="h1" style="font-size:30px;margin:6px 0 10px">Protokoll</div>
+      <pre class="logbox">${esc((j.lines||[]).join("\n"))}</pre>`;
+    $("#info").showModal(); const pre = $(".logbox"); if (pre) pre.scrollTop = pre.scrollHeight;
+  } catch(e){ toast("Protokoll nicht abrufbar"); }
+};
 // Live-Anzeige, was der PC gerade im Hintergrund lädt (nur solange die Einstellungen offen sind)
 async function pollDownloads(){
   clearTimeout(S.dlT);
@@ -2023,16 +2019,12 @@ async function pollDownloads(){
         return `<div class="dlrow ${t.running?"on":""}"><div class="dln"><b>${esc(t.name)}</b><span>${t.running ? (t.total ? `${num(t.done)} von ${num(t.total)}` : "läuft …") + (t.info?` · ${esc(t.info)}`:"")
           : t.error ? `<em style="color:#ff5a6e;font-style:normal">${esc(t.error)}</em>` : esc(t.info || "fertig")}</span></div>
           ${t.running ? `<div class="dlbar ${t.total?"":"ind"}"><i style="${t.total?`width:${pct}%`:""}"></i></div>` : ""}</div>`; }).join("")}
-      <p class="help" style="margin-bottom:0">Aktualisiert sich automatisch. Neue Daten erscheinen nach dem Laden von selbst in der App.</p>`;
+      <p class="help" style="margin-bottom:0">Aktualisiert sich automatisch. Neue Daten erscheinen nach dem Laden von selbst in der App.
+      ${Object.keys(S.data.metacritic||{}).length?` · <a href="#" onclick="event.preventDefault();openMissingCritic()">Spiele ohne Metacritic-Wertung</a>`:""}</p>`;
   } catch(e){ box.innerHTML = `<p class="help">Status nicht abrufbar.</p>`; }
   S.dlT = setTimeout(pollDownloads, 2000);
 }
 const healthErrors = () => (S.data.health||[]).filter(h=>h.level==="error").length;
-function sourcesLink(){
-  const s = Object.entries(S.data.sources||{}); if (!s.length) return "";
-  const bad = healthErrors();
-  return `<div style="text-align:center;margin:22px 0 4px"><button class="btn ghost small" onclick="showSources()">${bad?`⚠️ ${bad} Problem${bad>1?"e":""} – ansehen`:"✓ Systemcheck: alles läuft"}</button></div>`;
-}
 window.showSources = () => { $("#infoBody").innerHTML = `<button class="ibtn dclose" onclick="$('#info').close()">✕</button><div class="h1" style="font-size:32px">Systemcheck</div>
   <p class="help" style="margin-top:-6px">Der PC prüft alle 10 Minuten, ob alles läuft, und meldet neue Probleme (Windows + Handy).</p>` + healthBlock(); $("#info").showModal(); };
 function sourcesBlock(){
@@ -2045,7 +2037,6 @@ function sourcesBlock(){
 
 /* ================= Bibliothek ================= */
 const TIERS = [["S","#FF6B8B"],["A","#FFB547"],["B","#33C3FF"],["C","#14F0C8"],["D","#7C8CFF"],["F","#A97BFF"]];
-const TCOL = Object.fromEntries(TIERS);
 function libSeg(){
   const wl = ((S.data.steam||{}).wishlist||[]).length;
   const fg = (S.data.free_games||[]).filter(f=>f.kind==="now").length;
@@ -2458,10 +2449,6 @@ function badgeShowcase(bd){
     ${near.length?`<section class="card reveal"><h3>Fast geschafft</h3>${near.map(lrow).join("")}</section>`:""}
     ${rest.length?`<details class="adv"><summary>Alle weiteren (${rest.length})</summary>${rest.map(lrow).join("")}</details>`:""}`;
 }
-function badgeGrid(list){
-  return `<div class="badges">${list.map(b=>`<div class="bdg ${b.got?"on":"off"}"><div class="e">${b.e}</div><b>${esc(b.n)}</b><span>${esc(b.d)}</span>
-    ${b.got?"":`<div class="pr"><div style="width:${b.p*100}%"></div></div><span>${num(Math.min(b.v,b.t), b.v<10&&b.v%1?1:0)} / ${num(b.t)}${b.u?" "+b.u:""}</span>`}</div>`).join("")}</div>`;
-}
 
 /* ================= Backlog: Ziele & Verlauf ================= */
 const DONE = new Set(["durchgespielt","komplett"]);
@@ -2553,15 +2540,6 @@ function diaryBlock(g){
   const notes = Object.entries(S.data.snotes||{}).filter(([id])=>id.split("|")[0]===g.key).sort((a,b)=>b[0].split("|")[1]-a[0].split("|")[1]);
   if (!notes.length) return "";
   return `<div class="secttl">Tagebuch</div>${notes.slice(0,10).map(([id,[m,t]])=>`<div class="diary"><span>${MOOD[m]||"📝"}</span><div><small>${fdate(new Date(id.split("|")[1]*1000))}</small>${t?`<p>${esc(t)}</p>`:""}</div></div>`).join("")}`;
-}
-function trophyCard(){
-  const tr = S.data.trophies || []; if (!tr.length) return "";
-  const sum = i => tr.reduce((s,t)=>s+t.got[i],0), plats = tr.filter(t=>t.got[0]>0).sort((a,b)=>(b.updated||"").localeCompare(a.updated||""));
-  const all = sum(0)+sum(1)+sum(2)+sum(3);
-  const TC = [["🏆","Platin","#b8c7ff"],["🥇","Gold","#FFB547"],["🥈","Silber","#d6d6e0"],["🥉","Bronze","#d08a4f"]];
-  return `<section class="card s6 reveal" style="background:linear-gradient(160deg,#16243f,#101018)"><h3>PlayStation-Trophäen</h3><div class="mid">${num(all)}</div>
-    <div class="trc">${TC.map(([e,l,c],i)=>`<div><b style="color:${c}">${e} ${num(sum(i))}</b><span>${l}</span></div>`).join("")}</div>
-    ${plats.length?`<div class="secttl">Deine Platins</div><div class="trp">${plats.slice(0,8).map(t=>`<div title="${esc(t.name)}"><img src="${esc(t.icon)}" alt="" loading="lazy" onerror="this.remove()"><span>${esc(t.name)}</span></div>`).join("")}</div>`:""}</section>`;
 }
 // Spiele, in denen nur noch wenig bis 100 % fehlt (nur Steam)
 function hunterList(){
@@ -2681,17 +2659,6 @@ window.openFriend = i => {
       <div class="cl"><span>Du</span><div class="trk"><div style="width:${b/cmx*100}%;background:var(--lime)"></div></div><em>${hrs(b)}</em></div></div>`).join("")}`:`<p class="help">Keine gemeinsamen Spiele mit Spielzeit.</p>`}`;
   $("#info").showModal();
 };
-function friendsCard(){
-  const fr = (S.data.steam||{}).friends || [];
-  if (!fr.length) return "";
-  const mine = S.groups.reduce((s,g)=>s+g.recs.filter(r=>r.store==="Steam").reduce((a,r)=>a+(r.minutes||0),0),0);
-  const list = [...fr.map(f=>({...f, me:false})), {name:"Du", minutes:mine, me:true, top: (()=>{ const t = S.groups.filter(g=>g.appid).sort((a,b)=>b.minutes-a.minutes)[0]; return t?[t.title,t.minutes]:null; })()}]
-    .sort((a,b)=>b.minutes-a.minutes);
-  const rank = list.findIndex(f=>f.me)+1;
-  return `<section class="card s6 reveal"><h3>Du vs. Steam-Freunde</h3><div class="mid">Platz ${rank}</div><div class="help" style="margin-bottom:8px">von ${list.length}, nach Steam-Stunden (nur Freunde mit öffentlichem Profil)</div>
-    ${list.slice(0,10).map((f,i)=>`<div class="frow ${f.me?"me":""}">${f.avatar?`<img src="${esc(f.avatar)}" alt="" loading="lazy" onerror="this.outerHTML='<div class=av>${esc((f.name||"?")[0])}</div>'">`:`<div class="av">${esc((f.name||"?")[0])}</div>`}
-      <div style="min-width:0"><b>${i+1}. ${esc(f.name)}</b><span>${f.top?`Top: ${esc(f.top[0])}`:""}${f.common&&f.common[0]?` · gemeinsam: ${esc(f.common[0][0])}`:""}</span></div><b>${hrs(f.minutes)}</b></div>`).join("")}</section>`;
-}
 
 /* ================= Wrapped ================= */
 const W = {mode:"year", slides:[], i:0, t0:0, paused:false, raf:0, DUR:7000, data:null};
@@ -2707,7 +2674,6 @@ async function ensurePeriod(p){
   if (p === "year"){ S.yearPM = pm; S.yearInfo = info; }
   return S.pcache[p];
 }
-const ensureYear = () => ensurePeriod("year");
 const MON = () => new Date().toLocaleDateString("de-DE",{month:"long"});
 function kw(d){ const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const day = t.getUTCDay()||7; t.setUTCDate(t.getUTCDate()+4-day); const y0 = new Date(Date.UTC(t.getUTCFullYear(),0,1)); return Math.ceil(((t-y0)/864e5+1)/7); }
 function wrapModes(){
@@ -3199,10 +3165,13 @@ window.openGame = key => {
     ${g.minutes < 300 ? `<p class="help">Einordnen geht ab 5 Stunden Spielzeit.</p>` : `<div class="tpick">${TIERS.map(([t,c])=>`<button style="background:${c}" class="${g.tier===t?"on":""}" onclick="setTier('${esc(g.key)}', ${g.tier===t?"null":`'${t}'`})">${t}</button>`).join("")}</div>`}
     <div class="secttl">Wertungen</div>
     <div class="scores">
-      <div>${g.critic ? mcBadge(g.critic) : `<span class="mc" style="background:#ffffff14;color:var(--muted)">–</span>`}<div><small>${g.criticSrc==="Metacritic"?"Metacritic":g.critic?"Fachpresse (IGDB)":"Fachpresse"}</small><b>${g.critic ? (g.critic>=90?"Meisterwerk":g.critic>=75?"Sehr gut":g.critic>=50?"Gemischt":"Schwach") : "keine Wertung"}</b></div></div>
+      <div>${g.critic ? mcBadge(g.critic) : `<span class="mc" style="background:#ffffff14;color:var(--muted)">–</span>`}<div><small>${g.criticSrc==="Metacritic"?"Metacritic":g.criticSrc==="Selbst"?"Metacritic (selbst eingetragen)":g.critic?"Fachpresse (IGDB)":"Fachpresse"}</small><b>${g.critic ? (g.critic>=90?"Meisterwerk":g.critic>=75?"Sehr gut":g.critic>=50?"Gemischt":"Schwach") : "keine Wertung"}</b></div></div>
       <div>${g.rev ? `<span class="srv ${g.rev.pct>=70?"g":g.rev.pct>=40?"y":"r"}">${g.rev.pct}%</span>` : `<span class="srv" style="color:var(--muted)">–</span>`}<div><small>Steam-Spieler</small><b>${g.rev ? `${revLabel(g.rev.pct, g.rev.total)}` : g.appid ? "lädt …" : "nicht auf Steam"}</b>${g.rev?`<div class="help" style="margin:0">${num(g.rev.total)} Rezensionen</div>`:""}</div></div>
     </div>
-    ${g.mcSlug?`<p class="help" style="margin-top:6px">Metacritic-Wertung über <a href="https://rawg.io/games/${esc(g.mcSlug)}" target="_blank" rel="noopener">RAWG.io</a></p>`:g.critic&&g.criticSrc!=="Metacritic"?`<p class="help" style="margin-top:6px">Keine Metacritic-Wertung gefunden – Schnitt der Fachpresse laut IGDB.</p>`:""}
+    <p class="help" style="margin-top:6px">${g.criticSrc==="Selbst" ? "Von dir eingetragen." : g.mcSlug ? `Metacritic-Wertung über <a href="https://rawg.io/games/${esc(g.mcSlug)}" target="_blank" rel="noopener">RAWG.io</a>.` : g.critic && g.criticSrc!=="Metacritic" ? "Keine Metacritic-Wertung gefunden – Schnitt der Fachpresse laut IGDB." : ""}
+      <a href="#" onclick="event.preventDefault();this.nextElementSibling.style.display='flex';this.remove()">Wertung korrigieren</a>
+      <span class="inl" style="display:none;margin-top:6px"><input type="number" min="1" max="100" id="critIn" value="${g.criticSrc==="Selbst"?g.critic:""}" placeholder="z. B. 84" style="width:90px">
+        <button class="btn ghost small" onclick="setCritic('${esc(g.key)}', $('#critIn').value)">Speichern</button>${g.criticSrc==="Selbst"?`<button class="btn ghost small" onclick="setCritic('${esc(g.key)}', null)">↺ Automatisch</button>`:""}</span></p>
     <div class="secttl">Notiz</div><textarea id="note" placeholder="z. B. Bei Kapitel 3 aufgehört …">${esc(g.meta.note||"")}</textarea>
     ${g.pc?`<button class="btn ghost small" style="margin-top:14px;margin-right:8px" onclick="setNotPc('${esc(g.key)}', ${notPc(g)?"false":"true"})">${notPc(g)?"🖥 Doch am PC – zurück in den Backlog":"🎮 Hab ich nicht am PC"}</button>`:""}
     <button class="btn ghost small" style="margin-top:14px" onclick="setHide('${esc(g.key)}', ${g.hide?"false":"true"})">${g.hide?"👁 Wieder in der Statistik zeigen":"🙈 Kein Spiel / aus der Statistik ausblenden"}</button>`;
@@ -3240,6 +3209,23 @@ function paidEditor(g){
       ${v!=null?`<button class="btn ghost small" onclick="setPaid('${k}', null)">✕</button>`:""}</div>
     ${v>0 && g.minutes>=60 ? `<p class="help">${euro(v/(g.minutes/60))} pro Stunde bei ${hrs(g.minutes)} Spielzeit.</p>` : ""}`;
 }
+window.setCritic = async (key, val, keepOpen) => {
+  const all = {...((S.data||{}).critic||{})}, n = Math.round(Number(val));
+  if (val === null || val === "") delete all[key]; else if (n >= 1 && n <= 100) all[key] = n; else { toast("Bitte eine Zahl von 1 bis 100"); return; }
+  try { await saveKv("critic", all); S.data.critic = all; } catch(e){ toast("Speichern fehlgeschlagen"); return; }
+  buildGroups(); toast("Gespeichert"); if (keepOpen) openMissingCritic(); else { openGame(key); quietRoute(); }
+};
+// Spiele ohne Metacritic-Wertung (zum Nachtragen)
+window.openMissingCritic = () => {
+  const list = S.groups.filter(g=>g.criticSrc!=="Metacritic" && g.criticSrc!=="Selbst" && g.minutes>0).sort((a,b)=>b.minutes-a.minutes);
+  const have = S.groups.filter(g=>g.criticSrc==="Metacritic"||g.criticSrc==="Selbst").length;
+  $("#infoBody").innerHTML = `<button class="ibtn dclose" onclick="$('#info').close()">✕</button><div class="eyebrow">Wertungen</div>
+    <div class="h1" style="font-size:clamp(28px,6vw,40px);margin:6px 0 4px;padding-right:44px">${list.length} ohne Metacritic</div>
+    <p class="help" style="margin-top:0">${have} Spiele haben eine Metacritic-Wertung. Für diese gespielten Spiele hat RAWG keinen eindeutigen Treffer – hier zählt der IGDB-Schnitt, falls vorhanden. Trag die Metacritic-Zahl ein, wenn du sie kennst.</p>
+    ${list.slice(0,120).map(g=>`<div class="xrow" style="cursor:default"><div class="poster">${img(g.covers,g.title)}</div><div><b>${esc(g.title)}</b><span>${hrs(g.minutes)}${g.critic?` · IGDB ${g.critic}`:""}</span></div>
+      <em style="display:flex;gap:6px;align-items:center"><input type="number" min="1" max="100" placeholder="MC" style="width:64px" onkeydown="if(event.key==='Enter')setCritic('${esc(g.key)}',this.value,1)"><button class="btn ghost small" onclick="setCritic('${esc(g.key)}',this.previousElementSibling.value,1)">✓</button></em></div>`).join("")}`;
+  if (!$("#info").open) $("#info").showModal();
+};
 window.setPaid = async (key, val) => {
   const all = {...((S.data||{}).paid||{})};
   if (val === null || val === "") delete all[key];
@@ -3493,6 +3479,13 @@ window.openSettings = async () => {
   $("#settingsBody").innerHTML = `<button class="ibtn dclose" onclick="$('#settings').close()">✕</button>
     <div class="h1" style="font-size:32px">Einstellungen</div>
     <p class="help" style="margin-top:-8px">Alles bleibt auf diesem PC (Ordner <code>daten</code>). Die Handy-App bekommt nur eine verschlüsselte Kopie.</p>
+    <fieldset><legend>🖥️ System</legend>
+      <p class="help" style="margin-top:0">Gaming Recap läuft unsichtbar im Hintergrund – ohne Fenster in der Taskleiste. Hier startest du es neu oder beendest es.</p>
+      <div class="inl" style="flex-wrap:wrap;gap:8px"><button class="btn ghost small" type="button" onclick="sysAction('restart')">🔄 Neu starten</button>
+        <button class="btn ghost small" type="button" onclick="sysAction('quit')">⏻ Beenden</button>
+        <button class="btn ghost small" type="button" onclick="showLog()">📜 Protokoll</button></div>
+      <p class="help">Laufende Spiel-Sessions gehen beim Neustart nicht verloren. Nach „Beenden“ startest du es wieder über <b>Start</b> im Ordner GamingRecap (oder es startet beim nächsten Windows-Start von selbst).</p>
+    </fieldset>
     <fieldset><legend>⬇️ Hintergrund-Downloads</legend><div id="dlBox"><p class="help">Lade Status …</p></div></fieldset>
     <fieldset><legend>🩺 Systemcheck</legend>${healthBlock() || `<p class="help">Wird beim nächsten Abgleich erstellt.</p>`}</fieldset>
 
