@@ -2951,10 +2951,16 @@ function wFit(root){
   root.querySelectorAll(".xl,.wbig,.wp-num").forEach(el=>{
     const keep = el.textContent, fin = el.dataset.count != null ? (el.dataset.pre||"") + num(Number(el.dataset.count)) : keep;
     const box = el.parentElement, cs = getComputedStyle(box), max = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-    el.textContent = fin; const d0 = el.style.display; el.style.display = "inline-block"; el.style.whiteSpace = "nowrap";
-    let fs = parseFloat(getComputedStyle(el).fontSize), guard = 0;
-    while (el.offsetWidth > max && fs > 24 && guard++ < 40){ fs *= .93; el.style.fontSize = fs + "px"; }
-    el.style.display = d0; el.textContent = keep;
+    if (!(max > 0)) return;
+    el.style.fontSize = "";
+    // 1) Schätzung über die Zeichenzahl – unabhängig davon, ob die Schrift schon geladen ist
+    const w = [...fin].reduce((s,ch)=> s + (/[.,]/.test(ch) ? .32 : ch==="~" ? .75 : ch===" " ? .3 : .68), 0);
+    let fs = Math.min(parseFloat(getComputedStyle(el).fontSize), max / Math.max(1, w));
+    el.style.fontSize = fs + "px";
+    // 2) nachmessen
+    el.textContent = ""; const sp = document.createElement("span"); sp.style.whiteSpace = "nowrap"; sp.textContent = fin; el.appendChild(sp);
+    let guard = 0; while (sp.getBoundingClientRect().width > max + 1 && fs > 20 && guard++ < 40){ fs *= .94; el.style.fontSize = fs + "px"; }
+    el.textContent = keep;
   });
 }
 function wShow(){
@@ -2963,7 +2969,7 @@ function wShow(){
   if (prev){ prev.classList.add("leave"); setTimeout(()=>prev.remove(), 600); }
   const el = document.createElement("div");
   el.className = `wslide enter ${sl.tr?"tr-"+sl.tr:""} ${sl.cls||""}`; el.style.background = sl.bg; el.style.color = sl.fg || "#fff"; el.innerHTML = sl.html;
-  slot.appendChild(el); splitWords(el); wFit(el);
+  slot.appendChild(el); splitWords(el); wFit(el); if (document.fonts) document.fonts.ready.then(()=>{ if (el.isConnected) wFit(el); });
   requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.remove("enter")));
   document.querySelectorAll(".wbars i b").forEach((b,i)=>b.style.width = i < W.i ? "100%" : "0");
   setTimeout(()=>animate(el), 300);
