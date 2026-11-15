@@ -506,7 +506,8 @@ function pdate(s){ if(!s) return null; const d=new Date(String(s).replace(" ","T
 const fdate = d => d ? d.toLocaleDateString("de-DE",{day:"numeric",month:"short",year:"numeric"}) : "–";
 // Muss identisch zu norm_title()/PLATFORM_SUFFIX in common.py bleiben
 const PLATFORM_SUFFIX = /\((?:playstation ?[45]|ps[45]|xbox one|xbox series x ?\| ?s|windows|pc)\)|\b(?:for )?xbox series x ?\| ?s\b|\bxbox one edition\b|-\s*windows(?: 10)?(?: edition)?\b|\bpc edition\b|\bfor windows 10\b|\bstandard edition\b/g;
-const norm = t => String(t||"").replace(/[™®©℠]/g," ").replace(/[‘’‛′´`]/g,"'").normalize("NFKD").replace(/[^\x00-\x7f]/g,"").toLowerCase().replace(PLATFORM_SUFFIX," ").replace(/[^a-z0-9]+/g," ").trim();
+const EDITION_SUFFIX = / (?:enhanced(?: edition)?|definitive edition|game of the year(?: edition)?|goty(?: edition)?|remastered|complete edition|deluxe edition|ultimate edition|gold edition|special edition|anniversary edition|director s cut|(?:the )?final cut)$/;
+const norm = t => { const x = String(t||"").replace(/[™®©℠]/g," ").replace(/[‘’‛′´`]/g,"'").normalize("NFKD").replace(/[^\x00-\x7f]/g,"").toLowerCase().replace(PLATFORM_SUFFIX," ").replace(/[^a-z0-9]+/g," ").trim(); return x.replace(EDITION_SUFFIX,"").trim() || x; };
 function hash(s){ let h=0; for (const c of String(s)) h=(h*31+c.charCodeAt(0))|0; return Math.abs(h); }
 const PH_GRADS = [["#ff4fa3","#7a5cff"],["#c8f135","#2ee6d6"],["#ff8a3d","#ff4fa3"],["#3d7bff","#2ee6d6"],["#7a5cff","#3d7bff"],["#ffd23f","#ff8a3d"]];
 function ph(title){ const [a,b]=PH_GRADS[hash(title)%PH_GRADS.length]; return `<div class="ph" style="background:linear-gradient(140deg,${a},${b})">${esc(title)}</div>`; }
@@ -590,13 +591,17 @@ const pass = () => store.get("gr_pass", null);
 const edits = () => store.get("gr_edits", []);
 
 /* ================= Daten laden ================= */
-async function load(){
+async function load(quiet){
   if (CLOUD) return loadCloud();
-  S.yearPM = undefined; S.pcache = {};
-  try { S.data = await (await fetch(`/api/data?period=${S.period}`)).json(); }
-  catch(e){ $("#view").innerHTML = `<div class="empty"><div class="big">📡</div><h2>Keine Verbindung</h2><p class="help">Läuft Gaming Recap noch auf deinem PC?</p></div>`; return; }
-  applyEstimate(); buildGroups(); header(); route(); setTimeout(saveYearArchive, 1500);
-  if (S.data.syncing) setTimeout(load, 2500);
+  let d;
+  try { d = await (await fetch(`/api/data?period=${S.period}`)).json(); }
+  catch(e){ if (!quiet) $("#view").innerHTML = `<div class="empty"><div class="big">📡</div><h2>Keine Verbindung</h2><p class="help">Läuft Gaming Recap noch auf deinem PC?</p></div>`; return; }
+  // Während des Abgleichs nicht ständig neu zeichnen: erst wenn er fertig ist (oder beim ersten Laden)
+  if (quiet && d.syncing){ setTimeout(()=>load(true), 3000); return; }
+  if (quiet && $("dialog[open]")) { setTimeout(()=>load(true), 3000); return; }
+  S.data = d; S.yearPM = undefined; S.pcache = {};
+  applyEstimate(); buildGroups(); header(); quiet ? quietRoute() : route(); setTimeout(saveYearArchive, 1500);
+  if (S.data.syncing) setTimeout(()=>load(true), 3000);
 }
 
 async function loadCloud(force){
@@ -615,7 +620,7 @@ async function loadCloud(force){
       const m = meta[norm(e.key)]; return !(m && m.updated && Date.parse(m.updated) >= e.ts) && Date.now()-e.ts < 30*86400e3; }));
   }
   const snap = S.snap, meta = {...(snap.meta||{})};
-  let goals = snap.goals || {}; const kvs = {year_overrides: snap.year_overrides || {}, wrapped: snap.wrapped_archive || {}};
+  let goals = snap.goals || {}; const kvs = {year_overrides: snap.year_overrides || {}, wrapped: snap.wrapped_archive || {}, notpc: snap.notpc || {}};
   for (const e of edits()){
     if (e.kind === "kv"){ if (e.key === "goals") goals = e.value; else kvs[e.key] = e.value; continue; }
     const k = norm(e.key); meta[k] = {...(meta[k]||{}), ...pick(e,["status","rating","note","tier","hide"]), updated:new Date(e.ts).toISOString()};
@@ -623,7 +628,7 @@ async function loadCloud(force){
   const p = S.period === "all" ? null : (snap.periods||{})[S.period];
   S.data = {last_sync:snap.last_sync, sources:snap.sources||{}, games:snap.games||[], meta, hltb:snap.hltb||{},
     sessions:snap.sessions||[], status_log:snap.status_log||[], goals, steam:snap.steam||{}, prefs:snap.prefs||{},
-    year_overrides: kvs.year_overrides, wrapped_archive: kvs.wrapped,
+    year_overrides: kvs.year_overrides, wrapped_archive: kvs.wrapped, notpc: kvs.notpc,
     playing:[], can_edit:false, period: p ? p.info : {period:"all"}, period_minutes: p ? p.pm : null};
   S.pcache = {}; S.yearPM = undefined; S.yearInfo = undefined;
   applyEstimate(); buildGroups(); header(); route(); flushEdits(); setTimeout(saveYearArchive, 1500);
@@ -829,7 +834,19 @@ function route(){
   afterRender();
 }
 window.addEventListener("hashchange", ()=>{ document.querySelectorAll("dialog[open]").forEach(d=>d.close()); if ($("#wrap") && $("#wrap").classList.contains("open")) closeWrapped(); route(); scrollTo(0,0); });
+// Neu zeichnen ohne Einblend-Animation und ohne Springen (für Hintergrund-Aktualisierungen)
+function quietRoute(){
+  const y = scrollY; S.quiet = true; route(); S.quiet = false; scrollTo(0, y);
+}
 function afterRender(){
+  if (S.quiet){
+    document.querySelectorAll(".reveal").forEach(el=>{ el.style.transition = "none"; el.classList.add("in");
+      el.querySelectorAll("[data-count]").forEach(c=>c.textContent = num(Number(c.dataset.count), Number(c.dataset.dec||0)));
+      el.querySelectorAll("[data-w]").forEach(c=>{ c.style.transition = "none"; c.style.width = c.dataset.w; });
+      el.querySelectorAll("[data-h]").forEach(c=>{ c.style.transition = "none"; c.style.height = c.dataset.h; }); });
+    document.querySelectorAll(".heatwrap").forEach(el=>el.scrollLeft = el.scrollWidth);
+    return;
+  }
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ e.target.classList.add("in"); animate(e.target); io.unobserve(e.target);} }), {threshold:.1});
   document.querySelectorAll(".reveal").forEach(el=>io.observe(el));
   document.querySelectorAll(".heatwrap").forEach(el=>el.scrollLeft = el.scrollWidth);
@@ -1145,7 +1162,8 @@ function libGrid(){
 }
 
 /* ================= Backlog ================= */
-const consoleOnly = g => !g.pcMinutes && (g.consoleMin||0) > 0;
+const notPc = g => !!((S.data||{}).notpc||{})[g.key];
+const consoleOnly = g => notPc(g) || (!g.pcMinutes && (g.consoleMin||0) > 0);
 const blGames = () => S.groups.filter(g=>g.pc && !g.hidden && g.owned && !consoleOnly(g));
 function platChips(g){
   const seen = new Map();
@@ -1919,7 +1937,7 @@ window.openGame = key => {
   const right = `${g.pc && !g.hidden && g.owned && !consoleOnly(g) ? `<div class="secttl">Backlog-Status ${g.isAuto?"<span style='text-transform:none;letter-spacing:0'>(automatisch erkannt)</span>":""}</div>
       <div class="sgrid">${STATUS.map(s=>`<button style="color:${s.c}" class="${g.status===s.k?"on":""}" onclick="setStatus('${esc(g.key)}','${s.k}')"><span style="color:var(--ink)">${s.e} ${s.l}</span></button>`).join("")}
       ${g.isAuto?"":`<button onclick="setStatus('${esc(g.key)}',null)" style="color:var(--muted)">↺ Automatisch</button>`}</div>`
-      : `<p class="help">${!g.pc?"Konsolenspiele zählen in die Statistik, aber nicht in den Backlog.":consoleOnly(g)?"Nur auf der Konsole gespielt, daher nicht im Backlog.":!g.owned?"Nicht im Backlog: Der Store ist dort ausgeschlossen (Einstellungen) oder das Spiel ist geliehen.":"In Playnite ausgeblendet, daher nicht im Backlog."}</p>`}
+      : `<p class="help">${!g.pc?"Konsolenspiele zählen in die Statistik, aber nicht in den Backlog.":notPc(g)?"Von dir als „nicht am PC“ markiert, daher nicht im Backlog.":consoleOnly(g)?"Nur auf der Konsole gespielt, daher nicht im Backlog.":!g.owned?"Nicht im Backlog: Der Store ist dort ausgeschlossen (Einstellungen) oder das Spiel ist geliehen.":"In Playnite ausgeblendet, daher nicht im Backlog."}</p>`}
     <div class="secttl">Tier-Liste</div>
     <div class="tpick">${TIERS.map(([t,c])=>`<button style="background:${c}" class="${g.tier===t?"on":""}" onclick="setTier('${esc(g.key)}', ${g.tier===t?"null":`'${t}'`})">${t}</button>`).join("")}</div>
     <div class="secttl">Wertungen</div>
@@ -1928,6 +1946,7 @@ window.openGame = key => {
       <div>${g.rev ? `<span class="srv ${g.rev.pct>=70?"g":g.rev.pct>=40?"y":"r"}">${g.rev.pct}%</span>` : `<span class="srv" style="color:var(--muted)">–</span>`}<div><small>Steam-Spieler</small><b>${g.rev ? `${revLabel(g.rev.pct, g.rev.total)}` : g.appid ? "lädt …" : "nicht auf Steam"}</b>${g.rev?`<div class="help" style="margin:0">${num(g.rev.total)} Rezensionen</div>`:""}</div></div>
     </div>
     <div class="secttl">Notiz</div><textarea id="note" placeholder="z. B. Bei Kapitel 3 aufgehört …">${esc(g.meta.note||"")}</textarea>
+    ${g.pc?`<button class="btn ghost small" style="margin-top:14px;margin-right:8px" onclick="setNotPc('${esc(g.key)}', ${notPc(g)?"false":"true"})">${notPc(g)?"🖥 Doch am PC – zurück in den Backlog":"🎮 Hab ich nicht am PC"}</button>`:""}
     <button class="btn ghost small" style="margin-top:14px" onclick="setHide('${esc(g.key)}', ${g.hide?"false":"true"})">${g.hide?"👁 Wieder in der Statistik zeigen":"🙈 Kein Spiel / aus der Statistik ausblenden"}</button>`;
   $("#detailBody").innerHTML = `<button class="ibtn dclose" onclick="$('#detail').close()">✕</button>
     <div class="dban">${img(g.banners,g.title)}</div>
@@ -1950,6 +1969,15 @@ async function saveMeta(key, patch){
   buildGroups();
 }
 window.setStatus = async (key, st) => { await saveMeta(key,{status:st}); openGame(key); route(); };
+window.setAutostart = async el => {
+  try { const r = await post("/api/autostart", {on: el.checked}); el.checked = !!r.autostart; toast(r.autostart ? "Startet ab jetzt mit Windows" : "Autostart aus"); }
+  catch(e){ el.checked = !el.checked; toast("Ging nicht: " + e.message); }
+};
+window.setNotPc = async (key, on) => {
+  const all = {...((S.data||{}).notpc||{})}; if (on) all[key] = 1; else delete all[key];
+  try { await saveKv("notpc", all); S.data.notpc = all; } catch(e){ toast("Speichern fehlgeschlagen"); return; }
+  toast(on ? "Aus dem Backlog genommen" : "Wieder im Backlog"); buildGroups(); openGame(key); route();
+};
 window.setHide = async (key, h) => { await saveMeta(key,{hide:h}); toast(h?"Ausgeblendet":"Wieder sichtbar"); $("#detail").close(); route(); };
 window.setTier = async (key, t, reopen=true) => { await saveMeta(key,{tier:t}); if (reopen && $("#detail").open) openGame(key); if (cur()==="spiele" && S.lib.view==="tier") renderLib(); };
 async function saveKv(key, value){
@@ -2103,7 +2131,8 @@ window.openSettings = async () => {
     </fieldset>
     <fieldset><legend>⏱️ Session-Tracker & Spieldauern</legend>
       <label class="check"><input type="checkbox" id="tracker" ${c.tracker?"checked":""}> Laufende PC-Spiele erkennen und Sessions speichern</label>
-      <div class="help">${c.tracker_supported?"Funktioniert, solange Gaming Recap läuft. Tipp: Autostart einrichten (siehe Anleitung).":"Nur unter Windows verfügbar."} Änderung wirkt nach einem Neustart.</div>
+      <div class="help">${c.tracker_supported?"Funktioniert, solange Gaming Recap läuft.":"Nur unter Windows verfügbar."} Änderung wirkt nach einem Neustart.</div>
+      ${c.autostart_supported?`<label class="check" style="margin-top:12px"><input type="checkbox" id="autostartChk" ${c.autostart?"checked":""} onchange="setAutostart(this)"> Mit Windows starten (minimiert) – damit keine Tage fehlen</label>`:""}
       <label class="check" style="margin-top:12px"><input type="checkbox" id="hltb" ${c.hltb?"checked":""}> Spieldauern („Time to Beat“) und Cover von IGDB laden</label>
       <label>IGDB Client-ID</label><input type="text" id="igdb_client_id" value="${esc(c.igdb_client_id||"")}" autocomplete="off">
       <label>IGDB Client-Secret</label><input type="password" id="igdb_client_secret" placeholder="${ph2(c.igdb_client_secret_set)}" autocomplete="off">
@@ -2174,7 +2203,7 @@ nav();
 load();
 if (LOCAL) setInterval(()=>{ if (!document.hidden && cur()!=="wrapped") fetch("/api/data?period="+S.period).then(r=>r.json()).then(d=>{
   const changed = JSON.stringify(d.playing) !== JSON.stringify(S.data && S.data.playing) || d.last_sync !== (S.data && S.data.last_sync);
-  if (changed && !$("#detail").open && !$("#picker").open && !$("#settings").open){ S.data = d; buildGroups(); header(); route(); }
+  if (changed && !$("#detail").open && !$("#picker").open && !$("#settings").open) load(true);
 }).catch(()=>{}); }, 60000);
 </script>
 </body>
