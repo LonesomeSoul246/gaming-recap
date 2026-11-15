@@ -878,6 +878,13 @@ body::after{content:"";position:fixed;right:-15vw;bottom:-25vh;width:60vw;height
 .sw::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .25s cubic-bezier(.3,1.4,.5,1)}
 .sw:checked{background:var(--acc)}.sw:checked::after{transform:translateX(18px)}
 .logbox{max-height:60vh;overflow:auto;background:#0b0c0f;border:1px solid #ffffff12;border-radius:12px;padding:12px;font:12px/1.5 ui-monospace,Consolas,monospace;white-space:pre-wrap;word-break:break-word;color:#cfd6e4}
+.season{all:unset;box-sizing:border-box;cursor:pointer;position:relative;display:flex;align-items:center;gap:16px;width:100%;overflow:hidden;border-radius:var(--r);padding:20px 22px;margin-bottom:14px;
+  background:linear-gradient(120deg,#A97BFF,#7C8CFF 45%,#33C3FF);color:#0A1C2A;box-shadow:0 18px 50px #7C8CFF33}
+.season .sstrip{position:absolute;inset:-30% -5% -30% 45%;display:flex;gap:10px;transform:rotate(-10deg);opacity:.35;mix-blend-mode:multiply;animation:wmar 40s linear infinite;width:max-content}
+.season .sstrip .poster{width:80px;flex:none;border-radius:10px;box-shadow:none}
+.season .stxt{position:relative;z-index:1;min-width:0}.season small{font-size:11px;font-weight:900;letter-spacing:2px;text-transform:uppercase}
+.season b{display:block;font-size:clamp(22px,4vw,34px);font-weight:900;letter-spacing:-1px;line-height:1.1;margin:2px 0}.season span{font-size:13.5px;opacity:.85}
+.season em{position:relative;z-index:1;margin-left:auto;font-style:normal;width:46px;height:46px;flex:none;border-radius:50%;background:#0A1C2A;color:#fff;display:grid;place-items:center;font-size:16px;animation:pulse2 2s infinite}
 </style>
 </head>
 <body>
@@ -1579,11 +1586,23 @@ function saleBanner(){
   if (!sale.length) return "";
   return `<button class="banner" onclick="S.lib.view='wish';location.hash='#/spiele'"><span class="bdot"></span><b>${sale.length} ${sale.length===1?"Wunsch":"Wünsche"} im Angebot</b><span>${esc(sale[0].name)} −${sale[0].discount} %${sale.length>1?" und mehr":""}</span><em>→</em></button>`;
 }
+// Wrapped-Saison: im Dezember das laufende Jahr, Anfang Januar das abgeschlossene
+function seasonCard(){
+  const n = new Date(), y = n.getFullYear();
+  let mode = null, yr = y, sub = "";
+  if (n.getMonth() === 11){ mode = "year"; sub = "Dein Jahres-Wrapped ist fertig – Stunden, Top-Spiele, dein Typ und Rekorde."; }
+  else if (n.getMonth() === 0 && n.getDate() <= 14 && (S.data.wrapped_archive||{})[String(y-1)]){ mode = "arch:" + (y-1); yr = y-1; sub = "Das Jahr ist abgeschlossen – hier ist deine finale Story."; }
+  if (!mode) return "";
+  const cov = S.groups.filter(g=>val(g)>0).sort((a,b)=>val(b)-val(a)).slice(0,10);
+  return `<button class="season reveal" onclick="W.mode='${mode}';location.hash='#/wrapped';setTimeout(startWrapped,300)">
+    <div class="sstrip">${[...cov,...cov].map(g=>`<div class="poster">${img(g.covers,g.title)}</div>`).join("")}</div>
+    <div class="stxt"><small>🎬 Wrapped ${yr}</small><b>Dein Gaming-Jahr ${yr}</b><span>${sub}</span></div><em>▶</em></button>`;
+}
 function renderOverviewInner(){
   const c = ovCtx();
   let h = playingBanner() + periodChips() + periodNotice();
   if (!c.played.length){ setView(h + emptyState()); return; }
-  h += `<div class="bento">` + heroCard(c) + funSpot(c) + saleBanner()
+  h += seasonCard() + `<div class="bento">` + heroCard(c) + funSpot(c) + saleBanner()
     + recentRail() + topCard(c) + platCard(c) + backlogMini() + `</div>`;
   setView(h);
   setTimeout(startSpot, 50);
@@ -3423,7 +3442,9 @@ function cloudMenu(){
 const NCATS = [["lows","🔥","Tiefstpreis auf der Wunschliste","so günstig wie nie bei Steam"],["sales","🏷️","Neues Angebot auf der Wunschliste","sobald Steam einen Rabatt startet"],
   ["release","🗓️","Release-Tag","wenn ein Wunsch heute erscheint"],["free","🎁","Gratis-Spiele","neue Gratis-Aktionen bei Epic"],
   ["weekly","📊","Wochen-Recap","montags ab 9 Uhr"],["monthly","🎬","Monats-Wrapped","am 1. mit Link zur Story"],
-  ["pause","☕","Pausen-Erinnerung","nach langem Spielen am Stück"],["health","🩺","Probleme","wenn etwas am PC nicht läuft"]];
+  ["yearly","🏆","Jahres-Wrapped","Anfang Dezember und am 1. Januar"],
+  ["pause","☕","Pausen-Erinnerung","nach langem Spielen am Stück"],["health","🩺","Probleme & Ablauf-Warnungen","wenn etwas nicht läuft oder ein Zugang bald abläuft"],
+  ["offline","📴","PC meldet sich nicht","nach 2 Tagen ohne Upload – kommt auch, wenn der PC aus ist"]];
 function notifyBlock(){
   const P = S.data.notify || {cats:{}, win:true, phone:true}, C = P.cats || {};
   const sw = (on, js) => `<input type="checkbox" class="sw" ${on?"checked":""} onchange="${js}">`;
