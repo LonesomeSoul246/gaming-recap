@@ -1079,7 +1079,7 @@ async function loadCloud(force){
   const p = S.period === "all" ? null : (snap.periods||{})[S.period];
   S.data = {last_sync:snap.last_sync, sources:snap.sources||{}, games:snap.games||[], meta, hltb:snap.hltb||{},
     sessions:snap.sessions||[], csessions:snap.csessions||[], status_log:snap.status_log||[], goals, steam:snap.steam||{}, prefs:snap.prefs||{},
-    year_overrides: kvs.year_overrides, wrapped_archive: kvs.wrapped, notpc: kvs.notpc, snotes: kvs.snotes, covers: kvs.covers, paid: kvs.paid, notify: kvs.notify, push_ready: !!snap.push_ready, wl_deals: snap.wl_deals || {},
+    year_overrides: kvs.year_overrides, wrapped_archive: kvs.wrapped, notpc: kvs.notpc, snotes: kvs.snotes, covers: kvs.covers, paid: kvs.paid, notify: kvs.notify, push_ready: !!snap.push_ready, wl_deals: snap.wl_deals || {}, metacritic: snap.metacritic || {},
     values: snap.values || {}, values_at: snap.values_at, xcovers: snap.xcovers || {},
     tracking_since: snap.tracking_since, health: snap.health || [],
     trophies: snap.trophies || [], free_games: snap.free_games || [],
@@ -1259,8 +1259,11 @@ function buildGroups(){
     g.price = g.appid && sx.prices ? sx.prices[g.appid] || null : null;
     const scr = g.appid && sx.scores ? sx.scores[g.appid] || null : null;
     const pnCritic = Math.max(0, ...recs.map(r=>Number(r.critic)||0));
-    g.critic = scr && scr.mc ? scr.mc : pnCritic || (g.hltb && g.hltb.critic) || null;
-    g.criticSrc = scr && scr.mc ? "Metacritic" : pnCritic ? "Fachpresse" : g.critic ? "IGDB" : null;
+    // Wertung: Metacritic (RAWG) > Metacritic (Steam) > Fachpresse-Schnitt von IGDB (auch über Playnite)
+    const rm = (d.metacritic||{})[g.key];
+    g.critic = rm ? rm[0] : scr && scr.mc ? scr.mc : pnCritic || (g.hltb && g.hltb.critic) || null;
+    g.criticSrc = rm || (scr && scr.mc) ? "Metacritic" : g.critic ? "IGDB" : null;
+    g.mcSlug = rm ? rm[1] : null;
     g.rev = scr && scr.rt ? {pct: scr.rp, total: scr.rt} : null;
     g.auto = autoStatus(g);
     g.status = g.meta.status || g.auto;
@@ -3196,9 +3199,10 @@ window.openGame = key => {
     ${g.minutes < 300 ? `<p class="help">Einordnen geht ab 5 Stunden Spielzeit.</p>` : `<div class="tpick">${TIERS.map(([t,c])=>`<button style="background:${c}" class="${g.tier===t?"on":""}" onclick="setTier('${esc(g.key)}', ${g.tier===t?"null":`'${t}'`})">${t}</button>`).join("")}</div>`}
     <div class="secttl">Wertungen</div>
     <div class="scores">
-      <div>${g.critic ? mcBadge(g.critic) : `<span class="mc" style="background:#ffffff14;color:var(--muted)">–</span>`}<div><small>${g.criticSrc==="Metacritic"?"Metacritic":"Fachpresse"}</small><b>${g.critic ? (g.critic>=90?"Meisterwerk":g.critic>=75?"Sehr gut":g.critic>=50?"Gemischt":"Schwach") : "keine Wertung"}</b></div></div>
+      <div>${g.critic ? mcBadge(g.critic) : `<span class="mc" style="background:#ffffff14;color:var(--muted)">–</span>`}<div><small>${g.criticSrc==="Metacritic"?"Metacritic":g.critic?"Fachpresse (IGDB)":"Fachpresse"}</small><b>${g.critic ? (g.critic>=90?"Meisterwerk":g.critic>=75?"Sehr gut":g.critic>=50?"Gemischt":"Schwach") : "keine Wertung"}</b></div></div>
       <div>${g.rev ? `<span class="srv ${g.rev.pct>=70?"g":g.rev.pct>=40?"y":"r"}">${g.rev.pct}%</span>` : `<span class="srv" style="color:var(--muted)">–</span>`}<div><small>Steam-Spieler</small><b>${g.rev ? `${revLabel(g.rev.pct, g.rev.total)}` : g.appid ? "lädt …" : "nicht auf Steam"}</b>${g.rev?`<div class="help" style="margin:0">${num(g.rev.total)} Rezensionen</div>`:""}</div></div>
     </div>
+    ${g.mcSlug?`<p class="help" style="margin-top:6px">Metacritic-Wertung über <a href="https://rawg.io/games/${esc(g.mcSlug)}" target="_blank" rel="noopener">RAWG.io</a></p>`:g.critic&&g.criticSrc!=="Metacritic"?`<p class="help" style="margin-top:6px">Keine Metacritic-Wertung gefunden – Schnitt der Fachpresse laut IGDB.</p>`:""}
     <div class="secttl">Notiz</div><textarea id="note" placeholder="z. B. Bei Kapitel 3 aufgehört …">${esc(g.meta.note||"")}</textarea>
     ${g.pc?`<button class="btn ghost small" style="margin-top:14px;margin-right:8px" onclick="setNotPc('${esc(g.key)}', ${notPc(g)?"false":"true"})">${notPc(g)?"🖥 Doch am PC – zurück in den Backlog":"🎮 Hab ich nicht am PC"}</button>`:""}
     <button class="btn ghost small" style="margin-top:14px" onclick="setHide('${esc(g.key)}', ${g.hide?"false":"true"})">${g.hide?"👁 Wieder in der Statistik zeigen":"🙈 Kein Spiel / aus der Statistik ausblenden"}</button>`;
@@ -3207,7 +3211,7 @@ window.openGame = key => {
     <div class="dhead"><div class="poster">${img(g.covers,g.title)}<button class="cvbtn" title="Bild ändern" onclick="coverPick('${esc(g.key)}')">🖼</button></div>
       <div><h2>${esc(g.title)}</h2><div class="tagrow">${devs.map(d=>`<span class="tag"><i style="background:${DEV_COLORS[d]}"></i>${d}</span>`).join("")}</div></div></div>
     <div class="dstats"><div><b>${g.minutes?hrs(g.minutes):"–"}</b><span>gespielt</span></div><div><b>${g.last?fdate(g.last):"–"}</b><span>zuletzt</span></div>
-      <div><b>${g.critic||"–"}</b><span>Fachpresse</span></div><div><b>${g.hltb&&g.hltb.main?hrs(g.hltb.main):"–"}</b><span>Story</span></div></div>
+      <div><b>${g.critic||"–"}</b><span>${g.criticSrc==="Metacritic"?"Metacritic":"Fachpresse"}</span></div><div><b>${g.hltb&&g.hltb.main?hrs(g.hltb.main):"–"}</b><span>Story</span></div></div>
     <div class="dbody"><div class="dgrid"><div>${left}</div><div>${right}</div></div></div>`;
   $("#note").onchange = e => saveMeta(g.key, {note:e.target.value});
   if (!$("#detail").open) $("#detail").showModal();
@@ -3535,6 +3539,10 @@ window.openSettings = async () => {
       <div class="help"><ol><li>Auf <a href="https://isthereanydeal.com" target="_blank" rel="noopener">isthereanydeal.com</a> ein kostenloses Konto anlegen.</li>
         <li><a href="https://isthereanydeal.com/apps/my/" target="_blank" rel="noopener">isthereanydeal.com/apps/my</a> öffnen, „Register app“ (Name z. B. <code>Gaming Recap</code>).</li>
         <li>Den angezeigten <b>API Key</b> kopieren und hier einfügen.</li></ol></div>
+      <label>RAWG-API-Key (Metacritic-Wertungen)</label><input type="password" id="rawg_key" placeholder="${ph2(c.rawg_key_set)}" autocomplete="off">
+      <div class="help"><ol><li>Auf <a href="https://rawg.io/signup" target="_blank" rel="noopener">rawg.io</a> ein kostenloses Konto anlegen.</li>
+        <li><a href="https://rawg.io/apidocs" target="_blank" rel="noopener">rawg.io/apidocs</a> öffnen, „Get API Key“ klicken und das kurze Formular ausfüllen (Name z. B. <code>Gaming Recap</code>, privates Projekt).</li>
+        <li>Den Key kopieren und hier einfügen.</li></ol>Liefert die echten Metacritic-Wertungen. Ohne Key kommen die Wertungen aus IGDB.</div>
       <label>SteamGridDB-API-Key (fehlende Cover)</label><input type="password" id="sgdb_key" placeholder="${ph2(c.sgdb_key_set)}" autocomplete="off">
       <div class="help"><ol><li>Auf <a href="https://www.steamgriddb.com" target="_blank" rel="noopener">steamgriddb.com</a> anmelden (geht mit Steam).</li>
         <li><a href="https://www.steamgriddb.com/profile/preferences/api" target="_blank" rel="noopener">Profil › Einstellungen › API</a> öffnen und „Generate API Key“ klicken.</li>
@@ -3602,7 +3610,7 @@ window.openSettings = async () => {
     try {
       const v = id => $("#"+id).value, ch = id => $("#"+id).checked;
       await post("/api/config", {steam_api_key:v("steam_api_key"), steam_id:v("steam_id"), psn_npsso:v("psn_npsso"), xbox_api_key:v("xbox_api_key"), xbox_api_key_clear: !!($("#xbox_api_key_clear")||{}).checked,
-        playnite_export:v("playnite_export"), gh_repo:v("gh_repo"), igdb_client_id:v("igdb_client_id"), igdb_client_secret:v("igdb_client_secret"), itad_key:v("itad_key"), sgdb_key:v("sgdb_key"), gh_token:v("gh_token"), cloud_pass:v("cloud_pass"),
+        playnite_export:v("playnite_export"), gh_repo:v("gh_repo"), igdb_client_id:v("igdb_client_id"), igdb_client_secret:v("igdb_client_secret"), itad_key:v("itad_key"), sgdb_key:v("sgdb_key"), rawg_key:v("rawg_key"), gh_token:v("gh_token"), cloud_pass:v("cloud_pass"),
         cloud_enabled:ch("cloud_enabled"), tracker:ch("tracker"), hltb:ch("hltb"), lan:ch("lan"), sync_hours:Number(v("sync_hours"))||6,
         backlog_stores:[...document.querySelectorAll(".blstore:checked")].map(e=>e.value),
         steam_extras:ch("steam_extras"), push_topic:v("push_topic"),
