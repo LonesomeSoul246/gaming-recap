@@ -92,7 +92,8 @@ main{max-width:1240px;margin:0 auto;padding:4px 16px 120px}
 .topg .bgimg img,.topg .bgimg .ph{width:100%;height:100%;object-fit:cover}
 .topg::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#08080c 5%,#08080caa 45%,transparent 80%)}
 .topg .in{position:relative;z-index:1;padding:26px;width:100%}
-.topg .rank1{position:absolute;right:16px;top:-6px;z-index:1;font-size:150px;font-weight:900;line-height:1;color:transparent;-webkit-text-stroke:2px #ffffffaa;letter-spacing:-8px}
+.topg .rank1{position:absolute;right:16px;top:10px;z-index:2;font-size:110px;font-weight:900;line-height:1;color:#fff;letter-spacing:-6px;
+  text-shadow:4px 4px 0 #000,0 10px 40px #000c}
 .topg .t{font-size:clamp(26px,5vw,40px);font-weight:900;letter-spacing:-1px;line-height:1.05;margin:6px 0 8px}
 
 .lime{background:var(--lime);color:#111;border:0}
@@ -112,7 +113,8 @@ main{max-width:1240px;margin:0 auto;padding:4px 16px 120px}
 .rail{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:6px 0 4px;scroll-snap-type:x mandatory}
 .rail::-webkit-scrollbar{display:none}
 .rk{flex:none;display:flex;align-items:flex-end;scroll-snap-align:start;cursor:pointer;padding:0 0 46px 26px;position:relative}
-.rk .n{position:absolute;left:0;bottom:40px;z-index:2;font-size:78px;font-weight:900;line-height:.8;color:#0b0a10;-webkit-text-stroke:2px #fff;letter-spacing:-5px;text-shadow:0 6px 18px #000c;pointer-events:none}
+.rk .n{position:absolute;left:0;bottom:40px;z-index:2;font-size:70px;font-weight:900;line-height:.8;color:#fff;letter-spacing:-4px;
+  text-shadow:3px 3px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,0 8px 24px #000;pointer-events:none}
 @media(min-width:1000px){.rk .n{font-size:96px}.rk{padding-left:32px}}
 .rk .p{width:130px;position:relative;z-index:1}
 @media(min-width:1000px){.rk .p{width:150px}}
@@ -260,6 +262,8 @@ details.adv[open]>summary{margin-bottom:6px}
 .calrow{display:grid;grid-template-columns:46px 40px 1fr;gap:12px;align-items:center;padding:8px 0;border-top:1px solid #ffffff10;color:inherit;text-decoration:none}
 .calrow .cday{text-align:center;background:#ffffff0d;border-radius:12px;padding:6px 0}.calrow .cday b{display:block;font-size:20px;line-height:1}.calrow .cday span{font-size:11px;color:var(--muted)}
 .calrow .poster{width:40px;border-radius:8px}.calrow .mid2 b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.calrow .mid2 span{font-size:12.5px;color:var(--muted)}
+.achc{background:linear-gradient(160deg,#1b1530,#121019)}
+.xrow em.rare{text-align:right;color:#ff8fd0}.xrow em.rare small{display:block;font-size:10.5px;color:var(--muted);font-weight:700}
 .trc{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}.trc div{background:#ffffff0b;border-radius:12px;padding:8px;text-align:center}.trc b{display:block;font-size:16px}.trc span{font-size:11px;color:var(--muted)}
 .trp{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}.trp div{text-align:center}.trp img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;box-shadow:0 0 0 2px #b8c7ff66}
 .trp span{display:block;font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
@@ -275,6 +279,9 @@ details.adv[open]>summary{margin-bottom:6px}
 .snb{border:0;background:#ffffff0d;color:inherit;border-radius:10px;padding:2px 8px;margin-top:4px;font-size:14px;cursor:pointer}
 .moods{display:flex;gap:10px}.moods button{flex:1;font-size:34px;padding:10px 0;border-radius:16px;border:2px solid #ffffff14;background:#ffffff08;cursor:pointer}.moods button.on{border-color:var(--lime);background:#c8f13518}
 .diary{display:flex;gap:10px;padding:8px 0;border-top:1px solid #ffffff10}.diary>span{font-size:22px}.diary small{color:var(--muted);font-size:11.5px}.diary p{margin:2px 0 0}
+.fsrc{position:absolute;left:6px;top:6px;font-style:normal;font-size:10px;font-weight:800;background:#000b;color:#fff;padding:2px 7px;border-radius:999px;max-width:calc(100% - 12px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hlist{display:flex;flex-direction:column;gap:8px}.hitem{display:grid;grid-template-columns:18px 1fr;gap:8px;align-items:start}.hitem>span{font-weight:900;line-height:1.4}
+.hfix{font-size:12.5px;color:#ffd23f;margin-top:2px}
 .updbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom));z-index:200;border:0;border-radius:999px;padding:12px 18px;font-weight:800;background:var(--lime);color:#111;box-shadow:0 10px 30px #000a}
 .pc-chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:#ffffff10;margin:4px 4px 0 0;color:var(--ink)}
 .pc-chip i{width:7px;height:7px;border-radius:50%;display:inline-block}
@@ -712,6 +719,7 @@ async function loadCloud(force){
   S.data = {last_sync:snap.last_sync, sources:snap.sources||{}, games:snap.games||[], meta, hltb:snap.hltb||{},
     sessions:snap.sessions||[], csessions:snap.csessions||[], status_log:snap.status_log||[], goals, steam:snap.steam||{}, prefs:snap.prefs||{},
     year_overrides: kvs.year_overrides, wrapped_archive: kvs.wrapped, notpc: kvs.notpc, snotes: kvs.snotes,
+    tracking_since: snap.tracking_since, health: snap.health || [],
     trophies: snap.trophies || [], free_games: snap.free_games || [],
     playing:[], can_edit:false, period: p ? p.info : {period:"all"}, period_minutes: p ? p.pm : null};
   S.pcache = {}; S.yearPM = undefined; S.yearInfo = undefined;
@@ -914,7 +922,8 @@ function header(){
     const pend = edits().filter(e=>!e.sent).length, t = x => new Date(x).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
     const up = (S.snap||{}).pushed || d.last_sync, same = up && new Date(up).toDateString() === new Date().toDateString();
     $("#sync").innerHTML = up ? `Vom PC ${same ? "um " + t(up) : new Date(up).toLocaleString("de-DE",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}<br><span style="opacity:.7">Abgleich ${d.last_sync ? t(d.last_sync) : "–"}</span>` : "";
-    $("#setBtn").innerHTML = $("#setBtn").innerHTML.replace(/<span class="badge">.*?<\/span>/,"") + (pend?`<span class="badge">${pend}</span>`:"");
+    const he = healthErrors();
+    $("#setBtn").innerHTML = $("#setBtn").innerHTML.replace(/<span class="badge">.*?<\/span>/,"") + (pend?`<span class="badge">${pend}</span>`:he?`<span class="badge">!</span>`:"");
     $("#setBtn").onclick = cloudMenu; $("#syncBtn").onclick = () => { S.snap=null; loadCloud(true); toast("Aktualisiert"); };
     return;
   }
@@ -1201,9 +1210,6 @@ function facts(played,total,plats){
   const sniff = played.filter(g=>val(g)<60);
   if (sniff.length) add("Schnupperer", `${sniff.length} ${sniff.length===1?"Spiel":"Spiele"}`, "unter einer Stunde angespielt",
     () => sniff.slice(0,30).map(g=>gRow(g, hrs(val(g)))).join(""), null, "👃");
-  const multi = played.filter(g=>Object.values(g.plats).filter(Boolean).length>1);
-  if (multi.length) add("Plattform-Hopper", `${multi.length}×`, `z. B. ${multi[0].title}`,
-    () => multi.slice(0,25).map(g=>gRow(g, hrs(val(g)), Object.entries(g.plats).filter(x=>x[1]>0).map(([k,v])=>`${esc(k)} ${hrs(v)}`).join(" · "))).join(""), null, "🔀");
   if (S.period==="all"){
     const pr = (S.data.steam||{}).prices || {};
     const owned = S.groups.filter(g=>g.appid && pr[g.appid]);
@@ -1256,8 +1262,10 @@ function facts(played,total,plats){
       () => frs.slice(0,5).map((fr,i)=>`<div class="secttl" style="margin-top:${i?14:0}px">${esc(fr.name)} · ${hrs(fr.minutes)}</div>` + fr.games.sort((a,b)=>val(b)-val(a)).map(g=>gRow(g, hrs(val(g)))).join("")).join(""), null, "📚");
     add("In Arbeitstagen", `${num(total/60/8)} Tage`, "à 8 Stunden – ganz schön viel Urlaub",
       () => `<div class="calc"><div><small>Spielzeit</small><b>${hrs(total)}</b></div><div>÷</div><div><small>Arbeitstag</small><b>8 Std</b></div><div>=</div><div><small>Ergebnis</small><b>${num(total/60/8)} Tage</b></div></div><p class="help">Bei 220 Arbeitstagen im Jahr wären das ${num(total/60/8/220,1)} Arbeitsjahre.</p>`, null, "💼");
-    add("Lebenszeit", `${num(total/60/8760*100,1)} %`, "eines ganzen Jahres, rund um die Uhr",
-      () => `<p>${hrs(total)} sind <b>${num(total/1440)} volle Tage</b> oder ${num(total/60/8760*100,1)} % eines Jahres mit 8.760 Stunden.</p>`, null, "⏳");
+    const yrs = total/525600;
+    add("Lebenszeit", yrs >= 1 ? `${num(yrs,1)} Jahre` : `${num(total/1440)} Tage`, "rund um die Uhr gezockt – ohne Schlaf und Pause",
+      () => `<div class="calc"><div><small>Spielzeit</small><b>${hrs(total)}</b></div><div>=</div><div><small>volle Tage</small><b>${num(total/1440)}</b></div>${yrs>=1?`<div>=</div><div><small>Jahre</small><b>${num(yrs,1)}</b></div>`:""}</div>
+        <p class="help">Ein Jahr hat 8.760 Stunden. Rechnet man 8 Stunden Schlaf ab, sind es ${num(total/60/(16*365),1)} „wache“ Jahre.</p>`, null, "⏳");
     const buckets = [["unter 1 Std",0,60],["1–10 Std",60,600],["10–50 Std",600,3000],["50–100 Std",3000,6000],["über 100 Std",6000,1e12]];
     const tenPlus = played.filter(g=>val(g)>=600).length;
     add("Ernsthaft gespielt", `${tenPlus} Spiele`, `mit über 10 Stunden – von ${played.length}`,
@@ -1268,9 +1276,6 @@ function facts(played,total,plats){
       const old = [...byYear].reverse();
       add("Ältester Schinken", old[0].title, `erschienen ${old[0].year}`, () => old.slice(0,10).map(g=>gRow(g, String(g.year), hrs(val(g)))).join(""), null, "🦖");
     }
-    const twin = played.filter(g=>Object.values(g.devs).filter(v=>v>0).length>1).sort((a,b)=>val(b)-val(a));
-    if (twin.length) add("Plattform-Zwilling", twin[0].title, Object.entries(twin[0].devs).filter(x=>x[1]>0).map(([k,v])=>`${k} ${hrs(v)}`).join(" · "),
-      () => twin.slice(0,10).map(g=>gRow(g, hrs(val(g)), Object.entries(g.devs).filter(x=>x[1]>0).map(([k,v])=>`${k} ${hrs(v)}`).join(" · "))).join(""), null, "👯");
     const stA = sessionStats(0);
     if (stA.ss.length >= 5){
       const WDN = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"], wd = stA.wd.indexOf(Math.max(...stA.wd));
@@ -1302,9 +1307,9 @@ function platTags(plats){
 function freeCard(){
   const fg = (S.data.free_games||[]); if (!fg.length) return "";
   const own = new Set(S.groups.map(g=>g.key)), now = fg.filter(f=>f.kind==="now"), soon = fg.filter(f=>f.kind==="soon");
-  const tile = f => `<a class="freeg" href="${esc(f.url)}" target="_blank" rel="noopener"><div class="poster">${f.image?`<img src="${esc(f.image)}" alt="" loading="lazy">`:ph(f.title)}</div>
-    <b>${esc(f.title)}</b><span>${f.kind==="now" ? (own.has(f.key)?"✓ hast du schon":`gratis bis ${fdate(new Date(f.end))}`) : `ab ${fdate(new Date(f.start))}`}</span></a>`;
-  return `<section class="card reveal"><h3>🎁 Gratis bei Epic</h3><div class="freerail">${now.map(tile).join("")}${soon.length?`<div class="freesep">Demnächst</div>`+soon.map(tile).join(""):""}</div></section>`;
+  const tile = f => `<a class="freeg" href="${esc(f.url)}" target="_blank" rel="noopener"><div class="poster">${f.image?`<img src="${esc(f.image)}" alt="" loading="lazy" onerror="this.outerHTML=ph(${esc(JSON.stringify(f.title))})">`:ph(f.title)}<em class="fsrc">${esc(f.source||"Epic")}</em></div>
+    <b>${esc(f.title)}</b><span>${f.kind==="now" ? (own.has(f.key)?"✓ hast du schon":f.end?`gratis bis ${fdate(new Date(f.end))}`:"jetzt gratis") : `ab ${fdate(new Date(f.start))}`}</span></a>`;
+  return `<section class="card reveal"><h3>🎁 Gratis abholen <span class="help" style="font-weight:600;text-transform:none;letter-spacing:0">· Epic, GOG, Prime Gaming</span></h3><div class="freerail">${now.map(tile).join("")}${soon.length?`<div class="freesep">Demnächst</div>`+soon.map(tile).join(""):""}</div></section>`;
 }
 // Dieser Monat/dieses Jahr gegen den vorigen Zeitraum (aus dem Wrapped-Archiv)
 function compareCard(){
@@ -1324,12 +1329,21 @@ function compareCard(){
       <div><small>${esc(l2)}</small><b>${hrs(t2)}</b><span>${g2 && S.gmap.get(g2[0]) ? "meist " + esc(S.gmap.get(g2[0]).title) : ""}</span></div></div>`; }).join("")}
     <p class="help">„Auf Kurs“: hochgerechnet aufs ganze ${pairs.length>1?"Jahr bzw. den ganzen Monat":"Zeitraum"}.</p></section>`;
 }
+function healthBlock(){
+  const H = S.data.health || []; if (!H.length) return "";
+  const ic = {ok:"●", error:"✕", warn:"▲", info:"○"}, col = {ok:"var(--lime)", error:"#ff5a6e", warn:"#ffd23f", info:"var(--muted)"};
+  const order = {error:0, warn:1, info:2, ok:3};
+  return `<div class="hlist">${[...H].sort((a,b)=>order[a.level]-order[b.level]).map(h=>`<div class="hitem"><span style="color:${col[h.level]}">${ic[h.level]}</span>
+    <div><b>${esc(h.k)}</b> <span class="help" style="margin:0">${esc(h.msg)}</span>${h.fix && h.level!=="ok"?`<div class="hfix">→ ${esc(h.fix)}</div>`:""}</div></div>`).join("")}</div>`;
+}
+const healthErrors = () => (S.data.health||[]).filter(h=>h.level==="error").length;
 function sourcesLink(){
   const s = Object.entries(S.data.sources||{}); if (!s.length) return "";
-  const bad = s.filter(([,v])=>!v.ok).length;
-  return `<div style="text-align:center;margin:22px 0 4px"><button class="btn ghost small" onclick="showSources()">${bad?`⚠️ ${bad} Quelle${bad>1?"n":""} mit Problem`:"ⓘ Datenquellen"}</button></div>`;
+  const bad = healthErrors();
+  return `<div style="text-align:center;margin:22px 0 4px"><button class="btn ghost small" onclick="showSources()">${bad?`⚠️ ${bad} Problem${bad>1?"e":""} – ansehen`:"✓ Systemcheck: alles läuft"}</button></div>`;
 }
-window.showSources = () => { $("#infoBody").innerHTML = `<button class="ibtn dclose" onclick="$('#info').close()">✕</button><div class="h1" style="font-size:32px">Datenquellen</div>` + sourcesBlock(); $("#info").showModal(); };
+window.showSources = () => { $("#infoBody").innerHTML = `<button class="ibtn dclose" onclick="$('#info').close()">✕</button><div class="h1" style="font-size:32px">Systemcheck</div>
+  <p class="help" style="margin-top:-6px">Der PC prüft alle 10 Minuten, ob alles läuft, und meldet neue Probleme (Windows + Handy).</p>` + healthBlock(); $("#info").showModal(); };
 function sourcesBlock(){
   const s = Object.entries(S.data.sources||{});
   if (!s.length) return "";
@@ -1538,8 +1552,9 @@ function renderTier(){
     el.onpointerdown = e => {
       if (e.button !== 0) return;
       const sx = e.clientX, sy = e.clientY, mouse = e.pointerType === "mouse";
-      let ghost = null, zone = null;
+      let ghost = null, zone = null, moved = false;
       const move = ev => {
+        if (Math.hypot(ev.clientX-sx, ev.clientY-sy) > 10) moved = true;
         if (!ghost){
           if (!mouse || Math.hypot(ev.clientX-sx, ev.clientY-sy) < 6) return;
           ghost = el.cloneNode(true); el.style.opacity = ".3";
@@ -1550,9 +1565,10 @@ function renderTier(){
         const z = document.elementFromPoint(ev.clientX, ev.clientY)?.closest(".tz,.tpool");
         if (z !== zone){ zone && zone.classList.remove("over"); zone = z; zone && zone.classList.add("over"); }
       };
-      const up = () => {
+      const up = ev => {
         removeEventListener("pointermove", move); removeEventListener("pointerup", up); removeEventListener("pointercancel", up);
-        if (!ghost) return tierPick(el.dataset.k);
+        // Beim Scrollen am Handy kommt "pointercancel" – das ist kein Antippen
+        if (!ghost){ if (ev.type === "pointerup" && !moved) tierPick(el.dataset.k); return; }
         ghost.remove(); el.style.opacity = ""; zone && zone.classList.remove("over");
         if (zone && (zone.dataset.tier || null) !== (S.gmap.get(el.dataset.k).tier || null)) setTier(el.dataset.k, zone.dataset.tier || null, false);
       };
@@ -1575,7 +1591,8 @@ function tierPick(key){
 // Preis pro Spielstunde (IGDB-Spieldauer der Story)
 function buyCheck(w){
   const h = (S.data.hltb||{})[norm(w.name)], m = h && h.main && h.main <= 300*60 ? h.main : null;
-  if (!m || w.free || !w.price) return "";
+  if (w.free || !w.price) return "";
+  if (!m) return `<small class="buyc" style="color:var(--muted)" title="Für dieses Spiel kennt IGDB noch keine Spieldauer">Dauer unbekannt</small>`;
   const per = w.price / (m/60), col = per < 100 ? "var(--lime)" : per < 300 ? "#ffd23f" : "#ff8a3d";
   return `<small class="buyc" style="color:${col}" title="Preis geteilt durch ${hrs(m)} Story laut IGDB">${euro(per)}/Std · ${hrs(m)}</small>`;
 }
@@ -1619,7 +1636,7 @@ function renderWish(){
     <div class="tile"><small>Kommt bald</small><b>${soon.length}</b><span>${soon[0]?esc(soon[0].name):"nichts angekündigt"}</span></div></div>`;
   if (sale.length) h += `<section class="card" style="margin-bottom:14px"><h3>🔥 Im Angebot</h3>${sale.map(row).join("")}</section>`;
   if (soon.length) h += releaseCalendar(soon);
-  if (rest.length) h += `<section class="card"><h3>Der Rest</h3>${rest.map(row).join("")}</section>`;
+  if (rest.length) h += `<section class="card"><h3>Weitere Wünsche</h3>${rest.map(row).join("")}</section>`;
   h += `<p class="help">Preise aus dem deutschen Steam-Store, ${sx.at?`Stand ${fdate(new Date(sx.at*1000))}`:""}. Neue Angebote meldet dir Windows, wenn Gaming Recap läuft.</p>`;
   $("#view").innerHTML = h;
 }
@@ -1757,7 +1774,9 @@ function doneInYear(y){
   for (const [k, st, at] of S.data.status_log||[]) if (DONE.has(st) && String(at).startsWith(y)) keys.add(k);
   return [...keys].filter(k=>{ const g=S.gmap.get(k); return g && DONE.has(g.status); });
 }
-function addedInYear(y){ return blGames().filter(g=>g.added && g.added.getFullYear()===Number(y)); }
+// Neue Spiele zählen erst ab dem ersten Abgleich (vorher hat Playnite alles auf einmal importiert)
+function addedInYear(y){ const t0 = S.data.tracking_since ? new Date(S.data.tracking_since + "T23:59:59") : null;
+  return blGames().filter(g=>g.added && g.added.getFullYear()===Number(y) && (!t0 || g.added > t0)); }
 function goalsCard(){
   const y = String(new Date().getFullYear()), g = (S.data.goals||{})[y] || {};
   const done = doneInYear(y).length, added = addedInYear(y).length;
@@ -1829,10 +1848,10 @@ window.saveSNote = async (id, del) => {
   $("#info").close(); toast("Gespeichert"); route();
 };
 function trophyLine(g){
-  const t = (S.data.trophies||[]).find(x=>x.key===g.key), a = g.appid && ((S.data.steam||{}).ach||{})[g.appid];
+  const t = (S.data.trophies||[]).find(x=>x.key===g.key && x.got[0]>0), a = g.appid && ((S.data.steam||{}).ach||{})[g.appid];
   if (!t && !(a && a.t)) return "";
   return `<div class="secttl">Erfolge</div><div class="tagrow">${a&&a.t?`<span class="tag">Steam ${a.d}/${a.t} · ${num(a.d/a.t*100)} %</span>`:""}
-    ${t?`<span class="tag">PlayStation ${t.progress} % · 🏆${t.got[0]} 🥇${t.got[1]} 🥈${t.got[2]} 🥉${t.got[3]}</span>`:""}</div>`;
+    ${t?`<span class="tag">🏆 PlayStation-Platin</span>`:""}</div>`;
 }
 function diaryBlock(g){
   const notes = Object.entries(S.data.snotes||{}).filter(([id])=>id.split("|")[0]===g.key).sort((a,b)=>b[0].split("|")[1]-a[0].split("|")[1]);
@@ -1848,37 +1867,54 @@ function trophyCard(){
     <div class="trc">${TC.map(([e,l,c],i)=>`<div><b style="color:${c}">${e} ${num(sum(i))}</b><span>${l}</span></div>`).join("")}</div>
     ${plats.length?`<div class="secttl">Deine Platins</div><div class="trp">${plats.slice(0,8).map(t=>`<div title="${esc(t.name)}"><img src="${esc(t.icon)}" alt="" loading="lazy" onerror="this.remove()"><span>${esc(t.name)}</span></div>`).join("")}</div>`:""}</section>`;
 }
-// Spiele, in denen nur noch wenig bis 100 % fehlt (Steam-Erfolge + PS-Trophäen)
+// Spiele, in denen nur noch wenig bis 100 % fehlt (nur Steam)
 function hunterList(){
   const out = [];
   for (const [a, x] of Object.entries((S.data.steam||{}).ach||{})){
     if (!x.t || x.d >= x.t || x.d/x.t < .6) continue;
-    const g = S.groups.find(q=>q.appid==a); if (g) out.push({g, pct: x.d/x.t*100, left: x.t-x.d, unit:"Erfolge", src:"Steam"});
-  }
-  for (const t of S.data.trophies||[]){
-    if (t.progress >= 100 || t.progress < 60) continue;
-    const g = S.gmap.get(t.key); const left = t.def.reduce((s,v)=>s+v,0) - t.got.reduce((s,v)=>s+v,0);
-    out.push({g, name:t.name, icon:t.icon, pct:t.progress, left, unit:"Trophäen", src:"PlayStation"});
+    const g = S.groups.find(q=>q.appid==a); if (g) out.push({g, pct: x.d/x.t*100, left: x.t-x.d});
   }
   return out.sort((a,b)=>b.pct-a.pct);
 }
 function hunterCard(){
   const L = hunterList(); if (!L.length) return "";
-  return `<section class="card s6 reveal"><h3>🎯 Erfolgsjäger</h3><p class="help" style="margin-top:-4px">Hier fehlt nicht mehr viel bis 100 %.</p>
-    ${L.slice(0,8).map(x=>`<div class="hrow" ${x.g?`onclick="openGame('${esc(x.g.key)}')"`:""}><div class="poster">${x.g?img(x.g.covers,x.g.title):x.icon?`<img src="${esc(x.icon)}" alt="">`:ph(x.name)}</div>
-      <div style="min-width:0"><b>${esc(x.g?x.g.title:x.name)}</b><span>noch ${x.left} ${x.unit} · ${x.src}</span><div class="trk"><div style="width:${x.pct}%"></div></div></div><em>${num(x.pct)} %</em></div>`).join("")}</section>`;
+  return `<section class="card s6 reveal"><h3>🎯 Erfolgsjäger</h3><p class="help" style="margin-top:-4px">Steam-Spiele, in denen nicht mehr viel bis 100 % fehlt.</p>
+    ${L.slice(0,8).map(x=>`<div class="hrow" onclick="openGame('${esc(x.g.key)}')"><div class="poster">${img(x.g.covers,x.g.title)}</div>
+      <div style="min-width:0"><b>${esc(x.g.title)}</b><span>noch ${x.left} ${x.left===1?"Erfolg":"Erfolge"}</span><div class="trk"><div style="width:${x.pct}%"></div></div></div><em>${num(x.pct)} %</em></div>`).join("")}</section>`;
 }
+function trophyCard(){
+  const tr = S.data.trophies || [], plats = tr.filter(t=>t.got[0]>0).sort((a,b)=>(b.updated||"").localeCompare(a.updated||""));
+  if (!plats.length) return "";
+  return `<section class="card s6 reveal achc"><h3>🏆 PlayStation-Platins</h3><div class="mid">${plats.length}</div>
+    <div class="trp">${plats.slice(0,8).map(t=>`<div title="${esc(t.name)}"><img src="${esc(t.icon)}" alt="" loading="lazy" onerror="this.remove()"><span>${esc(t.name)}</span></div>`).join("")}</div>
+    <button class="btn ghost small" style="margin-top:12px" onclick="showPlats()">Alle ${plats.length} ansehen</button></section>`;
+}
+window.showPlats = () => {
+  const plats = (S.data.trophies||[]).filter(t=>t.got[0]>0).sort((a,b)=>(b.updated||"").localeCompare(a.updated||""));
+  $("#infoBody").innerHTML = `<button class="ibtn dclose" onclick="$('#info').close()">✕</button><div class="eyebrow">PlayStation</div><div class="h1" style="font-size:32px;margin:4px 0 12px">${plats.length} Platin-Trophäen</div>
+    ${plats.map(t=>`<div class="xrow" style="cursor:default"><div class="poster" style="aspect-ratio:1"><img src="${esc(t.icon)}" alt="" loading="lazy"></div><div><b>${esc(t.name)}</b><span>${t.updated?fdate(new Date(t.updated)):""}</span></div><em>🏆</em></div>`).join("")}`;
+  $("#info").showModal();
+};
+window.showPerfect = () => {
+  const list = Object.entries((S.data.steam||{}).ach||{}).filter(([,a])=>a.t && a.d===a.t).map(([a,x])=>[S.groups.find(g=>g.appid==a), x]).filter(x=>x[0]).sort((a,b)=>(b[1].last||0)-(a[1].last||0));
+  $("#infoBody").innerHTML = `<button class="ibtn dclose" onclick="$('#info').close()">✕</button><div class="eyebrow">Steam</div><div class="h1" style="font-size:32px;margin:4px 0 12px">${list.length} ${list.length===1?"Spiel":"Spiele"} auf 100 %</div>
+    ${list.map(([g,a])=>gRow(g, `${a.t}/${a.t}`, a.last?`zuletzt ${fdate(new Date(a.last*1000))}`:"")).join("") || `<p class="help">Noch keins.</p>`}`;
+  $("#info").showModal();
+};
 function achCard(){
   const ach = (S.data.steam||{}).ach || {}, list = Object.entries(ach);
   if (!list.length) return "";
   const y = String(new Date().getFullYear());
   const total = list.reduce((s,[,a])=>s+a.d,0), year = list.reduce((s,[,a])=>s+((a.y||{})[y]||0),0);
   const perfect = list.filter(([,a])=>a.t && a.d===a.t);
-  const titleA = a => { const g = S.groups.find(x=>x.appid===a); return g ? g.title : "Steam-Spiel"; };
+  const gOf = a => S.groups.find(x=>x.appid===a);
   const rares = list.filter(([,a])=>a.r && a.r[1]!=null).sort((a,b)=>a[1].r[1]-b[1].r[1]).slice(0,5);
-  return `<section class="card pinkc s6 reveal"><h3>Steam-Erfolge</h3><div class="mid">${num(total)}</div>
-    <div style="font-weight:700">freigeschaltet, ${num(year)} davon ${y} · ${perfect.length} ${perfect.length===1?"Spiel":"Spiele"} auf 100 %</div>
-    ${rares.length?`<div class="secttl" style="color:#160411aa">Deine seltensten</div>${rares.map(([a,r])=>`<div class="pbar"><span class="nm" style="width:auto;flex:1;white-space:normal">💎 ${esc(r.r[0])}<br><span style="font-weight:600;font-size:12.5px;opacity:.8">${esc(titleA(a))}</span></span><span class="v">${num(r.r[1],1)} %</span></div>`).join("")}`:""}</section>`;
+  return `<section class="card s6 reveal achc"><h3>🏅 Steam-Erfolge</h3>
+    <div class="trc" style="grid-template-columns:repeat(3,1fr)"><div><b>${num(total)}</b><span>insgesamt</span></div><div><b>${num(year)}</b><span>in ${y}</span></div><div><b>${perfect.length}</b><span>Spiele auf 100 %</span></div></div>
+    ${rares.length?`<div class="secttl">Deine seltensten</div>${rares.map(([a,r])=>{ const g = gOf(a);
+      return `<div class="xrow" ${g?`onclick="openGame('${esc(g.key)}')"`:""}><div class="poster">${g?img(g.covers,g.title):ph("?")}</div>
+        <div><b>💎 ${esc(r.r[0])}</b><span>${esc(g?g.title:"Steam-Spiel")}</span></div><em class="rare">${num(r.r[1],1)} %<small>der Spieler</small></em></div>`; }).join("")}`:""}
+    ${perfect.length?`<button class="btn ghost small" style="margin-top:12px" onclick="showPerfect()">${perfect.length===1?"Das Spiel":`Alle ${perfect.length} Spiele`} auf 100 % ansehen</button>`:""}</section>`;
 }
 /* ================= Freunde ================= */
 function avatar(f, size){ const z = size||44, l = esc((f.name||"?")[0]);
@@ -2338,7 +2374,7 @@ window.openGame = key => {
   } else if (g.remaining) tempo = `<p class="help">Noch etwa <b>${hrs(g.remaining)}</b> bis zum Abspann.</p>`;
   const hltbBlock = `<div class="secttl">Spieldauer ${H&&H.manual?"(selbst eingetragen)":"(IGDB)"}</div>
     ${H && (H.main||H.plus||H.comp) ? `<div class="hl"><div><small>Story</small><b>${H.main?hrs(H.main):"–"}</b></div><div><small>+ Extras</small><b>${H.plus?hrs(H.plus):"–"}</b></div><div><small>100 %</small><b>${H.comp?hrs(H.comp):"–"}</b></div></div>${tempo}` : `<p class="help">Noch keine Zeit bekannt.</p>`}
-    <div class="inl" style="flex-wrap:wrap"><a class="btn ghost small" href="https://howlongtobeat.com/?q=${encodeURIComponent(g.title)}" target="_blank" rel="noopener">Auf HowLongToBeat ansehen ↗</a>
+    <div class="inl" style="flex-wrap:wrap"><a class="btn ghost small" href="https://howlongtobeat.com/?q=${encodeURIComponent(g.title)}" target="_blank" rel="noopener">Zum Vergleich auf HowLongToBeat ↗</a>
       ${S.data.can_edit?`<input type="number" id="hlMain" min="0" step="0.5" placeholder="Story-Std" value="${H&&H.manual&&H.main?H.main/60:""}"><button class="btn ghost small" onclick="saveHltb('${esc(g.key)}')">Eintragen</button>`:""}</div>`;
   const left = `<div class="kv">
       <div><small>Spielzeit</small><b>${g.minutes?hrs(g.minutes):"nie gestartet"}</b></div>
@@ -2505,7 +2541,7 @@ function cloudMenu(){
       <div><small>Letzter Abgleich am PC</small><b>${S.data.last_sync?new Date(S.data.last_sync).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"}):"–"}</b></div>
       <div><small>Deine Änderungen</small><b>${!q.length ? "✓ alle beim PC angekommen" : `${waiting ? waiting + " noch nicht gesendet · " : ""}${sent ? sent + " beim PC ausstehend" : ""}`}</b></div></div>
     <p class="help">Deine Änderungen gehen sofort verschlüsselt an GitHub. Ist dein PC an, holt er sie innerhalb von 2 Minuten ab und lädt den neuen Stand hoch. Bis dahin siehst du sie hier schon. Ist der PC aus, warten sie dort sicher.</p>
-    ${sourcesBlock()}
+    <div class="secttl" style="margin-top:14px">Systemcheck am PC</div>${healthBlock()}
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
       <button class="btn limeb" onclick="S.snap=null;$('#settings').close();loadCloud(true)">Neu laden</button>
       <button class="btn ghost" onclick="sendNow()">⇪ Jetzt senden</button>
@@ -2532,7 +2568,7 @@ window.openSettings = async () => {
   $("#settingsBody").innerHTML = `<button class="ibtn dclose" onclick="$('#settings').close()">✕</button>
     <div class="h1" style="font-size:32px">Einstellungen</div>
     <p class="help" style="margin-top:-8px">Alles bleibt auf diesem PC (Ordner <code>daten</code>). Die Handy-App bekommt nur eine verschlüsselte Kopie.</p>
-    ${srcs.length?`<fieldset><legend>Status</legend>${srcs.map(([n,v])=>`<div class="src"><span class="${v.ok?"ok":"bad"}">${v.ok?"●":"✕"}</span><span><b>${esc(n)}</b> <span class="help">${v.ok?esc(v.info||(v.count!=null?v.count+" Spiele":"ok")):esc(v.error)}</span></span></div>`).join("")}</fieldset>`:""}
+    <fieldset><legend>🩺 Systemcheck</legend>${healthBlock() || `<p class="help">Wird beim nächsten Abgleich erstellt.</p>`}</fieldset>
 
     <fieldset><legend>📱 Handy-App (auch wenn der PC aus ist)</legend>
       <label class="check"><input type="checkbox" id="cloud_enabled" ${c.cloud_enabled?"checked":""}> Verschlüsselte Kopie auf GitHub Pages ablegen</label>
