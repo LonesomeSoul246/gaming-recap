@@ -1247,6 +1247,8 @@ def weekly_minutes(n=60):
     for i in range(n - 1, -1, -1):
         ws = monday - dt.timedelta(weeks=i)
         b, e = last_before(ws), last_before(ws + dt.timedelta(days=7))
+        if not b and e and days[0] >= ws.isoformat():
+            b = days[0]  # Woche, in der die Aufzeichnung begann: ab dem ersten Stand zählen
         if not b or not e:
             continue
         A, B = snap(b), snap(e)
