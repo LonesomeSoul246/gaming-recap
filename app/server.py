@@ -589,6 +589,15 @@ def load_console_sessions(since):
     return [list(r) for r in rows]
 
 
+def first_seen_minutes(con):
+    """Spielzeit beim ersten Auftauchen jedes Spiels im Verlauf. Kommt ein Spiel schon mit viel Spielzeit
+    dazu (z. B. neuer Launcher in Playnite), ist das Altbestand und zählt nicht als neu gespielt."""
+    return {i: m for i, m, _ in con.execute("SELECT id, minutes, MIN(day) FROM snapshots GROUP BY id")}
+
+
+IMPORT_MIN = 600   # mehr als 10 Std beim ersten Auftauchen = Import
+
+
 def period_minutes(games, period):
     today = dt.date.today()
     start = {"year": today.replace(month=1, day=1), "month": today.replace(day=1),
@@ -608,11 +617,13 @@ def period_minutes(games, period):
     baseline = dict(con.execute("SELECT id, minutes FROM snapshots WHERE day = ?", (base_day,)).fetchall())
     base_devices = {r[0] for r in con.execute("SELECT DISTINCT platform FROM snapshots WHERE day = ?", (base_day,))}
     out = {}
+    first = first_seen_minutes(con)
     for g in games:
         if g["id"] in baseline:
             b = baseline[g["id"]]
         elif g["device"] in base_devices:
-            b = 0
+            fm = first.get(g["id"], 0)
+            b = fm if fm > IMPORT_MIN else 0
         else:
             row = con.execute("SELECT minutes FROM snapshots WHERE id = ? ORDER BY day LIMIT 1", (g["id"],)).fetchone()
             b = row[0] if row else g["minutes"]
@@ -1253,6 +1264,7 @@ def _snap_series(bounds, per_key=False):
     if per_key:
         keymap = {g["id"]: norm_title(g["title"]) for g in load_cache().get("games", [])}
     cache = {}
+    first = first_seen_minutes(con)
     def snap(day):
         if day not in cache:
             cache[day] = {i: (m, p) for i, p, m in con.execute("SELECT id, platform, minutes FROM snapshots WHERE day = ?", (day,))}
@@ -1273,7 +1285,13 @@ def _snap_series(bounds, per_key=False):
         devs = {p for _, p in A.values()}
         acc = {} if per_key else 0
         for gid, (m, p) in B.items():
-            d = max(0, m - A[gid][0]) if gid in A else (m if p in devs else 0)
+            if gid in A:
+                d = max(0, m - A[gid][0])
+            elif p in devs:
+                fm = first.get(gid, 0)
+                d = max(0, m - fm) if fm > IMPORT_MIN else m
+            else:
+                d = 0
             if not d:
                 continue
             if per_key:
@@ -1418,14 +1436,15 @@ def _pet_days(since):
                     dm = m - prev[gid][0]
                     if dm > 0 and prev[gid][0] == 0:
                         started.append(gid)
-                elif p in devs:
-                    dm = m
-                    if m > 0:
-                        started.append(gid)
+                elif p in devs and 0 < m <= 600:
+                    dm = m          # neu und an einem Tag plausibel gespielt
+                    started.append(gid)
                 else:
-                    dm = 0
+                    dm = 0          # Import mit alter Spielzeit (z. B. neuer Launcher) – zählt nicht als heute gespielt
                 if dm > 0:
                     per[gid] = dm
+            if len(started) > 8:    # Massen-Import
+                started = []
             out[d] = {"min": sum(per.values()), "per": per, "started": started}
         prev = snap
     con.close()
@@ -1528,7 +1547,7 @@ def pet_state(cfg, force=False):
         genres = set()
         for gid in D["per"]:
             genres.update((gi.get(gid) or {}).get("genres") or [])
-        daylog[iso] = {"xp": x, "min": D["min"], "rested": rested, "pid": pid, "genres": genres, "started": len(D["started"]), **E}
+        daylog[iso] = {"xp": x, "min": D["min"], "rested": rested, "pid": pid, "genres": genres, "started": min(3, len(D["started"])), **E}
         prev_min = D["min"]
         d += dt.timedelta(days=1)
     # Bosse
@@ -2037,7 +2056,16 @@ def health(cfg):
         elif lp and time.time() - lp > 3 * 3600:
             add("Handy-Cloud", False, f"seit {int((time.time() - lp) / 3600)} Std nichts hochgeladen.", "Gaming Recap neu starten.", "warn")
         else:
-            add("Handy-Cloud", True, "läuft" + (f", zuletzt {time.strftime('%H:%M', time.localtime(lp))}" if lp else ""))
+            exp = cloud_state.get("token_exp")
+            tok = ""
+            if exp:
+                try:
+                    tok = " · Token gültig bis " + dt.datetime.strptime(exp.replace(" UTC", "").strip()[:10], "%Y-%m-%d").strftime("%d.%m.%Y")
+                except ValueError:
+                    pass
+            elif exp == "":
+                tok = " · Token ohne Ablaufdatum"
+            add("Handy-Cloud", True, "läuft" + (f", zuletzt {time.strftime('%H:%M', time.localtime(lp))}" if lp else "") + tok)
     if cfg.get("tracker") and os.name == "nt":
         if time.time() - (TRACKER.last_ok or 0) > 180:
             add("Session-Tracker", False, "reagiert nicht.", "Gaming Recap neu starten.")
@@ -2110,12 +2138,12 @@ def check_expiry(cfg):
     warned = kv_get("expiry_warned", {}) or {}
     now = time.time()
     msgs = []
-    if cloud_ready(cfg) and now - (cloud_state.get("token_exp_checked") or 0) > 86400:
+    wait = 86400 if cloud_state.get("token_exp") is not None else 3600   # bei Fehlern stündlich neu versuchen
+    if cloud_ready(cfg) and now - (cloud_state.get("token_exp_checked") or 0) > wait:
         try:
-            exp = cloud.GitHub(cfg["gh_repo"], cfg["gh_token"]).token_expiry()
-            cloud_state["token_exp"] = exp
-        except Exception:
-            exp = cloud_state.get("token_exp")
+            cloud_state["token_exp"] = cloud.GitHub(cfg["gh_repo"], cfg["gh_token"]).token_expiry() or ""   # "" = ohne Ablaufdatum
+        except Exception as e:
+            print("  Token-Prüfung:", err_text(e))
         cloud_state["token_exp_checked"] = now
     exp = cloud_state.get("token_exp")
     if exp:
