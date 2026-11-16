@@ -1103,6 +1103,10 @@ body::after{content:"";position:fixed;right:-15vw;bottom:-25vh;width:60vw;height
 @keyframes meetB{0%,100%,50%{transform:scale(var(--s)) translateY(0)}75%{transform:scale(var(--s)) translateY(-14px) rotate(4deg)}}
 .duomeet .mheart{position:absolute;top:22%;left:50%;transform:translateX(-50%);font-size:24px;z-index:3;animation:beat 1.6s ease-in-out infinite}
 .stabs{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;justify-content:flex-start}.stabs::-webkit-scrollbar{display:none}.stabs button{flex:none!important}
+.pstage.himg .pdecor{display:block;background:linear-gradient(#0006,transparent 35%,transparent 80%,#0003)!important;animation:none}
+.ci.hab[style*="url"]{background-size:cover!important}
+.bicon.img{background:transparent!important;overflow:visible}.bicon.img img{filter:drop-shadow(0 4px 6px #0007)}.boss.bbig .bicon.img{width:84px;height:84px}.boss.bbig{grid-template-columns:84px 1fr}
+.ci span.img{width:40px;height:40px}
 </style>
 </head>
 <body>
@@ -2902,6 +2906,9 @@ const PET_HAB = {lichtung:"Lichtung", sterne:"Sternenhimmel", strand:"Strand", z
 // Kopf (x, Oberkante, Augen) in Prozent – aus den Bildern ermittelt
 const PET_HEAD = {"brasu": [[30, 35, 52], [26, 34, 49], [22, 44, 56]], "neruma": [[38, 44, 50], [42, 51, 58], [46, 53, 58]], "moselle": [[31, 32, 51], [25, 24, 41], [22, 54, 64]], "crysto": [[24, 29, 47], [24, 41, 54], [26, 42, 54]], "nocti": [[50, 40, 54], [50, 48, 59], [50, 54, 66]], "koppla": [[26, 50, 60], [26, 46, 57], [28, 55, 64]]};
 const petSrc = (sp, stage) => `pets/${sp}_${stage ? stage : "ei"}.webp`;
+// Sitz der Accessoire-Bilder: Breite (in % der Figur) und wo sie hingehören
+const ACC_FIT = {krone:[30,"hat"], zauberhut:[36,"hat"], muetze:[32,"hat"], pirat:[40,"hat"], weihnacht:[36,"hat"], kuerbis:[30,"hat"], wikinger:[34,"hat"],
+  party:[22,"hat"], kapitaen:[36,"hat"], diadem:[30,"hat"], blumen:[34,"hat"], headset:[40,"head"], halo:[34,"halo"], schleife:[22,"hat"], brille:[30,"eyes"], herz:[16,"neck"]};
 const hasImg = n => ((S.data||{}).pet_imgs||[]).includes(n);
 const accIcon = id => hasImg(`acc_${id}.webp`) ? `<img src="pets/acc_${id}.webp" alt="">` : (PET_ACC[id]||["",""])[1];
 const bossIcon = b => hasImg(`boss_${b.id}.webp`) ? `<img src="pets/boss_${b.id}.webp" alt="">` : b.icon;
@@ -2915,10 +2922,19 @@ function petFig(p, opts={}){
   if (!p) return "";
   const party = opts.party && p.stage && !p.acc ? "party" : null, a = p.acc || party;
   const head = (PET_HEAD[p.sp]||[])[Math.max(0,p.stage-1)] || [50,30,45];
-  const ay = a === "brille" ? head[2] : ["schleife","blumen","herz","halo"].includes(a) ? head[1] + (a==="halo" ? -6 : 2) : head[1] - 3;
+  let acc = "";
+  if (a && p.stage && !opts.sil){
+    if (hasImg(`acc_${a}.webp`)){
+      const [w, kind] = ACC_FIT[a] || [30,"hat"];
+      const pos = {hat:[head[1] + 7, "-50%,-82%"], head:[head[1] + 8, "-50%,-50%"], halo:[head[1] - 6, "-50%,-50%"], eyes:[head[2], "-50%,-50%"], neck:[head[2] + 12, "-50%,0"]}[kind];
+      acc = `<span class="pacc img" style="left:${head[0]}%;top:${pos[0]}%;width:${w}cqw;height:${w}cqw;transform:translate(${pos[1]})"><img src="pets/acc_${a}.webp" alt=""></span>`;
+    } else {
+      const ay = a === "brille" ? head[2] : ["schleife","blumen","herz","halo"].includes(a) ? head[1] + (a==="halo" ? -6 : 2) : head[1] - 3;
+      acc = `<span class="pacc" style="left:${head[0]}%;top:${ay}%">${accIcon(a)}</span>`;
+    }
+  }
   return `<div class="pwrap ${p.stage?"":"egg"} ${opts.cls||""}" style="--s:${opts.scale || petScale(p)};--wob:${p.stage?0:(p.hatch||0)}">
-    <img class="pimg ${p.shiny?"shiny":""} ${opts.sil?"sil":""}" src="${petSrc(p.sp, p.stage)}" alt="${esc(p.stage_name||"")}" draggable="false">
-    ${a && p.stage && !opts.sil ? `<span class="pacc ${hasImg(`acc_${a}.webp`)?"img":""}" style="left:${head[0]}%;top:${ay}%">${accIcon(a)}</span>` : ""}</div>`;
+    <img class="pimg ${p.shiny?"shiny":""} ${opts.sil?"sil":""}" src="${petSrc(p.sp, p.stage)}" alt="${esc(p.stage_name||"")}" draggable="false">${acc}</div>`;
 }
 const petName = p => p ? (p.nick || (p.stage ? p.stage_name : `${p.species}-Ei`)) : "";
 const petActive = () => { const P = S.data.pet || {}; return (P.pets||[]).find(x=>x.id===P.active) || (P.pets||[])[0]; };
@@ -2959,7 +2975,7 @@ window.petTap = el => {
 };
 function petStage(p, big, extra=""){
   const P = S.data.pet || {}, h = P.hab||"lichtung";
-  return `<div class="pstage hab-${h} ${big?"pbig":""}" ${habStyle(h)} onclick="petTap(event.target)">
+  return `<div class="pstage hab-${h} ${big?"pbig":""} ${hasImg(`hab_${h}.webp`)?"himg":""}" ${habStyle(h)} onclick="petTap(event.target)">
     <div class="pdecor"></div>${extra}${petFig(p, {party: !!P.party})}<div class="pbub">${esc(petBubble(p))}</div></div>`;
 }
 async function savePet(mut, msg){
