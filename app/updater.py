@@ -33,7 +33,9 @@ def sha(b):
 
 def program_files(base):
     out = {}
-    for rel in PROGRAM_FILES:
+    pd = os.path.join(base, "web", "pets")   # alle Begleiter-/Boss-/Accessoire-Bilder, auch später hinzugekommene
+    extra = [f"web/pets/{n}" for n in sorted(os.listdir(pd)) if n.endswith(".webp")] if os.path.isdir(pd) else []
+    for rel in list(dict.fromkeys(PROGRAM_FILES + extra)):
         p = os.path.join(base, *rel.split("/"))
         if os.path.isfile(p):
             with open(p, "rb") as f:

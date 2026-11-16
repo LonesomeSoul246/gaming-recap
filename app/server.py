@@ -786,7 +786,9 @@ def clean_kv(key, v):
         act = [[str(a[0])[:10], a[1]] for a in (v.get("act") or [])[-200:] if isinstance(a, list) and len(a) == 2 and a[1] in ids]
         acc = {k: str(x)[:20] for k, x in (v.get("acc") or {}).items() if k in ids and x}
         _pet_cache["v"] = None
-        return {"pets": pets, "act": act, "acc": acc, "hab": re.sub(r"[^a-z]", "", str(v.get("hab") or ""))[:20]}
+        gifts = [{"acc": str(g.get("acc"))[:20], "at": str(g.get("at") or "")[:10]} for g in (v.get("gifts") or [])[-50:]
+                 if isinstance(g, dict) and g.get("acc") in PET_ACC]
+        return {"pets": pets, "act": act, "acc": acc, "hab": re.sub(r"[^a-z]", "", str(v.get("hab") or ""))[:20], "gifts": gifts}
     if key == "ui":  # Design (Farbwelt), gilt für PC und Handy
         v = v if isinstance(v, dict) else {}
         return {"theme": re.sub(r"[^a-z0-9-]", "", str(v.get("theme") or ""))[:20]}
@@ -1383,22 +1385,39 @@ PET_SPECIES = {
 PET_STAGE_LV = (10, 25)          # Stufe 2 ab Level 10, Stufe 3 ab Level 25
 PET_HATCH_DAYS = 3               # Spieltage (mind. 15 Min) bis zum Schlüpfen
 PET_DAY_CAP = 180                # höchstens 3 Std Spielzeit pro Tag zählen
-PET_ACC = {"schleife": ("Schleife", "🎀"), "headset": ("Gaming-Headset", "🎧"), "brille": ("Sonnenbrille", "🕶️"),
-           "krone": ("Krone", "👑"), "zauberhut": ("Zauberhut", "🎩"), "blume": ("Blümchen", "🌸"), "herz": ("Partnerherz", "💞"),
-           "muetze": ("Bommelmütze", "🧶")}
-PET_HAB = {"lichtung": "Lichtung", "sterne": "Sternenhimmel", "strand": "Strand", "zimmer": "Gaming-Zimmer", "vulkan": "Vulkan"}
-# Beute nach Anzahl Siege (Wochen- und Monats-Bosse zusammen)
+PET_ACC = {"schleife": "Schleife", "headset": "Gaming-Headset", "brille": "Sonnenbrille", "krone": "Krone", "zauberhut": "Zauberhut",
+           "blumen": "Blumenkranz", "herz": "Herz-Anhänger", "muetze": "Bommelmütze", "pirat": "Piratenhut", "weihnacht": "Weihnachtsmütze",
+           "kuerbis": "Kürbis-Hütchen", "wikinger": "Wikingerhelm", "party": "Partyhütchen", "halo": "Heiligenschein",
+           "diadem": "Kristall-Diadem", "kapitaen": "Kapitänsmütze"}
+PET_HAB = {"lichtung": "Lichtung", "sterne": "Sternenhimmel", "strand": "Strand", "zimmer": "Gaming-Zimmer", "vulkan": "Vulkan",
+           "winter": "Winterwald", "kristall": "Kristallhöhle", "riff": "Unterwasser-Riff"}
+# Beute nach Anzahl Siege (Wochen-, Saison- und Monats-Bosse zusammen)
 PET_LOOT = {1: ("acc", "schleife"), 2: ("hab", "sterne"), 3: ("egg", "crysto"), 4: ("acc", "headset"), 5: ("theme", "drachenglut"),
-            6: ("hab", "strand"), 7: ("acc", "brille"), 9: ("hab", "zimmer"), 10: ("acc", "krone"), 12: ("theme", "mondnacht"),
-            14: ("acc", "zauberhut"), 16: ("egg", "koppla"), 18: ("hab", "vulkan"), 20: ("shiny", ""), 23: ("acc", "muetze"), 26: ("acc", "blume")}
+            6: ("hab", "strand"), 7: ("acc", "brille"), 8: ("acc", "pirat"), 9: ("hab", "zimmer"), 10: ("acc", "krone"),
+            12: ("theme", "mondnacht"), 13: ("hab", "kristall"), 14: ("acc", "zauberhut"), 16: ("egg", "koppla"), 17: ("acc", "wikinger"),
+            18: ("hab", "vulkan"), 20: ("shiny", ""), 22: ("acc", "halo"), 24: ("hab", "riff"), 26: ("acc", "blumen"),
+            28: ("acc", "kapitaen"), 30: ("acc", "diadem"), 40: ("shiny", ""), 50: ("shiny", "")}
 PET_WEEKLY = [("golem", "Backlog-Golem", "🗿", "Durchgespielte Spiele treffen ihn dreifach."),
               ("hydra", "Genre-Hydra", "🐍", "Jedes verschiedene Genre der Woche schlägt einen Kopf ab."),
               ("drache", "Trophäen-Drache", "🐉", "Erfolge und Trophäen sind kritische Treffer."),
               ("nachtmahr", "Nachtmahr", "👻", "Sessions, die vor Mitternacht enden, treffen doppelt – Zocken nach Mitternacht heilt ihn."),
-              ("sphinx", "Entdecker-Sphinx", "🦁", "Jedes neu angefangene Spiel trifft hart.")]
+              ("sphinx", "Entdecker-Sphinx", "🦁", "Jedes neu angefangene Spiel trifft hart."),
+              ("gremlin", "Lag-Gremlin", "👾", "Jeder Tag, an dem du spielst, bringt ihn ins Stottern."),
+              ("zeitfresser", "Zeitfresser", "⏳", "Ausgeruhte Spieltage nach einer Pause treffen ihn besonders."),
+              ("phantom", "Neon-Phantom", "🌀", "Das Lieblingsgenre deines Begleiters trifft doppelt.")]
+PET_SEASON = {10: ("kuerbis", "Kürbiskönig", "🎃", "Grusel, Horror und Mystery treffen dreifach – Halloween-Special!"),
+              12: ("yeti", "Frost-Yeti", "❄️", "Gemütliche Spiele und Ruhetage tauen ihn auf – Winter-Special!")}
 PET_MONTHLY = [("titan", "Uralter Titan", "🌋", "Durchgespielte Spiele sind seine Schwäche."),
                ("leviathan", "Leviathan", "🐋", "Abwechslung bei den Genres schwächt ihn."),
-               ("phoenix", "Schattenphönix", "🦅", "Neu angefangene Spiele löschen sein Feuer.")]
+               ("phoenix", "Schattenphönix", "🦅", "Neu angefangene Spiele löschen sein Feuer."),
+               ("mecha", "Mecha-Wyrm", "🤖", "Erfolge und Trophäen bringen ihn zum Kurzschluss.")]
+PET_RAID = [("kraken", "Koop-Kraken", "🐙", "Nur gemeinsame Abende und Spiele, die ihr beide durchspielt, treffen ihn."),
+            ("zwilling", "Zwillingsschatten", "👥", "Nur gemeinsame Abende und Spiele, die ihr beide durchspielt, treffen sie.")]
+PET_QUESTS = [("days4", "Spiel an 4 verschiedenen Tagen", 4), ("new1", "Fang ein neues Spiel an", 1), ("rest1", "Gönn dir einen Ruhetag", 1),
+              ("fav120", "Spiel 2 Std im Lieblingsgenre", 120), ("ach10", "Hol dir 10 Erfolge", 10), ("done1", "Spiel ein Spiel durch", 1),
+              ("early3", "Beende 3 Abende vor Mitternacht", 3), ("genre3", "Spiel 3 verschiedene Genres", 3), ("eve1", "Ein gemeinsamer Abend", 1)]
+PET_COZY = ("simulator", "simulation", "puzzle", "card", "board", "music")
+PET_SPOOKY = ("horror", "survival", "mystery")
 
 
 def pet_xp_for(level):
@@ -1465,6 +1484,7 @@ def pet_state(cfg, force=False):
         _pet_cache.update(t=time.time(), v=res)
         return res
     today = dt.date.today()
+    T = today.isoformat()
     start = min(dt.date.fromisoformat(p["start"]) for p in pets)
     act = sorted(raw.get("act") or [[pets[0]["start"], pets[0]["id"]]])
     def active_on(d):
@@ -1475,17 +1495,21 @@ def pet_state(cfg, force=False):
         return cur
     gi = _pet_game_info()
     days = _pet_days(start)
+    titles = {g["k"]: g["k"] for g in gi.values()}
+    titles.update({norm_title(g["title"]): g["title"] for g in load_cache().get("games", [])})
     # Ereignisse
     ev = {}
     def add(day, key, n=1):
         ev.setdefault(day, {}).setdefault(key, 0)
         ev[day][key] += n
-    seen = set()
-    for k, st, at in load_status_log(800):
+    seen, completions = set(), []
+    slog = load_status_log(800)
+    for k, st, at in slog:
         day = str(at)[:10]
         if st in ("durchgespielt", "komplett") and day >= start.isoformat() and (k, st) not in seen:
             seen.add((k, st))
             add(day, "done" if st == "durchgespielt" else "full")
+            completions.append((str(at), k, st))
     try:
         sx = read_json(STEAMX_PATH, {}) or {}
         for a in (sx.get("ach") or {}).values():
@@ -1499,14 +1523,8 @@ def pet_state(cfg, force=False):
         pass
     sess = tracker.load_sessions(APP_DB, int(dt.datetime.combine(start, dt.time()).timestamp()))
     for k, s0, sec in sess:   # Nachtmahr: vor bzw. nach Mitternacht
-        e = s0 + sec
-        d0 = dt.datetime.fromtimestamp(s0)
-        late = 0
-        for t in range(s0, e, 300):
-            h = dt.datetime.fromtimestamp(t).hour
-            if h < 5:
-                late += 5
-        day = (d0 - dt.timedelta(hours=5)).date().isoformat()
+        late = sum(5 for t in range(s0, s0 + sec, 300) if dt.datetime.fromtimestamp(t).hour < 5)
+        day = (dt.datetime.fromtimestamp(s0) - dt.timedelta(hours=5)).date().isoformat()
         add(day, "late", late)
         add(day, "early", max(0, sec // 60 - late))
     pa = kv_get("partner", None) if cfg.get("partner_url") and cfg.get("partner_code") else None
@@ -1521,12 +1539,9 @@ def pet_state(cfg, force=False):
                     evenings.add((dt.datetime.fromtimestamp(max(s0, a2)) - dt.timedelta(hours=5)).date().isoformat())
     for d in evenings:
         add(d, "evening")
-    # XP pro Tag
-    xp = {p["id"]: 0 for p in pets}
-    playdays = {p["id"]: 0 for p in pets}
+    # 1) Erfahrung pro Tag
     sp_of = {p["id"]: p["sp"] for p in pets}
-    daylog, d = {}, start
-    prev_min = None
+    daylog, d, prev_min = {}, start, None
     while d <= today:
         iso = d.isoformat()
         D = days.get(iso, {"min": 0, "per": {}, "started": []})
@@ -1535,44 +1550,51 @@ def pet_state(cfg, force=False):
         sp = PET_SPECIES.get(sp_of.get(pid), {})
         raw_m = min(PET_DAY_CAP, D["min"])
         base = min(60, raw_m) + 0.3 * max(0, raw_m - 60)   # erste Stunde voll, danach deutlich weniger
-        fav = sum(m for gid, m in D["per"].items() if any(w in (gi.get(gid) or {}).get("txt", "") for w in sp.get("match", ())))
+        txt = lambda gid: (gi.get(gid) or {}).get("txt", "")
+        fav = sum(m for gid, m in D["per"].items() if any(w in txt(gid) for w in sp.get("match", ())))
+        cozy = sum(m for gid, m in D["per"].items() if any(w in txt(gid) for w in PET_COZY))
+        spooky = sum(m for gid, m in D["per"].items() if any(w in txt(gid) for w in PET_SPOOKY))
         rested = base > 0 and prev_min == 0
-        x = int(base * (2 if rested else 1) + 0.5 * min(fav, base))
-        x += 100 * min(3, len(D["started"])) + 500 * E.get("done", 0) + 800 * E.get("full", 0)
-        x += min(250, 10 * E.get("ach", 0)) + 200 * E.get("evening", 0)
-        if pid in xp:
-            xp[pid] += x
-            if D["min"] >= 15:
-                playdays[pid] += 1
+        started = min(3, len(D["started"]))
+        parts = {"play": int(base), "rested": int(base) if rested else 0, "fav": int(0.5 * min(fav, base)), "new": 100 * started,
+                 "done": 500 * E.get("done", 0) + 800 * E.get("full", 0), "ach": min(250, 10 * E.get("ach", 0)), "evening": 200 * E.get("evening", 0)}
         genres = set()
         for gid in D["per"]:
             genres.update((gi.get(gid) or {}).get("genres") or [])
-        daylog[iso] = {"xp": x, "min": D["min"], "rested": rested, "pid": pid, "genres": genres, "started": min(3, len(D["started"])), **E}
+        daylog[iso] = {"xp": sum(parts.values()), "parts": parts, "min": D["min"], "rested": rested, "pid": pid, "genres": genres,
+                       "started": started, "fav": fav, "cozy": cozy, "spooky": spooky, "played": D["min"] >= 15, **E}
         prev_min = D["min"]
         d += dt.timedelta(days=1)
-    # Bosse
-    wins, history, loot = 0, [], []
-    has_partner = bool(pa)
-    def dmg_week(kind, dlist):
-        tot = sum(daylog[x]["xp"] for x in dlist)
-        g = set().union(*[daylog[x]["genres"] for x in dlist]) if dlist else set()
-        if kind in ("golem", "titan"):
-            tot += 1000 * sum(daylog[x].get("done", 0) + daylog[x].get("full", 0) for x in dlist)
-        elif kind in ("hydra", "leviathan"):
-            tot += (250 if kind == "hydra" else 400) * len(g)
-        elif kind == "drache":
-            tot += min(600, 20 * sum(daylog[x].get("ach", 0) for x in dlist))
-        elif kind == "nachtmahr":
-            tot += sum(daylog[x].get("early", 0) for x in dlist) // 2 - sum(daylog[x].get("late", 0) for x in dlist)
-        elif kind in ("sphinx", "phoenix"):
-            tot += (400 if kind == "sphinx" else 600) * sum(daylog[x]["started"] for x in dlist)
-        return max(0, int(tot))
-    events = []   # (Enddatum, Art, ...)
+    # 2) Bosse, Aufgaben, Beute
+    rewards = []      # (Tag, Grund, Erfahrung)
+    loot, history, memories = [], [], []
+    got = {"acc": [], "hab": ["lichtung"], "theme": [], "egg": [], "shiny": []}
+    def give(kind, val, why, day):
+        if kind == "egg" and (val in got["egg"] or val in sp_of.values()):
+            kind, val = "acc", "herz" if "herz" not in got["acc"] else "blumen"
+        if kind == "shiny":
+            val = active_on(day)
+        if val in got[kind]:
+            return
+        got[kind].append(val)
+        loot.append({"kind": kind, "val": val, "why": why, "d": day})
+    def dmg_of(kind, dl):
+        tot = sum(daylog[x]["xp"] for x in dl)
+        g = set().union(*[daylog[x]["genres"] for x in dl]) if dl else set()
+        S_ = lambda key: sum(daylog[x].get(key, 0) for x in dl)
+        extra = {"golem": 1000 * (S_("done") + S_("full")), "titan": 1500 * (S_("done") + S_("full")),
+                 "hydra": 250 * len(g), "leviathan": 400 * len(g),
+                 "drache": min(600, 20 * S_("ach")), "mecha": min(1500, 30 * S_("ach")),
+                 "nachtmahr": S_("early") // 2 - S_("late"), "sphinx": 400 * S_("started"), "phoenix": 600 * S_("started"),
+                 "gremlin": 300 * sum(1 for x in dl if daylog[x]["played"]), "zeitfresser": 500 * sum(1 for x in dl if daylog[x]["rested"]),
+                 "phantom": S_("fav"), "kuerbis": 3 * S_("spooky"),
+                 "yeti": 2 * S_("cozy") + 400 * sum(1 for x in dl if daylog[x]["rested"])}.get(kind, 0)
+        return max(0, int(tot + extra))
+    events = []
     monday = start - dt.timedelta(days=start.weekday())
     w = monday
     while w <= today:
-        dl = [(w + dt.timedelta(days=i)).isoformat() for i in range(7)]
-        dl = [x for x in dl if x in daylog]
+        dl = [x for x in ((w + dt.timedelta(days=i)).isoformat() for i in range(7)) if x in daylog]
         events.append((min(w + dt.timedelta(days=6), today), "week", w, dl))
         w += dt.timedelta(days=7)
     m = start.replace(day=1)
@@ -1581,103 +1603,204 @@ def pet_state(cfg, force=False):
         dl = [x for x in daylog if m.isoformat() <= x < nm.isoformat()]
         end = min(nm - dt.timedelta(days=1), today)
         events.append((end, "month", m, dl))
-        if has_partner:
+        if pa:
             events.append((end, "raid", m, dl))
         m = nm
     events.sort(key=lambda e: (e[0], {"week": 0, "month": 1, "raid": 2}[e[1]]))
-    current = {}
-    got = {"acc": [], "hab": ["lichtung"], "theme": [], "egg": [], "shiny": []}
-    raid_wins, month_wins = 0, 0
-    reward_xp = {p["id"]: 0 for p in pets}
-    def give(kind, val, why):
-        if kind == "egg" and val in got["egg"]:
-            kind, val = "acc", "herz" if "herz" not in got["acc"] else "blume"
-        if kind == "shiny":
-            val = active_on(today.isoformat())
-        if val in got[kind]:
-            return
-        got[kind].append(val)
-        loot.append({"kind": kind, "val": val, "why": why})
+    current, wins, month_wins, raid_wins, season_won = {}, 0, 0, 0, set()
+    pa_done = {(e[1], str(e[3])[:10]) for e in (pa or {}).get("news") or [] if e[0] in ("done", "full")}
+    def week_avg(before):
+        """Durchschnittliche Erfahrung pro Woche in den 4 Wochen vor einem Tag – die Bosse passen sich deinem Spielen an."""
+        b0 = (before - dt.timedelta(days=28)).isoformat()
+        xs = [daylog[x]["xp"] for x in daylog if b0 <= x < before.isoformat()]
+        return max(450, sum(xs) / max(1, len(xs)) * 7) if len(xs) >= 7 else 600
     for end, kind, key, dl in events:
-        done_ = end < today or (kind == "week" and end.weekday() == 6 and end < today)
         live = not end < today
         if kind == "week":
-            idx = (key.isocalendar()[1] + key.isocalendar()[0]) % len(PET_WEEKLY)
-            b = PET_WEEKLY[idx]
-            hp = int(700 * 1.08 ** min(wins, 15))
+            b = PET_SEASON.get(key.month) or PET_WEEKLY[(key.isocalendar()[1] + key.isocalendar()[0]) % len(PET_WEEKLY)]
+            hp = week_avg(key) * (0.95 + 0.025 * min(wins, 16))
+            ends = key + dt.timedelta(days=6)
         elif kind == "month":
             b = PET_MONTHLY[(key.month + key.year) % len(PET_MONTHLY)]
-            hp = int(4200 * 1.1 ** min(month_wins, 12))
+            hp = week_avg(key) * 4.3 * (1.0 + 0.02 * min(month_wins, 12))
+            ends = (key.replace(day=28) + dt.timedelta(days=4)).replace(day=1) - dt.timedelta(days=1)
         else:
-            b = ("kraken", "Koop-Kraken", "🐙", "Nur gemeinsame Abende und Spiele, die ihr beide durchspielt, treffen ihn.")
+            b = PET_RAID[(key.year * 12 + key.month) % len(PET_RAID)]
             hp = int(1200 * 1.15 ** min(raid_wins, 10))
+            ends = (key.replace(day=28) + dt.timedelta(days=4)).replace(day=1) - dt.timedelta(days=1)
+        hp = int(hp)
         if kind == "raid":
             dmg = 500 * sum(daylog[x].get("evening", 0) for x in dl)
-            mydone = {k for k, st, at in load_status_log(800) if st in ("durchgespielt", "komplett") and dl and dl[0] <= str(at)[:10] <= dl[-1]}
-            padone = {e[1] for e in (pa or {}).get("news") or [] if e[0] in ("done", "full") and dl and dl[0] <= str(e[3])[:10] <= dl[-1]}
-            dmg += 800 * len(mydone & padone)
+            mine = {k for at, k, st in completions if dl and dl[0] <= at[:10] <= dl[-1]}
+            dmg += 800 * len({k for k, at in pa_done if dl and dl[0] <= at <= dl[-1]} & mine)
         else:
-            dmg = dmg_week(b[0], dl)
+            dmg = dmg_of(b[0], dl)
         won = dmg >= hp
+        win_day = end.isoformat()
+        if won:   # Siegtag = erster Tag, an dem der Schaden reichte
+            for i in range(1, len(dl) + 1):
+                if (dmg_of(b[0], dl[:i]) if kind != "raid" else 0) >= hp:
+                    win_day = dl[i - 1]
+                    break
         rec = {"kind": kind, "id": b[0], "name": b[1], "icon": b[2], "weak": b[3], "hp": hp, "dmg": dmg, "won": won,
-               "from": dl[0] if dl else key.isoformat(), "to": end.isoformat(), "live": live}
+               "from": dl[0] if dl else key.isoformat(), "to": end.isoformat(), "live": live, "ends": ends.isoformat(),
+               "season": b[0] in ("kuerbis", "yeti")}
         if live:
-            rec["ends"] = ((key + dt.timedelta(days=6)) if kind == "week" else ((key.replace(day=28) + dt.timedelta(days=4)).replace(day=1) - dt.timedelta(days=1))).isoformat()
             current[kind] = rec
-        if won and (not live or True):
+        if won:
+            memories.append({"d": win_day, "i": "⚔️", "t": f"{b[1]} besiegt"})
             if kind == "raid":
                 raid_wins += 1
-                give("egg", "koppla", "Raid gegen den Koop-Kraken") if raid_wins == 1 else give("acc", "herz", "Raid-Sieg")
-                reward_xp[active_on(end.isoformat())] = reward_xp.get(active_on(end.isoformat()), 0) + 500
+                give("egg", "koppla", "Raid-Sieg", win_day) if raid_wins == 1 else give("acc", "herz", "Raid-Sieg", win_day)
+                rewards.append((win_day, "raid", 500))
             else:
                 wins += 1
                 if kind == "month":
                     month_wins += 1
                     if month_wins == 1:
-                        give("egg", "nocti", f"Erster Sieg gegen den Monats-Boss")
+                        give("egg", "nocti", "Erster Monats-Boss", win_day)
+                    rewards.append((win_day, "boss", 300))
+                else:
+                    rewards.append((win_day, "boss", 100 + 10 * min(wins, 20)))
+                if b[0] == "kuerbis":
+                    give("acc", "kuerbis", "Halloween-Special", win_day)
+                if b[0] == "yeti":
+                    give("acc", "weihnacht", "Winter-Special", win_day)
+                    give("hab", "winter", "Winter-Special", win_day)
                 if wins in PET_LOOT:
-                    give(PET_LOOT[wins][0], PET_LOOT[wins][1], f"{wins}. Sieg")
-                reward_xp[active_on(end.isoformat())] = reward_xp.get(active_on(end.isoformat()), 0) + (100 + 10 * min(wins, 20) if kind == "week" else 300)
+                    give(PET_LOOT[wins][0], PET_LOOT[wins][1], f"{wins}. Sieg", win_day)
             history.append(rec)
         elif not live:
             history.append(rec)
+    if completions:
+        give("acc", "party", "Erstes durchgespieltes Spiel", completions[0][0][:10])
+    # Geschenke vom Partner
+    for gft in ((pa or {}).get("pet") or {}).get("gifts") or []:
+        if gft.get("acc") in PET_ACC:
+            give("acc", gft["acc"], f"Geschenk von {pa.get('name') or 'Partner'}", str(gft.get("at") or T)[:10])
+    # Wochen-Aufgaben
+    quests = {}
+    w = monday
+    while w <= today:
+        dl = [x for x in ((w + dt.timedelta(days=i)).isoformat() for i in range(7)) if x in daylog]
+        seed = int(hashlib.sha256(w.isoformat().encode()).hexdigest(), 16)
+        pool = [q for q in PET_QUESTS if q[0] != "eve1" or pa]
+        pick = []
+        while len(pick) < 3:
+            q = pool[seed % len(pool)]
+            seed //= 7
+            if q not in pick:
+                pick.append(q)
+        qs = []
+        for qid, label, target in pick:
+            prog, doneday = 0, None
+            gen = set()
+            for x in dl:
+                L = daylog[x]
+                inc = {"days4": int(L["played"]), "new1": L["started"], "rest1": int(L["min"] == 0 and x < T),
+                       "fav120": L["fav"], "ach10": L.get("ach", 0), "done1": L.get("done", 0) + L.get("full", 0),
+                       "early3": int(L.get("early", 0) > 0 and not L.get("late", 0)), "eve1": L.get("evening", 0)}.get(qid)
+                if qid == "genre3":
+                    gen |= L["genres"]
+                    prog = len(gen)
+                else:
+                    prog += inc or 0
+                if prog >= target and not doneday:
+                    doneday = x
+            if doneday:
+                rewards.append((doneday, "quest", 150))
+            qs.append({"id": qid, "t": label, "target": target, "prog": min(prog, target), "done": bool(doneday)})
+        quests[w.isoformat()] = qs
+        w += dt.timedelta(days=7)
+    # 3) Erfahrung je Begleiter, Schlüpfen und Entwicklung mit Datum
+    rew_by = {}
+    for day, why, x in rewards:
+        rew_by.setdefault(day, []).append((why, x))
+    xp = {p["id"]: 0 for p in pets}
+    pdays = {p["id"]: 0 for p in pets}
+    hatch_day, stage_day = {}, {}
+    for p in pets:
+        memories.append({"d": p["start"], "i": "🥚", "t": f"{PET_SPECIES[p['sp']]['name']}-Ei ausgesucht"})
+    for iso in sorted(daylog):
+        pid = daylog[iso]["pid"]
+        if pid not in xp:
+            continue
+        xp[pid] += daylog[iso]["xp"] + sum(x for _, x in rew_by.get(iso, []))
+        if daylog[iso]["played"]:
+            pdays[pid] += 1
+        if pdays[pid] >= PET_HATCH_DAYS and pid not in hatch_day:
+            hatch_day[pid] = iso
+            memories.append({"d": iso, "i": "🐣", "t": f"{PET_SPECIES[sp_of[pid]]['stages'][0]} ist geschlüpft"})
+        if pid in hatch_day:
+            lv = pet_level(xp[pid])
+            for si, need in ((2, PET_STAGE_LV[0]), (3, PET_STAGE_LV[1])):
+                if lv >= need and (pid, si) not in stage_day:
+                    stage_day[(pid, si)] = iso
+                    memories.append({"d": iso, "i": "✨", "t": f"Entwickelt zu {PET_SPECIES[sp_of[pid]]['stages'][si - 1]}"})
+    for at, k, st in completions:
+        memories.append({"d": at[:10], "i": "🏁", "t": f"{titles.get(k, k)} {'durchgespielt' if st == 'durchgespielt' else 'zu 100 % geschafft'}"})
+    for l in loot:
+        nm = PET_ACC.get(l["val"]) if l["kind"] == "acc" else PET_HAB.get(l["val"]) if l["kind"] == "hab" else None
+        if nm:
+            memories.append({"d": l["d"], "i": "🎁", "t": f"Neu: {nm}" + (f" ({l['why']})" if l["why"].startswith("Geschenk") else "")})
+    memories.sort(key=lambda x: x["d"], reverse=True)
     out = []
     accs = raw.get("acc") or {}
     for p in pets:
-        total = xp.get(p["id"], 0) + reward_xp.get(p["id"], 0)
-        hatched = playdays.get(p["id"], 0) >= PET_HATCH_DAYS
+        total = xp.get(p["id"], 0)
+        hatched = p["id"] in hatch_day
         lv = pet_level(total) if hatched else 1
         stage = 0 if not hatched else 1 if lv < PET_STAGE_LV[0] else 2 if lv < PET_STAGE_LV[1] else 3
         S = PET_SPECIES.get(p["sp"], PET_SPECIES["brasu"])
         shiny = (int(hashlib.sha256(p["id"].encode()).hexdigest(), 16) % 10 == 0) or p["id"] in got["shiny"]
         out.append({"id": p["id"], "sp": p["sp"], "species": S["name"], "nick": p.get("nick") or "", "stage": stage,
                     "stage_name": "Ei" if stage == 0 else S["stages"][stage - 1], "lvl": lv, "xp": total,
-                    "xp_lv": pet_xp_for(lv), "xp_next": pet_xp_for(lv + 1), "hatch": min(playdays.get(p["id"], 0), PET_HATCH_DAYS),
+                    "xp_lv": pet_xp_for(lv), "xp_next": pet_xp_for(lv + 1), "hatch": min(pdays.get(p["id"], 0), PET_HATCH_DAYS),
                     "hatch_need": PET_HATCH_DAYS, "fav": S["fav"], "shiny": shiny, "acc": accs.get(p["id"]) if accs.get(p["id"]) in got["acc"] else None,
-                    "start": p["start"], "next_stage": PET_STAGE_LV[0] if stage <= 1 else PET_STAGE_LV[1] if stage == 2 else None})
-    td = daylog.get(today.isoformat(), {})
-    res = {"pets": out, "active": active_on(today.isoformat()), "hab": raw.get("hab") if raw.get("hab") in got["hab"] else "lichtung",
-           "unlocked": got, "loot": loot[-30:], "wins": wins, "raid_wins": raid_wins, "current": current,
-           "history": history[-12:], "today": {"xp": td.get("xp", 0), "min": td.get("min", 0), "rested": bool(td.get("rested")),
-           "cap": PET_DAY_CAP}, "next_loot": next(([n, PET_LOOT[n][0], PET_LOOT[n][1]] for n in sorted(PET_LOOT) if n > wins), None),
-           "starter": [k for k, v in PET_SPECIES.items() if v["start"]], "has_partner": has_partner,
-           "eggs_ready": [e for e in got["egg"] if e not in {p["sp"] for p in pets}]}
+                    "start": p["start"], "next_stage": PET_STAGE_LV[0] if stage <= 1 else PET_STAGE_LV[1] if stage == 2 else None,
+                    "next_name": S["stages"][stage] if stage < 3 else None})
+    td = daylog.get(T, {})
+    party = None
+    if completions:
+        at, k, st = completions[-1]
+        try:
+            age = time.time() - dt.datetime.fromisoformat(at.replace("Z", "+00:00")[:25]).timestamp()
+        except ValueError:
+            age = 1e9
+        if age < 86400:
+            party = {"title": titles.get(k, k), "full": st == "komplett"}
+    gifts = [g for g in raw.get("gifts") or [] if isinstance(g, dict)]
+    last_gift = max([str(g.get("at") or "") for g in gifts] or [""])
+    res = {"pets": out, "active": active_on(T), "hab": raw.get("hab") if raw.get("hab") in got["hab"] else "lichtung",
+           "unlocked": got, "loot": loot[-40:], "wins": wins, "raid_wins": raid_wins, "current": current,
+           "history": history[-12:], "today": {"xp": td.get("xp", 0) + sum(x for _, x in rew_by.get(T, [])), "min": td.get("min", 0),
+           "rested": bool(td.get("rested")), "cap": PET_DAY_CAP, "parts": td.get("parts") or {},
+           "rewards": [{"why": w_, "xp": x} for w_, x in rew_by.get(T, [])]},
+           "next_loot": next(([n, PET_LOOT[n][0], PET_LOOT[n][1]] for n in sorted(PET_LOOT) if n > wins), None),
+           "starter": [k for k, v in PET_SPECIES.items() if v["start"]], "has_partner": bool(pa),
+           "eggs_ready": [e for e in got["egg"] if e not in set(sp_of.values())],
+           "quests": quests.get((today - dt.timedelta(days=today.weekday())).isoformat(), []),
+           "memories": memories[:60], "party": party, "album": sorted({f"{sp_of[pid]}_{s}" for (pid, s) in stage_day} | {f"{sp_of[pid]}_1" for pid in hatch_day}),
+           "gift_ok": not last_gift or (today - dt.date.fromisoformat(last_gift[:10])).days >= 7, "gifts_sent": gifts[-10:]}
     _pet_cache.update(t=time.time(), v=res)
     return res
 
 
 def pet_public(cfg):
-    """Kurzfassung des aktiven Begleiters für den Partner."""
+    """Kurzfassung des aktiven Begleiters für den Partner (plus Geschenke an ihn)."""
     try:
         st = pet_state(cfg)
         p = next((x for x in st.get("pets") or [] if x["id"] == st.get("active")), None)
-        return {k: p[k] for k in ("sp", "stage", "stage_name", "lvl", "nick", "shiny", "acc", "species")} if p else None
+        raw = kv_get("pet", {}) or {}
+        out = {k: p[k] for k in ("sp", "stage", "stage_name", "lvl", "nick", "shiny", "acc", "species")} if p else {}
+        out["gifts"] = [g for g in raw.get("gifts") or [] if isinstance(g, dict)][-20:]
+        return out if (p or out["gifts"]) else None
     except Exception:
         return None
 
 
 def check_pet(cfg):
-    """Pushes: geschlüpft, Entwicklung, alle 5 Level, Boss besiegt, neue Beute."""
+    """Pushes: geschlüpft, Entwicklung, alle 5 Level, Boss besiegt, neue Beute, Geschenke."""
     st = pet_state(cfg, force=True)
     if not st.get("pets"):
         return
@@ -1699,6 +1822,9 @@ def check_pet(cfg):
     if now["wins"] > (seen.get("wins") or 0):
         last = (st.get("history") or [{}])[-1]
         alert("pet", f"⚔️ {last.get('name', 'Boss')} besiegt!", "Dein Begleiter hat gewonnen – schau dir die Beute an.", "#/begleiter")
+    for l in st["loot"][(seen.get("loot") or 0):] if len(st["loot"]) > (seen.get("loot") or 0) else []:
+        if l["why"].startswith("Geschenk"):
+            alert("pet", f"🎁 {l['why']}", f"{PET_ACC.get(l['val'], l['val'])} für deinen Begleiter 💞", "#/begleiter")
     kv_set("pet_seen", now)
 
 
@@ -2186,7 +2312,12 @@ def check_notifications(cfg):
             tag = f"{p['key']}:{p['since']}"
             if time.time() - p["since"] >= ph * 3600 and tag not in notified["pause"]:
                 notified["pause"].add(tag)
-                alert("pause", "Zeit für eine Pause?", f"Du spielst {p['title']} seit {ph:g} Stunden am Stück.")
+                pet = pet_public(cfg) or {}
+                if pet.get("stage"):
+                    alert("pause", f"🧃 {pet.get('nick') or pet.get('stage_name')}: Kurze Pause?",
+                          f"Du spielst {p['title']} seit {ph:g} Stunden am Stück. Ich hol uns was zu trinken!")
+                else:
+                    alert("pause", "Zeit für eine Pause?", f"Du spielst {p['title']} seit {ph:g} Stunden am Stück.")
     x = read_json(EXTRAS_PATH, {})
     if cats.get("free", True) and x.get("free"):
         seen = set(kv_get("free_seen", []) or [])
@@ -2374,7 +2505,7 @@ def shared_data(cfg, games):
         "me_name": (cfg.get("user_name") or "").strip(),
         "me_duo": me_duo(cfg) if (cfg.get("partner_url") and cfg.get("partner_code")) else None,
         "greets": kv_get("greets", []) or [], "push_topic": (cfg.get("push_topic") or "").strip() or None, "partner_url": (cfg.get("partner_url") or "").strip() or None,
-        "ui": kv_get("ui", {}) or {}, "ghist": game_history(), "pet": pet_state(cfg), "pet_raw": kv_get("pet", {}) or {},
+        "ui": kv_get("ui", {}) or {}, "ghist": game_history(), "pet": pet_state(cfg), "pet_raw": kv_get("pet", {}) or {}, "pet_imgs": sorted(n for n in os.listdir(os.path.join(WEB_DIR, "pets")) if n.endswith(".webp")) if os.path.isdir(os.path.join(WEB_DIR, "pets")) else [],
         "trophies": read_json(EXTRAS_PATH, {}).get("trophies") or [],
         "free_games": read_json(EXTRAS_PATH, {}).get("free") or [],
         "snotes": kv_get("snotes", {}),
@@ -2413,8 +2544,16 @@ def build_backup():
         if before:
             keep.add(before[-1])
     rows = [r for d in sorted(keep) for r in hc.execute("SELECT day, id, platform, minutes FROM snapshots WHERE day = ?", (d,))]
+    # Alle anderen Tage nur mit dem, was sich geändert hat (für Begleiter, Wochen-Duell, Spielverlauf)
+    changes, prev = [], {}
+    for d in days:
+        cur_ = {i: (p, m) for i, p, m in hc.execute("SELECT id, platform, minutes FROM snapshots WHERE day = ?", (d,))}
+        if d not in keep:
+            changes += [[d, i, p, m] for i, (p, m) in cur_.items() if prev.get(i, (None, None))[1] != m]
+        prev = cur_
     hc.close()
     out["tables"]["snapshots"] = {"cols": ["day", "id", "platform", "minutes"], "rows": rows}
+    out["snapshot_changes"] = changes
     # Selbst eingetragene Spieldauern (der Rest kommt jederzeit neu von IGDB)
     ac = app_con()
     hltb.init_db(ac)
@@ -2446,6 +2585,22 @@ def restore_backup(b):
         q = f"INSERT OR IGNORE INTO {t} ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})"
         for r in rows:
             n += target.execute(q, [r[i] for i in idx]).rowcount
+    ch = b.get("snapshot_changes") or []
+    if ch:
+        for r in ch:
+            n += hc.execute("INSERT OR IGNORE INTO snapshots (day, id, platform, minutes) VALUES (?, ?, ?, ?)", r[:4]).rowcount
+        # fehlende Spiele an diesen Tagen vom Vortag übernehmen (dort hat sich nichts geändert)
+        days = [r[0] for r in hc.execute("SELECT DISTINCT day FROM snapshots ORDER BY day")]
+        chdays = {r[0] for r in ch}
+        prev = None
+        for d in days:
+            cur_ = dict((i, (p, m)) for i, p, m in hc.execute("SELECT id, platform, minutes FROM snapshots WHERE day = ?", (d,)))
+            if prev is not None and d in chdays:
+                for i, (p, m) in prev.items():
+                    if i not in cur_:
+                        hc.execute("INSERT OR IGNORE INTO snapshots (day, id, platform, minutes) VALUES (?, ?, ?, ?)", (d, i, p, m))
+                        cur_[i] = (p, m)
+            prev = cur_
     con.commit(); hc.commit(); con.close(); hc.close()
     return n
 
@@ -2647,7 +2802,7 @@ class Handler(BaseHTTPRequestHandler):
         if path in ("/", "/index.html"):
             with open(os.path.join(WEB_DIR, "index.html"), "rb") as f:
                 return self._send(200, f.read(), "text/html; charset=utf-8")
-        if re.fullmatch(r"/pets/[a-z]+_(ei|1|2|3)\.webp", path):
+        if re.fullmatch(r"/pets/[a-z]+_[a-z0-9]+\.webp", path):
             fp = os.path.join(WEB_DIR, "pets", path.rsplit("/", 1)[1])
             if os.path.exists(fp):
                 with open(fp, "rb") as f:
