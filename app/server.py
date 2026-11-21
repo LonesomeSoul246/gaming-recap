@@ -613,14 +613,14 @@ def console_con():
     return con
 
 
-STALE_H = 12          # Zuwachs ohne Spielen seit mehr als 12 Std = Nachmeldung der Plattform (zählt nicht)
+STALE_H = 14 * 24     # Zuwachs ohne Spielen seit mehr als 14 Tagen = Nachmeldung der Plattform (zählt nicht)
 
 
 def _local(ts):
     return dt.datetime.fromtimestamp(ts)
 
 
-def _spread(start, end, minutes, cap=480):
+def _spread(start, end, minutes, cap=480, used=None, day_cap=960):
     """Verteilt Minuten auf die Kalendertage zwischen start und end (Unix-Zeit). „Zuletzt gespielt“ ist der
     sicherste Tag: von dort rückwärts bis 8 Std pro Tag auffüllen (nie mehr, als an dem Tag im Zeitfenster
     lag), einen Rest anteilig auf die freie Zeit der Tage."""
@@ -629,7 +629,10 @@ def _spread(start, end, minutes, cap=480):
     while d <= _local(end).date() and len(days) < 62:
         a = max(start, dt.datetime.combine(d, dt.time()).timestamp())
         b = min(end, dt.datetime.combine(d + dt.timedelta(days=1), dt.time()).timestamp())
-        days.append([d, max(1, int((b - a) / 60))])
+        room = max(1, int((b - a) / 60))
+        if used is not None:   # alle Spiele zusammen höchstens 16 Std an einem Tag
+            room = max(0, min(room, day_cap - used.get(d, 0)))
+        days.append([d, room])
         d += dt.timedelta(days=1)
     out = {x: 0 for x, _ in days}
     left = minutes
@@ -646,10 +649,19 @@ def _spread(start, end, minutes, cap=480):
             add = int(left * free[x] / tot) if tot else int(left / len(days))
             out[x] += add
         out[days[-1][0]] += minutes - sum(out.values())
-    return {k: int(v) for k, v in out.items() if v > 0}
+    res = {k: int(v) for k, v in out.items() if v > 0}
+    if used is not None:
+        for k, v in res.items():
+            used[k] = used.get(k, 0) + v
+    return res
 
 
-def reconcile_history(games, last_sync, today=None):
+def _src_of(gid):
+    gid = str(gid)
+    return "PlayStation" if gid.startswith("psn_") else "Xbox" if gid.startswith("xbox_") else "Playnite"
+
+
+def reconcile_history(games, last_sync, today=None, src_ok=None):
     """Läuft bei jedem Abgleich VOR dem Speichern des heutigen Stands.
     War der PC aus, liefern PS5/Xbox die Spielzeit gesammelt nach. Wir verteilen sie anhand von
     „zuerst/zuletzt gespielt“ auf die echten Tage und tragen diese Tage im Verlauf nach.
@@ -669,20 +681,55 @@ def reconcile_history(games, last_sync, today=None):
         t_ref = parse_iso(last_sync)
     now = min(time.time(), dt.datetime.combine(today + dt.timedelta(days=1), dt.time()).timestamp() - 60)
     prev_devs = {p for p, _ in prev.values()}
-    plans, absorb, imports, sessions = {}, {}, {}, []
+    plans, absorb, imports, sessions, fresh = {}, {}, {}, [], {}
+    t_all = t_ref
+    used = {}
+    # Zurückgestellte „Nachmeldungen“: Endet danach eine Session (zuletzt gespielt wird neuer), war es echtes Spielen
+    absorbed = kv_get("absorbed", {}) or {}
+    revive, dirty_abs = [], False
+    lp_now = {g["id"]: parse_iso(g.get("last_played")) for g in games}
+    for gid in list(absorbed):
+        keep = []
+        for day_, gain_, t_abs in absorbed[gid]:
+            lpn = lp_now.get(gid)
+            if lpn and lpn >= t_abs - 6 * 3600 and day_ < T:
+                revive.append((gid, day_, gain_))
+                dirty_abs = True
+            elif time.time() - t_abs < 3 * 86400:
+                keep.append([day_, gain_, t_abs])
+            else:
+                dirty_abs = True
+        if keep:
+            absorbed[gid] = keep
+        else:
+            absorbed.pop(gid, None)
+    src_day = kv_get("src_day", {}) or {}
+    upto = kv_get("rec_upto", {}) or {}
     for g in games:
         gid, dev, m = g["id"], g.get("device"), int(g.get("minutes") or 0)
         p = prev.get(gid)
         lp = parse_iso(g.get("last_played"))
         fp = parse_iso(g.get("first_played")) or parse_iso(g.get("added"))
+        # Stand der Quelle: Fiel z. B. PlayStation zuletzt aus, ist ihr gespeicherter Stand älter als der letzte Abgleich
+        t_ref = t_all
+        so = parse_iso((src_day.get(prev_day) or {}).get(_src_of(gid)))   # Stand der Quelle im gespeicherten Tag
+        if so and so < t_ref:
+            t_ref = so
+        ru = upto.get(gid)
+        if ru and ru > t_ref:     # bis hierhin schon nachgetragen
+            t_ref = ru
         if p is None:
-            if dev not in prev_devs or m <= 0:
+            if m <= 0:
+                continue
+            if dev not in prev_devs:   # Plattform zum ersten Mal erfasst: alles ist Ausgangsstand
+                imports[gid] = (dev, m)
                 continue
             genuine = (fp and fp >= t_ref - 3600) or (not fp and m <= IMPORT_MIN)
             if not genuine:
                 imports[gid] = (dev, m)
                 continue
             start, base, gain = max(t_ref, fp or t_ref), 0, m
+            fresh[gid] = dev
         else:
             gain = m - p[1]
             if gain <= 0:
@@ -690,16 +737,17 @@ def reconcile_history(games, last_sync, today=None):
             if lp and lp < t_ref - STALE_H * 3600:
                 absorb[gid] = gain        # Nachmeldung: nicht gespielt
                 continue
-            start, base = t_ref, p[1]
+            start, base = max(t_ref, fp or 0), p[1]   # nie vor dem ersten Spielen
         if dev == "PC" and _local(start).date() >= today:
             continue                     # PC-Spiele: wie bisher, alles heute
         end = min(now, max(lp or now, start))
-        share = _spread(start, end, gain)
+        share = _spread(start, end, gain, used=used)
         if not share:
             continue
         if len(share) == 1 and min(share) >= today:
             continue                     # nur heute: nichts nachzutragen
         plans[gid] = (dev, base, share)
+        upto[gid] = end
         if dev != "PC":
             k = norm_title(g["title"])
             for d, v in share.items():
@@ -709,8 +757,10 @@ def reconcile_history(games, last_sync, today=None):
                     sessions.append((k, dev, int(end - v * 60), int(v * 60), 1))
                 else:
                     sessions.append((k, dev, int(dt.datetime.combine(d, dt.time(20, 0)).timestamp()), int(v * 60), 1))
-    if not (plans or absorb or imports):
+    if not (plans or absorb or imports or fresh or revive):
         con.close()
+        if dirty_abs:
+            kv_set("absorbed", absorbed)
         return 0
     gap = []
     d = dt.date.fromisoformat(prev_day) + dt.timedelta(days=1)
@@ -718,34 +768,69 @@ def reconcile_history(games, last_sync, today=None):
         gap.append(d.isoformat())
         d += dt.timedelta(days=1)
     with con:
-        if plans:   # Lücken-Tage als Kopie des letzten Stands anlegen (nur wenn nötig)
-            for gd in gap:
-                con.execute("INSERT OR IGNORE INTO snapshots SELECT ?, id, platform, minutes FROM snapshots WHERE day = ?", (gd, prev_day))
+        copied = {}
+        if plans:
+            # Alle Tage ab dem Tag vor dem frühesten Nachtrag bis gestern müssen als Stand existieren
+            first_all = min(min(sh) for _, _, sh in plans.values()) - dt.timedelta(days=1)
+            have = {r[0] for r in con.execute("SELECT DISTINCT day FROM snapshots")}
+            d = min(first_all, dt.date.fromisoformat(prev_day))
+            src = max([x for x in have if x <= d.isoformat()] or [min(have)]) if d.isoformat() not in have else d.isoformat()
+            while d < today:
+                di = d.isoformat()
+                if di in have:
+                    src = di
+                elif src:
+                    con.execute("INSERT OR IGNORE INTO snapshots SELECT ?, id, platform, minutes FROM snapshots WHERE day = ?", (di, src))
+                    have.add(di)
+                    copied[di] = src
+                d += dt.timedelta(days=1)
         for gid, (dev, base, share) in plans.items():
-            cum = base
-            for gd in [prev_day] + gap:
-                dd = dt.date.fromisoformat(gd)
-                cum += share.get(dd, 0)
-                con.execute("INSERT OR REPLACE INTO snapshots VALUES (?, ?, ?, ?)", (gd, gid, dev, cum))
-            if base == 0 and gid not in prev:   # neues Spiel: vor dem ersten Spieltag mit 0 eintragen
-                first = min(share)
-                before = (first - dt.timedelta(days=1)).isoformat()
-                if before >= prev_day:
-                    con.execute("INSERT OR IGNORE INTO snapshots VALUES (?, ?, ?, 0)", (before, gid, dev))
-                else:
-                    con.execute("INSERT OR IGNORE INTO snapshots VALUES (?, ?, ?, 0)", (prev_day, gid, dev))
+            first = min(share) - dt.timedelta(days=1)
+            # Spiel in allen nötigen Tagen mit dem Ausgangswert führen (neue Spiele: 0)
+            known = dict(con.execute("SELECT day, minutes FROM snapshots WHERE id = ?", (gid,)).fetchall())
+            d, last = first, None
+            for k_ in sorted(known):
+                if k_ < first.isoformat():
+                    last = known[k_]
+            while d < today:
+                di = d.isoformat()
+                if di in known:
+                    last = known[di]
+                else:   # fehlender Tag: letzter bekannter Wert, sonst 0 (gab es da noch nicht)
+                    con.execute("INSERT OR IGNORE INTO snapshots VALUES (?, ?, ?, ?)", (di, gid, dev, last or 0))
+                d += dt.timedelta(days=1)
+            for dd, v in share.items():
+                if dd < today and v:
+                    con.execute("UPDATE snapshots SET minutes = minutes + ? WHERE id = ? AND day >= ? AND day < ?",
+                                (v, gid, dd.isoformat(), T))
         for gid, gain in absorb.items():   # Nachmeldung: in der ganzen Vergangenheit mitführen → zählt nirgends als gespielt
             con.execute("UPDATE snapshots SET minutes = minutes + ? WHERE id = ? AND day < ?", (gain, gid, T))
-        for gid, (dev, m) in imports.items():
-            con.execute("INSERT OR REPLACE INTO snapshots VALUES (?, ?, ?, ?)", (prev_day, gid, dev, m))
-            for gd in gap:
-                con.execute("INSERT OR REPLACE INTO snapshots VALUES (?, ?, ?, ?)", (gd, gid, dev, m))
+            absorbed.setdefault(gid, []).append([T, gain, time.time()])
+        for gid, day_, gain in revive:     # doch gespielt (Session lief noch): wieder als gespielt an dem Tag zählen
+            con.execute("UPDATE snapshots SET minutes = minutes - ? WHERE id = ? AND day < ?", (gain, gid, day_))
+        last_day = con.execute("SELECT MAX(day) FROM snapshots WHERE day < ?", (T,)).fetchone()[0] or prev_day
+        for gid, dev in fresh.items():   # neues Spiel: am letzten Tag davor ausdrücklich mit 0 führen → alles danach zählt
+            if gid not in plans:
+                con.execute("INSERT OR IGNORE INTO snapshots VALUES (?, ?, ?, 0)", (last_day, gid, dev))
+        if imports:   # Altbestand: in allen bisherigen Tagen mit voller Zeit führen → zählt nirgends als gespielt
+            all_days = [r[0] for r in con.execute("SELECT DISTINCT day FROM snapshots WHERE day < ?", (T,))]
+            for gid, (dev, m) in imports.items():
+                con.executemany("INSERT OR REPLACE INTO snapshots VALUES (?, ?, ?, ?)", [(gd, gid, dev, m) for gd in all_days])
     con.close()
-    if plans:   # nachgetragene Tage gelten als Stand von jetzt – ein zweiter Abgleich heute verteilt nichts erneut
-        st = kv_get("snap_times", {}) or {}
-        for gd in [prev_day] + gap:
-            st[gd] = now_iso()
-        kv_set("snap_times", dict(sorted(st.items())[-120:]))
+    if absorb or dirty_abs:
+        kv_set("absorbed", absorbed)
+    if copied:   # kopierte Tage haben den Datenstand ihrer Vorlage
+        st_, sd_ = kv_get("snap_times", {}) or {}, kv_get("src_day", {}) or {}
+        for di, src in copied.items():
+            if src in st_:
+                st_[di] = st_[src]
+            if src in sd_:
+                sd_[di] = sd_[src]
+        kv_set("snap_times", dict(sorted(st_.items())[-120:]))
+        kv_set("src_day", dict(sorted(sd_.items())[-120:]))
+    if plans:   # merken, bis wann je Spiel nachgetragen ist – ein zweiter Abgleich verteilt nichts erneut
+        lim = time.time() - 120 * 86400
+        kv_set("rec_upto", {k: v for k, v in upto.items() if v > lim})
     if sessions:
         cc = console_con()
         with cc:
@@ -1132,12 +1217,11 @@ def merge_pet(new, now_minutes=None):
         ts = _local_ts(a[0])
         if (ts, a[1]) in have or (ep and ts[:10] < ep):
             continue
-        if ts[:10] == T:
-            if len(ts) == 10:
-                ts = dt.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-            act.append([ts, a[1], nm])
-        elif ts[:10] < T:
-            act.append([ts if len(ts) > 10 else ts + "T23:59:00", a[1]])
+        # Wechsel gilt ab dem Moment, in dem der PC davon erfährt – so verliert nie ein Begleiter schon verdiente Erfahrung
+        now_ts = dt.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        if len(ts) == 10 or ts < now_ts:
+            ts = now_ts
+        act.append([ts, a[1], nm])
         have.add((ts, a[1]))
     out = {"pets": pets, "act": act[-300:], "acc": {k: x for k, x in (new.get("acc") or {}).items() if k in ids},
            "hab": new.get("hab") or old.get("hab") or "lichtung"}
@@ -1293,6 +1377,9 @@ def run_sync():
         psn_games, xbox_games = [], []
         old = load_cache()
         old_games = old.get("games") or []
+        if not kv_get("reconcile_since"):
+            kv_set("reconcile_since", (dt.date.today() + dt.timedelta(days=1)).isoformat())
+        src_ok_prev = kv_get("src_ok", {}) or {}
         if cfg["psn_npsso"].strip():
             try:
                 skipped = []
@@ -1343,6 +1430,11 @@ def run_sync():
             traceback.print_exc()
             print("  Nachtrag:", e)
         write_json(CACHE_PATH, {"last_sync": now_iso(), "sources": sources, "games": games, "pn_images": PN_IMAGES})
+        src_now = dict(src_ok_prev, **{k: now_iso() for k, v in sources.items() if v.get("ok") and k in ("PlayStation", "Xbox", "Playnite")})
+        kv_set("src_ok", src_now)
+        sd = kv_get("src_day", {}) or {}
+        sd[dt.date.today().isoformat()] = src_now   # von wann die Daten jeder Quelle im heutigen Stand sind
+        kv_set("src_day", dict(sorted(sd.items())[-120:]))
         if games:
             record_snapshot(games)
             try:
@@ -1920,6 +2012,7 @@ def _pet_days(since):
     days = [r[0] for r in con.execute("SELECT DISTINCT day FROM snapshots ORDER BY day")]
     out, prev = {}, None
     s_iso = since.isoformat()
+    rsince = kv_get("reconcile_since") or "9999"   # ab hier trägt der Abgleich neue Spiele ausdrücklich ein
     for d in days:
         snap = {i: (m, p) for i, p, m in con.execute("SELECT id, platform, minutes FROM snapshots WHERE day = ?", (d,))}
         if prev is not None and d >= s_iso:
@@ -1930,8 +2023,10 @@ def _pet_days(since):
                     dm = m - prev[gid][0]
                     if dm > 0 and prev[gid][0] == 0:
                         started.append(gid)
+                elif p in devs and 0 < m <= 600 and not d < rsince:
+                    dm = 0          # ohne ausdrücklichen 0-Eintrag (macht der Nachtrag) ist ein neues Spiel Ausgangsstand
                 elif p in devs and 0 < m <= 600:
-                    dm = m          # neu und an einem Tag plausibel gespielt
+                    dm = m          # alte Daten (vor dem Nachtrag): neu und an einem Tag plausibel gespielt
                     started.append(gid)
                 else:
                     dm = 0          # Import mit alter Spielzeit (z. B. neuer Launcher) – zählt nicht als heute gespielt
@@ -2206,8 +2301,11 @@ def pet_state(cfg, force=False):
         nm = (key.replace(day=28) + dt.timedelta(days=4)).replace(day=1)
         return key < start and (nm - start).days < 10
     events = [e for e in events if not too_short(e[1], e[2])]
+    boss_mem = kv_get("boss_mem", {}) or {}
+    boss_mem_new = {}
     for end, kind, key, dl in events:
         live = not end < today
+        bkey = f"{raw.get('epoch') or ''}|{kind}|{key.isoformat()}"
         if kind == "week":
             b = PET_SEASON.get(key.month) or PET_WEEKLY[(key.isocalendar()[1] + key.isocalendar()[0]) % len(PET_WEEKLY)]
             hp = min(1800, max(200, 0.85 * week_avg(key))) * (1 + 0.02 * min(wins, 20))
@@ -2226,6 +2324,8 @@ def pet_state(cfg, force=False):
         if kind == "month" and key < start.replace(day=1) or (kind != "week" and dl and dl[0] > key.isoformat()):
             full = (ends - key).days + 1
             hp = int(hp * max(7, len(dl)) / full)
+        if bkey in boss_mem:   # einmal festgelegt, bleibt der Boss gleich stark (Nachträge ändern ihn nicht mehr)
+            hp = boss_mem[bkey][0]
         def dmg_upto(sub):
             if kind == "raid":
                 v = 400 * sum(daylog[x].get("evening", 0) for x in sub)
@@ -2235,13 +2335,19 @@ def pet_state(cfg, force=False):
         dmg = dmg_upto(dl)
         won = dmg >= hp
         win_day = end.isoformat()
-        if won:   # Siegtag = erster Tag, an dem der Schaden reichte
+        prev_win = (boss_mem.get(bkey) or [0, None])[1]
+        if prev_win and not won:   # einmal besiegt bleibt besiegt
+            won, dmg = True, max(dmg, hp)
+        if won and prev_win:
+            win_day = prev_win
+        elif won:   # Siegtag = erster Tag, an dem der Schaden reichte
             for i in range(1, len(dl) + 1):
                 if dmg_upto(dl[:i]) >= hp:
                     win_day = dl[i - 1]
                     break
             if win_day > T:
                 win_day = T
+        boss_mem_new[bkey] = [hp, win_day if won else None]
         rec = {"kind": kind, "id": b[0], "name": b[1], "icon": b[2], "weak": b[3], "hp": hp, "dmg": dmg, "won": won,
                "from": dl[0] if dl else key.isoformat(), "to": end.isoformat(), "live": live, "ends": ends.isoformat(),
                "season": b[0] in ("kuerbis", "yeti", "amor", "osterhase", "sonnenwurm"), "win_day": win_day if won else None}
@@ -2274,6 +2380,9 @@ def pet_state(cfg, force=False):
             history.append(rec)
     if completions:
         give("acc", "party", "Erstes durchgespieltes Spiel", completions[0][0][:10])
+    if boss_mem_new != {k: v for k, v in boss_mem.items() if k in boss_mem_new} or len(boss_mem_new) > len(boss_mem):
+        boss_mem.update(boss_mem_new)
+        kv_set("boss_mem", dict(sorted(boss_mem.items())[-200:]))
     # Geschenke vom Partner
     for gft in ((pa or {}).get("pet") or {}).get("gifts") or []:
         if gft.get("acc") in PET_ACC and str(gft.get("at") or T)[:10] >= start.isoformat():
@@ -2412,8 +2521,16 @@ def pet_state(cfg, force=False):
     memories.sort(key=lambda x: x["d"], reverse=True)
     out = []
     accs = raw.get("acc") or {}
+    hwm = kv_get("pet_hwm", {}) or {}
+    hwm_old = dict(hwm)
     for p in pets:
-        total = xp.get(p["id"], 0)
+        hk = f"{raw.get('epoch') or ''}|{p['id']}"
+        old_x, old_h = (hwm.get(hk) or [0, 0])
+        total = max(xp.get(p["id"], 0), old_x)       # Fortschritt geht nie zurück, auch wenn Nachträge Tage verschieben
+        pdays[p["id"]] = max(pdays.get(p["id"], 0), old_h)
+        if pdays[p["id"]] >= PET_HATCH_DAYS and p["id"] not in hatch_day:
+            hatch_day[p["id"]] = T
+        hwm[hk] = [total, min(pdays[p["id"]], PET_HATCH_DAYS)]
         hatched = p["id"] in hatch_day
         lv = pet_level(total) if hatched else 1
         stage = 0 if not hatched else 1 if lv < PET_STAGE_LV[0] else 2 if lv < PET_STAGE_LV[1] else 3
@@ -2426,6 +2543,8 @@ def pet_state(cfg, force=False):
                     "start": p["start"], "next_stage": PET_STAGE_LV[0] if stage <= 1 else PET_STAGE_LV[1] if stage == 2 else None,
                     "next_name": S["stages"][stage] if stage < 3 else None, "imprint": imprint.get(p["id"]),
                     "rare": PET_RARITY.get(p["sp"], 1)})
+    if hwm != hwm_old:
+        kv_set("pet_hwm", hwm)
     td = daylog.get(T, {})
     party = None
     if completions:
