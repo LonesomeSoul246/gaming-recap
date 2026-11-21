@@ -1168,6 +1168,57 @@ def pet_soft_reset():
     return True
 
 
+def self_check(cfg=None):
+    """Prüft die echten Daten auf Dinge, die nie passieren dürfen. Liefert [(ok, Bereich, Text)]."""
+    cfg = cfg or load_config()
+    out = []
+    def add(ok, area, text):
+        out.append({"ok": bool(ok), "area": area, "text": text})
+    # Verlauf
+    con = history_con()
+    days = [r[0] for r in con.execute("SELECT DISTINCT day FROM snapshots ORDER BY day")][-60:]
+    drops, big = [], []
+    for a, b in zip(days, days[1:]):
+        A = dict(con.execute("SELECT id, minutes FROM snapshots WHERE day = ?", (a,)).fetchall())
+        B = dict(con.execute("SELECT id, minutes FROM snapshots WHERE day = ?", (b,)).fetchall())
+        drops += [(b, k) for k, m in B.items() if k in A and m < A[k] - 5]
+        gain = sum(max(0, m - A.get(k, m)) for k, m in B.items())
+        if gain > 20 * 60:
+            big.append((b, gain // 60))
+    missing = [d for d in days if d >= (dt.date.today() - dt.timedelta(days=14)).isoformat()]
+    con.close()
+    add(not drops, "Verlauf", "Spielzeiten sinken nie" if not drops else f"{len(drops)}× gesunken, z. B. {drops[0]}")
+    add(not big, "Verlauf", "kein Tag über 20 Std" if not big else "Tage über 20 Std: " + ", ".join(f"{d} ({h} Std)" for d, h in big[:4]))
+    # Quellen
+    cache = load_cache()
+    for name, src in (cache.get("sources") or {}).items():
+        add(src.get("ok"), "Quelle " + name, "ok" if src.get("ok") else src.get("error", "Fehler"))
+    # Tier-Liste darf nicht schrumpfen, ohne dass du etwas änderst
+    n_t = sum(1 for v in load_meta().values() if v.get("tier"))
+    last = kv_get("check_tiers", None)
+    add(last is None or n_t >= last - 3, "Tier-Liste", f"{n_t} Einordnungen" + (f" (vorher {last})" if last is not None else ""))
+    kv_set("check_tiers", n_t)
+    # Begleiter
+    raw = kv_get("pet", {}) or {}
+    sps = [p["sp"] for p in raw.get("pets") or []]
+    add(len(sps) == len(set(sps)), "Begleiter", "keine doppelten Arten" if len(sps) == len(set(sps)) else f"doppelt: {sps}")
+    try:
+        st = pet_state(cfg, force=True)
+        eggs_xp = [p for p in st.get("pets") or [] if not p["stage"] and p["xp"]]
+        add(not eggs_xp, "Begleiter", "Eier ohne Erfahrung" if not eggs_xp else f"Ei mit Erfahrung: {eggs_xp[0]['species']}")
+        bad_lv = [p for p in st.get("pets") or [] if p["stage"] and (p["stage"] == 1) != (p["lvl"] < PET_STAGE_LV[0])]
+        add(not bad_lv, "Begleiter", "Stufe passt zum Level" if not bad_lv else f"{bad_lv[0]['species']}: Stufe {bad_lv[0]['stage']} bei Level {bad_lv[0]['lvl']}")
+        fast = [b for b in st.get("history") or [] if b["won"] and b["kind"] == "week" and b.get("win_day")
+                and (dt.date.fromisoformat(b["win_day"]) - dt.date.fromisoformat(b["from"])).days < 2 and b["from"] > str(raw.get("epoch") or "")]
+        add(not fast, "Begleiter", "kein Wochen-Boss in unter 2 Tagen" if not fast else f"{len(fast)} Wochen-Bosse zu schnell")
+        add(st.get("active") in {p["id"] for p in st.get("pets") or []}, "Begleiter", "aktiver Begleiter vorhanden")
+    except Exception as e:
+        add(False, "Begleiter", "Berechnung fehlgeschlagen: " + err_text(e))
+    # Cloud
+    add(not cloud_ready(cfg) or not cloud_state.get("error"), "Handy-Cloud", cloud_state.get("error") or "ok")
+    return out
+
+
 def apply_remote_edits(payload):
     """Änderungen vom Handy übernehmen, sofern sie neuer sind als der Stand am PC."""
     meta = load_meta()
@@ -1784,6 +1835,15 @@ PET_SPECIES = {
               "match": ("horror", "survival", "mystery", "point-and-click", "visual novel")},
     "koppla": {"name": "Koppla", "stages": ["Piko & Pika", "Echo & Edda", "Harmonia"], "fav": "Koop & Mehrspieler", "start": False,
                "match": ("co-op", "coop", "co-operative", "multiplayer", "koop")},
+    # Saison-Arten: Eier gibt es nur in ihrer Jahreszeit
+    "frostel": {"name": "Frostel", "stages": ["Flocki", "Frostel", "Glaziara"], "fav": "Abenteuer & Erkundung", "start": False,
+                "match": ("adventure", "open world", "exploration", "survival"), "season": (12, 1, 2)},
+    "bluma": {"name": "Bluma", "stages": ["Knospi", "Blumhopp", "Florabella"], "fav": "Gemütlich & Kreativ", "start": False,
+              "match": ("sandbox", "building", "casual", "family", "farming", "simulator"), "season": (3, 4, 5)},
+    "sola": {"name": "Sola", "stages": ["Funkfeder", "Solaris", "Sonnara"], "fav": "Rennen & Sport", "start": False,
+             "match": ("racing", "sport", "driving", "fighting"), "season": (6, 7, 8)},
+    "herzi": {"name": "Herzi", "stages": ["Herzchen", "Schnurrlieb", "Amorina"], "fav": "Indie & Party", "start": False,
+              "match": ("indie", "party", "music", "rhythm", "platform"), "season": (2,)},
 }
 PET_STAGE_LV = (10, 25)          # Stufe 2 ab Level 10, Stufe 3 ab Level 25
 PET_HATCH_DAYS = 3               # Spieltage (mind. 15 Min) bis zum Schlüpfen
@@ -1801,7 +1861,7 @@ PET_LOOT = {1: ("acc", "schleife"), 3: ("hab", "sterne"), 5: ("acc", "headset"),
             28: ("acc", "wikinger"), 31: ("hab", "vulkan"), 34: ("shiny", ""), 37: ("acc", "halo"), 40: ("hab", "riff"),
             44: ("acc", "blumen"), 48: ("acc", "kapitaen"), 52: ("acc", "diadem"), 60: ("shiny", ""), 75: ("shiny", "")}
 # Eier gibt es zufällig nach Boss-Siegen. Seltenheit: 1 = gewöhnlich, 2 = selten, 3 = sehr selten
-PET_RARITY = {"brasu": 1, "neruma": 1, "moselle": 1, "crysto": 2, "nocti": 2, "koppla": 3}
+PET_RARITY = {"brasu": 1, "neruma": 1, "moselle": 1, "crysto": 2, "nocti": 2, "koppla": 3, "frostel": 2, "bluma": 2, "sola": 3, "herzi": 3}
 PET_RARITY_W = {1: 10, 2: 4, 3: 1.2}
 PET_EGG_CHANCE = {"week": 0.12, "month": 0.35, "raid": 0.35}
 PET_EGG_PITY = 8                 # spätestens nach 8 Siegen ohne Ei kommt eins
@@ -1829,6 +1889,8 @@ PET_RAID = [("kraken", "Koop-Kraken", "🐙", "Nur gemeinsame Abende und Spiele,
 PET_QUESTS = [("days4", "Spiel an 4 verschiedenen Tagen", 4), ("new1", "Fang ein neues Spiel an", 1), ("rest1", "Gönn dir einen Ruhetag", 1),
               ("fav120", "Spiel 2 Std im Lieblingsgenre", 120), ("ach10", "Hol dir 10 Erfolge", 10), ("done1", "Spiel ein Spiel durch", 1),
               ("early3", "Beende 3 Abende vor Mitternacht", 3), ("genre3", "Spiel 3 verschiedene Genres", 3), ("eve1", "Ein gemeinsamer Abend", 1)]
+PET_DUO_QUESTS = [("eve2", "Zwei gemeinsame Abende", 2), ("both8", "Zusammen 8 Std spielen", 480),
+                  ("relay3", "3× den Staffelstab übergeben", 3)]
 PET_COZY = ("simulator", "simulation", "puzzle", "card", "board", "music")
 PET_SPOOKY = ("horror", "survival", "mystery")
 
@@ -1880,6 +1942,24 @@ def _pet_days(since):
             out[d] = {"min": sum(per.values()), "per": per, "started": started}
         prev = snap
     con.close()
+    # AFK-Zeit (Spiel offen, keine Eingabe) abziehen – zählt für Begleiter und Bosse nicht
+    try:
+        afk = TRACKER.afk_minutes(s_iso)
+    except Exception:
+        afk = {}
+    if afk:
+        keys = {g["id"]: norm_title(g["title"]) for g in load_cache().get("games", []) if g.get("device") == "PC"}
+        for d, per_k in afk.items():
+            D = out.get(d)
+            if not D:
+                continue
+            for gid, m in list(D["per"].items()):
+                cut = min(m, per_k.get(keys.get(gid), 0))
+                if cut:
+                    D["per"][gid] = m - cut
+                    D["afk"] = D.get("afk", 0) + cut
+            D["per"] = {k: v for k, v in D["per"].items() if v > 0}
+            D["min"] = sum(D["per"].values())
     return out
 
 
@@ -2057,14 +2137,16 @@ def pet_state(cfg, force=False):
     def roll_egg(kind, bid, day):
         """Zufälliges Ei nach einem Boss-Sieg (fest ausgewürfelt, ändert sich beim Neuberechnen nicht)."""
         owned = set(sp_of.values()) | set(got["egg"])
-        pool = [sp for sp in PET_SPECIES if sp not in owned and (sp != "koppla" or pa)]
+        mon = int(day[5:7])
+        pool = [sp for sp in PET_SPECIES if sp not in owned and (sp != "koppla" or pa)
+                and (not PET_SPECIES[sp].get("season") or mon in PET_SPECIES[sp]["season"])]
         egg_luck["since"] += 1
         if not pool:
             return
         h = int(hashlib.sha256(f"{rng_seed}|{kind}|{bid}|{day}".encode()).hexdigest(), 16)
         if (h % 10000) / 10000 >= PET_EGG_CHANCE[kind] and egg_luck["since"] < PET_EGG_PITY:
             return
-        w = [PET_RARITY_W[PET_RARITY.get(sp, 1)] for sp in pool]
+        w = [PET_RARITY_W[PET_RARITY.get(sp, 1)] * (2.5 if PET_SPECIES[sp].get("season") else 1) for sp in pool]   # in der Saison bevorzugt
         r = (h // 10000 % 100000) / 100000 * sum(w)
         for sp, wt in zip(pool, w):
             r -= wt
@@ -2230,6 +2312,48 @@ def pet_state(cfg, force=False):
             qs.append({"id": qid, "t": label, "target": target, "prog": min(prog, target), "done": bool(doneday)})
         quests[w.isoformat()] = qs
         w += dt.timedelta(days=7)
+    # Staffelstab: einer hört auf, der/die andere legt innerhalb von 2 Std los → Bonus (max. 1× pro Tag)
+    relay_days = set()
+    if pa and pa.get("sess"):
+        theirs_ = [(int(s2), int(s2) + int(sec2)) for _, s2, sec2 in pa["sess"]]
+        mine_ = [(int(s0), int(s0) + int(sec)) for _, s0, sec in sess]
+        def handoffs(a_list, b_list):
+            for a0, a1 in a_list:
+                for b0, b1 in b_list:
+                    if a1 <= b0 <= a1 + 7200 and not any(x0 < b0 < x1 for x0, x1 in a_list):
+                        yield b0
+        for t in list(handoffs(mine_, theirs_)) + list(handoffs(theirs_, mine_)):
+            d_ = (dt.datetime.fromtimestamp(t) - dt.timedelta(hours=5)).date().isoformat()
+            if d_ in daylog:
+                relay_days.add(d_)
+        for d_ in sorted(relay_days):
+            rewards.append((d_, "relay", 40))
+            daylog[d_]["relay"] = 1
+    # Duo-Wochenaufgabe: eine gemeinsame Aufgabe pro Woche
+    duo_q = {}
+    if pa:
+        pw = {w_: m_ for w_, m_ in pa.get("weeks") or []}
+        w = monday
+        while w <= today:
+            dl = [x for x in ((w + dt.timedelta(days=i)).isoformat() for i in range(7)) if x in daylog]
+            seed = int(hashlib.sha256(("duo" + w.isoformat()).encode()).hexdigest(), 16)
+            qid, label, target = PET_DUO_QUESTS[seed % len(PET_DUO_QUESTS)]
+            prog, doneday = 0, None
+            for x in dl:
+                if qid == "eve2":
+                    prog += daylog[x].get("evening", 0)
+                elif qid == "relay3":
+                    prog += daylog[x].get("relay", 0)
+                else:
+                    prog += daylog[x]["min"]
+                    if x == dl[-1]:
+                        prog += pw.get(w.isoformat(), 0)
+                if prog >= target and not doneday:
+                    doneday = x
+            if doneday:
+                rewards.append((doneday, "duo", 120))
+            duo_q[w.isoformat()] = {"id": qid, "t": label, "target": target, "prog": min(prog, target), "done": bool(doneday)}
+            w += dt.timedelta(days=7)
     # 3) Erfahrung je Begleiter, Schlüpfen und Entwicklung mit Datum
     rew_by = {}
     for day, why, x in rewards:
@@ -2245,6 +2369,8 @@ def pet_state(cfg, force=False):
         memories.append({"d": p["start"], "i": "🥚" if p["id"] not in base_xp else "🌱",
                          "t": f"{PET_SPECIES[p['sp']]['name']}-Ei ausgesucht" if p["id"] not in base_xp else f"Neustart mit {PET_SPECIES[p['sp']]['name']}"})
     last_hatched = None
+    imprint = {}
+    titles_by_id = {g["id"]: g["title"] for g in load_cache().get("games", [])}
     for iso in sorted(daylog):
         L = daylog[iso]
         for spid, x in L["split"].items():
@@ -2256,7 +2382,13 @@ def pet_state(cfg, force=False):
                 pdays[spid] += 1             # Ei: zählt nur Spieltage, an denen es dabei war
                 if pdays[spid] >= PET_HATCH_DAYS:
                     hatch_day[spid] = iso
-                    memories.append({"d": iso, "i": "🐣", "t": f"{PET_SPECIES[sp_of[spid]]['stages'][0]} ist geschlüpft"})
+                    # Prägung: das Spiel, das am Schlupftag am meisten lief, bleibt für immer „sein“ Spiel
+                    per_ = days.get(iso, {}).get("per") or {}
+                    if per_:
+                        top = max(per_, key=per_.get)
+                        imprint[spid] = titles_by_id.get(top) or (gi.get(top) or {}).get("k")
+                    memories.append({"d": iso, "i": "🐣", "t": f"{PET_SPECIES[sp_of[spid]]['stages'][0]} ist geschlüpft"
+                                     + (f" – geprägt von {imprint[spid]}" if imprint.get(spid) else "")})
         pid = L["pid"]
         if pid in hatch_day:
             last_hatched = pid
@@ -2292,7 +2424,8 @@ def pet_state(cfg, force=False):
                     "xp_lv": pet_xp_for(lv), "xp_next": pet_xp_for(lv + 1), "hatch": min(pdays.get(p["id"], 0), PET_HATCH_DAYS),
                     "hatch_need": PET_HATCH_DAYS, "fav": S["fav"], "shiny": shiny, "acc": accs.get(p["id"]) if accs.get(p["id"]) in got["acc"] else None,
                     "start": p["start"], "next_stage": PET_STAGE_LV[0] if stage <= 1 else PET_STAGE_LV[1] if stage == 2 else None,
-                    "next_name": S["stages"][stage] if stage < 3 else None})
+                    "next_name": S["stages"][stage] if stage < 3 else None, "imprint": imprint.get(p["id"]),
+                    "rare": PET_RARITY.get(p["sp"], 1)})
     td = daylog.get(T, {})
     party = None
     if completions:
@@ -2314,6 +2447,7 @@ def pet_state(cfg, force=False):
            "starter": [k for k, v in PET_SPECIES.items() if v["start"]], "has_partner": bool(pa),
            "eggs_ready": [e for e in got["egg"] if e not in set(sp_of.values())],
            "quests": quests.get((today - dt.timedelta(days=today.weekday())).isoformat(), []),
+           "duo_quest": duo_q.get((today - dt.timedelta(days=today.weekday())).isoformat()), "relay_today": T in relay_days,
            "memories": memories[:60], "party": party, "album": sorted({f"{sp_of[pid]}_{s}" for (pid, s) in stage_day} | {f"{sp_of[pid]}_1" for pid in hatch_day}),
            "gift_ok": not last_gift or (today - dt.date.fromisoformat(last_gift[:10])).days >= 7, "gifts_sent": gifts[-10:]}
     _pet_cache.update(t=time.time(), v=res)
@@ -3538,6 +3672,10 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(400, {"error": "Backup passt nicht zum Cloud-Passwort."})
             except Exception as e:
                 return self._send(500, {"error": err_text(e)})
+        if path == "/api/selfcheck":
+            if not self._local():
+                return self._send(403, {"error": "Nur am PC"})
+            return self._send(200, {"checks": self_check()})
         if path == "/api/tiers/recover":
             if not self._local():
                 return self._send(403, {"error": "Nur am PC"})

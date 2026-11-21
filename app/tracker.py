@@ -21,6 +21,50 @@ def init_db(con):
                 "start INTEGER, end INTEGER, seconds INTEGER, source TEXT)")
     con.execute("CREATE UNIQUE INDEX IF NOT EXISTS sessions_u ON sessions (game_key, start, source)")
     con.execute("CREATE INDEX IF NOT EXISTS sessions_start ON sessions (start)")
+    con.execute("CREATE TABLE IF NOT EXISTS afk (day TEXT, game_key TEXT, seconds INTEGER, PRIMARY KEY (day, game_key))")
+
+
+# ---------------------------------------------------------------- AFK: keine Eingabe (Maus, Tastatur, Controller)
+
+_xin = {"dll": None, "pk": {}, "t": 0}
+
+
+def idle_seconds():
+    """Sekunden seit der letzten Eingabe. Maus/Tastatur über Windows, Xbox-/Steam-Controller über XInput.
+    Andere Systeme: 0 (= nie AFK)."""
+    if os.name != "nt":
+        return 0
+    import ctypes
+    class LII(ctypes.Structure):
+        _fields_ = [("cbSize", ctypes.c_uint), ("dwTime", ctypes.c_uint)]
+    lii = LII(ctypes.sizeof(LII), 0)
+    if not ctypes.windll.user32.GetLastInputInfo(ctypes.byref(lii)):
+        return 0
+    idle = (ctypes.windll.kernel32.GetTickCount() - lii.dwTime) / 1000.0
+    try:   # Controller: Paketnummer ändert sich bei jeder Eingabe
+        if _xin["dll"] is None:
+            for n in ("xinput1_4", "xinput1_3", "xinput9_1_0"):
+                try:
+                    _xin["dll"] = getattr(ctypes.windll, n)
+                    break
+                except OSError:
+                    continue
+        if _xin["dll"]:
+            class XS(ctypes.Structure):
+                _fields_ = [("pk", ctypes.c_uint), ("b", ctypes.c_ushort), ("lt", ctypes.c_ubyte), ("rt", ctypes.c_ubyte),
+                            ("lx", ctypes.c_short), ("ly", ctypes.c_short), ("rx", ctypes.c_short), ("ry", ctypes.c_short)]
+            now = time.time()
+            for i in range(4):
+                st = XS()
+                if _xin["dll"].XInputGetState(i, ctypes.byref(st)) == 0:
+                    if _xin["pk"].get(i) not in (None, st.pk):
+                        _xin["t"] = now
+                    _xin["pk"][i] = st.pk
+            if _xin["t"]:
+                idle = min(idle, now - _xin["t"])
+    except Exception:
+        pass
+    return idle
 
 
 # ---------------------------------------------------------------- Windows-Prozesse
@@ -122,8 +166,11 @@ class Tracker:
     GAP = 180          # Sekunden ohne Lebenszeichen -> Session beendet
     RESUME = 300       # Neustart innerhalb von 5 Min. setzt die Session fort
     MIN_SECONDS = 60   # kürzere Sessions werden verworfen (Launcher-Updates, Abstürze)
+    AFK_AFTER = 1800   # 30 Min ohne Eingabe bei laufendem Spiel = AFK (zählt nicht für Begleiter und Bosse)
 
-    def __init__(self, db_path, exes_fn=running_exes):
+    def __init__(self, db_path, exes_fn=running_exes, idle_fn=idle_seconds):
+        self.idle_fn = idle_fn
+        self.afk_mark = (0, 0)   # (Zeitpunkt der letzten Eingabe, davon schon als AFK gezählt)
         self.db_path = db_path
         self.exes_fn = exes_fn
         self.targets = []
@@ -200,12 +247,36 @@ class Tracker:
             for key in list(self.open):
                 if key not in found:
                     del self.open[key]
+            try:
+                idle = int(self.idle_fn() or 0)
+            except Exception:
+                idle = 0
+            if found and idle >= self.AFK_AFTER:
+                last_input = now - idle
+                mark, counted = self.afk_mark if abs(self.afk_mark[0] - last_input) < 30 else (last_input, 0)
+                add = idle - counted
+                if add > 0:
+                    day = time.strftime("%Y-%m-%d", time.localtime(now))
+                    for key in found:
+                        con.execute("INSERT INTO afk VALUES (?, ?, ?) ON CONFLICT(day, game_key) DO UPDATE SET seconds = seconds + ?",
+                                    (day, key, add, add))
+                self.afk_mark = (mark, idle)
             con.execute("DELETE FROM sessions WHERE source='tracker' AND seconds < ? AND end < ?",
                         (self.MIN_SECONDS, now - self.RESUME - 60))
         con.close()
         self.current = [{"key": k, "title": found[k], "since": self.open[k]["start"]} for k in found]
         self.last_ok = now
         return found
+
+    def afk_minutes(self, since_day):
+        """{tag: {spielschlüssel: Minuten}}"""
+        con = self._con()
+        rows = con.execute("SELECT day, game_key, seconds FROM afk WHERE day >= ?", (since_day,)).fetchall()
+        con.close()
+        out = {}
+        for d, k, sec in rows:
+            out.setdefault(d, {})[k] = sec // 60
+        return out
 
     def run(self, tick=20):
         while True:

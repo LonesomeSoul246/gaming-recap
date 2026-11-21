@@ -1051,6 +1051,14 @@ body::after{content:"";position:fixed;right:-15vw;bottom:-25vh;width:60vw;height
 .petmini .pstage{height:200px}.pmgrid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px;align-items:center}.pmside h3{margin-top:0}@media(max-width:699px){.pmgrid{grid-template-columns:1fr;gap:12px}}
 .evo{position:fixed;inset:0;z-index:200;background:#000d;display:grid;place-items:center;padding:20px;animation:fadeIn .4s}
 @keyframes fadeIn{from{opacity:0}}
+.kofig{position:relative;width:300px;height:200px;margin:0 auto}.kopet{position:absolute;left:0;bottom:0;width:150px;animation:kolunge 1.2s ease-out .3s both}.kopet .pwrap{width:150px;margin:0}
+.koboss{position:absolute!important;right:10px;top:30px;width:120px!important;height:120px!important;font-size:80px;display:grid;place-items:center;animation:kohit 1.4s ease-in .9s both}
+.koslash{position:absolute;right:20px;top:40px;width:120px;height:10px;background:linear-gradient(90deg,transparent,#fff,transparent);transform:rotate(-35deg) scaleX(0);animation:koslash .35s ease-out 1s both;border-radius:9px;box-shadow:0 0 20px #fff}
+.kotxt{position:absolute;inset:0;display:grid;place-items:center;font-size:64px;font-weight:900;color:#FFD166;text-shadow:0 4px 0 #0008;animation:kotxt .5s cubic-bezier(.3,1.6,.5,1) 1.7s both}
+@keyframes kolunge{0%{transform:translateX(-40px)}60%{transform:translateX(70px)}100%{transform:translateX(0)}}
+@keyframes kohit{0%{transform:none;opacity:1}20%{transform:translateX(12px) rotate(8deg);filter:brightness(3)}40%{transform:translateX(-8px)}100%{transform:translateY(30px) rotate(25deg) scale(.6);opacity:0}}
+@keyframes koslash{to{transform:rotate(-35deg) scaleX(1.4);opacity:0}}@keyframes kotxt{from{transform:scale(0)}to{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.kopet,.koboss,.koslash,.kotxt{animation:none}}
 .evobox{max-width:420px;text-align:center}.evofig{position:relative;width:260px;height:260px;margin:0 auto}.evofig .pwrap{position:absolute;inset:0;width:100%;margin:0}
 .evo-old{animation:evoOld 1.8s ease-in forwards!important}.evo-new{opacity:0;animation:evoNew 1s 1.6s cubic-bezier(.3,1.6,.5,1) forwards!important}
 @keyframes evoOld{0%{filter:none}60%{filter:brightness(3)}80%{opacity:1;filter:brightness(6)}100%{opacity:0;filter:brightness(8)}}
@@ -1103,6 +1111,12 @@ body::after{content:"";position:fixed;right:-15vw;bottom:-25vh;width:60vw;height
 .petfab.egg img{width:44px;height:44px;animation:pwob 3s ease-in-out infinite;--s:1;--wob:1}
 @keyframes fabbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 .petbusy .nest button,.petbusy .ci,.petbusy .chip{pointer-events:none;opacity:.55}
+.quest.duo{background:linear-gradient(90deg,#FF7AB614,transparent);border-radius:12px}
+.nst.r2 .nfig{filter:drop-shadow(0 0 10px #7FC8FFaa)}.nst.r3 .nfig{filter:drop-shadow(0 0 12px #FFB547cc)}
+.nst.r2::after,.nst.r3::after{content:attr(data-r);position:absolute;top:6px;right:8px;font-size:10px;font-weight:900;letter-spacing:.5px;color:#7FC8FF}
+.nst.r3::after{color:#FFB547}.nst{position:relative}
+.nst.on .nfig{animation:aura 3s ease-in-out infinite}@keyframes aura{50%{filter:drop-shadow(0 0 14px var(--acc))}}
+@media (prefers-reduced-motion:reduce){.nst.on .nfig{animation:none}}
 .fabdot{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:var(--cyan);color:#0a1c2a;font-size:11px;font-weight:900;font-style:normal;display:grid;place-items:center;box-shadow:0 0 0 2px var(--panel)}
 @media(min-width:1000px){.petfab{display:none}}
 .petfab[hidden]{display:none}
@@ -2911,7 +2925,12 @@ const PET_INFO = {
   crysto:{name:"Crysto", el:"Kristall", fav:"Strategie", stages:["Splitter","Facett","Prismarch"], teaser:"Klug und standhaft – denkt drei Züge voraus.", c:"#A97BFF"},
   nocti:{name:"Nocti", el:"Mond", fav:"Horror & Mystery", stages:["Flausch","Dämmer","Velunara"], teaser:"Ein Nachtschwärmer mit großem Herz.", c:"#7C6BD6"},
   koppla:{name:"Koppla", el:"Licht", fav:"Koop & Mehrspieler", stages:["Piko & Pika","Echo & Edda","Harmonia"], teaser:"Zwei, die nur zusammen ganz sind.", c:"#FF8FB8"},
+  frostel:{name:"Frostel", el:"Eis", fav:"Abenteuer & Erkundung", stages:["Flocki","Frostel","Glaziara"], teaser:"Taucht nur im Winter auf – kühl, aber kuschelig.", c:"#7FC8FF", season:"Winter"},
+  bluma:{name:"Bluma", el:"Blüte", fav:"Gemütlich & Kreativ", stages:["Knospi","Blumhopp","Florabella"], teaser:"Ein Frühlingskind, das überall Blumen hinterlässt.", c:"#FF9EC4", season:"Frühling"},
+  sola:{name:"Sola", el:"Sonne", fav:"Rennen & Sport", stages:["Funkfeder","Solaris","Sonnara"], teaser:"Sehr selten – nur im Sommer zu finden.", c:"#FFB547", season:"Sommer"},
+  herzi:{name:"Herzi", el:"Liebe", fav:"Indie & Party", stages:["Herzchen","Schnurrlieb","Amorina"], teaser:"Sehr selten – schlüpft nur rund um Valentinstag.", c:"#FF7AB6", season:"Februar"},
 };
+const PET_RARE = {crysto:2, nocti:2, frostel:2, bluma:2, koppla:3, sola:3, herzi:3};
 const PET_ACC = {schleife:["Schleife","🎀"], headset:["Gaming-Headset","🎧"], brille:["Sonnenbrille","🕶️"], krone:["Krone","👑"], zauberhut:["Zauberhut","🎩"],
   blumen:["Blumenkranz","🌸"], herz:["Herz-Anhänger","💞"], muetze:["Bommelmütze","🧶"], pirat:["Piratenhut","🏴‍☠️"], weihnacht:["Weihnachtsmütze","🎅"],
   kuerbis:["Kürbis-Hütchen","🎃"], wikinger:["Wikingerhelm","🪖"], party:["Partyhütchen","🎉"], halo:["Heiligenschein","💫"], diadem:["Kristall-Diadem","💎"], kapitaen:["Kapitänsmütze","⚓"]};
@@ -2920,9 +2939,11 @@ const PET_HAB = {lichtung:"Lichtung", sterne:"Sternenhimmel", strand:"Strand", z
 // Kopf je Art/Stufe in % des Bildes: [Mitte x, Oberkante y, Augenhöhe y, Kopfbreite] (aus den Bildern ausgemessen)
 const PET_HEAD = {"brasu":[[35,32,57,55],[28,43,60,37],[20,50,68,30]],"neruma":[[37,52,65,40],[33,54,67,35],[47,63,72,22]],
   "moselle":[[30,40,58,55],[25,48,63,40],[25,74,81,24]],"crysto":[[27,38,66,50],[30,54,72,35],[22,64,77,30]],
-  "nocti":[[38,46,66,40],[44,62,71,24],[48,63,68,22]],"koppla":[[22,57,72,32],[25,58,72,30],[38,70,77,22]]};
+  "nocti":[[38,46,66,40],[44,62,71,24],[48,63,68,22]],"koppla":[[22,57,72,32],[25,58,72,30],[38,70,77,22]],
+  "frostel":[[25,48,66,40],[27,46,62,35],[19,57,66,22]],"bluma":[[32,47,70,45],[20,52,68,30],[20,66,73,18]],
+  "sola":[[30,32,46,50],[22,44,55,28],[17,66,71,17]],"herzi":[[26,40,57,45],[20,46,60,32],[19,67,73,20]]};
 // sichtbare Figur je Bild (Breite, Höhe als Anteil) – damit spätere Stufen nicht kleiner wirken, nur weil sie breiter sind
-const PET_BOX = {"brasu_1":[0.917,0.779],"brasu_2":[0.918,0.667],"brasu_3":[0.92,0.554],"neruma_1":[0.921,0.537],"neruma_2":[0.92,0.545],"neruma_3":[0.925,0.442],"moselle_1":[0.925,0.883],"moselle_2":[0.921,0.779],"moselle_3":[0.922,0.462],"crysto_1":[0.917,0.796],"crysto_2":[0.921,0.61],"crysto_3":[0.921,0.543],"nocti_1":[0.925,0.654],"nocti_2":[0.922,0.504],"nocti_3":[0.92,0.526],"koppla_1":[0.917,0.5],"koppla_2":[0.92,0.515],"koppla_3":[0.922,0.419]};
+const PET_BOX = {"brasu_1":[0.917,0.779],"brasu_2":[0.918,0.667],"brasu_3":[0.92,0.554],"neruma_1":[0.921,0.537],"neruma_2":[0.92,0.545],"neruma_3":[0.925,0.442],"moselle_1":[0.925,0.883],"moselle_2":[0.921,0.779],"moselle_3":[0.922,0.462],"crysto_1":[0.917,0.796],"crysto_2":[0.921,0.61],"crysto_3":[0.921,0.543],"nocti_1":[0.925,0.654],"nocti_2":[0.922,0.504],"nocti_3":[0.92,0.526],"koppla_1":[0.917,0.5],"koppla_2":[0.92,0.515],"koppla_3":[0.922,0.419],"frostel_1":[0.925,0.604],"frostel_2":[0.92,0.616],"frostel_3":[0.922,0.508],"bluma_1":[0.8,0.929],"bluma_2":[0.92,0.708],"bluma_3":[0.922,0.461],"sola_1":[0.921,0.925],"sola_2":[0.921,0.662],"sola_3":[0.922,0.394],"herzi_1":[0.921,0.779],"herzi_2":[0.923,0.664],"herzi_3":[0.925,0.433]};
 const petNorm = p => { const b = p && p.stage && PET_BOX[`${p.sp}_${p.stage}`]; if (!b) return 1;
   return Math.max(.85, Math.min(1.25, .75 / (Math.pow(b[1], .6) * Math.pow(b[0], .4)))); };
 const petSrc = (sp, stage) => `pets/${sp}_${stage ? stage : "ei"}.webp`;
@@ -3052,6 +3073,45 @@ function petEvolutionCheck(){
   for (let i = 0; i < 26; i++){ const c = document.createElement("i"); c.className = "conf"; c.style.left = Math.random()*100 + "%"; c.style.background = [I.c,"#FFD166","#fff","#FF8FB8"][i%4]; c.style.animationDelay = (1.6 + Math.random()*.8) + "s"; el.appendChild(c); }
   return true;
 }
+// Letzter Treffer: neu besiegter Boss wird einmal groß gezeigt
+function petLastHit(){
+  const P = S.data.pet || {}, seen = store.get("gr_boss_ko", null);
+  const won = [...(P.history||[]), ...Object.values(P.current||{})].filter(b=>b.won);
+  const keys = won.map(b=>b.kind + b.from + b.id);
+  if (seen === null){ store.set("gr_boss_ko", keys); return false; }   // erstes Mal: nichts nachholen
+  const fresh = won.filter(b=>!seen.includes(b.kind + b.from + b.id));
+  store.set("gr_boss_ko", [...new Set([...seen, ...keys])].slice(-80));
+  if (!fresh.length) return false;
+  const b = fresh[fresh.length-1], p = petActive(), loot = (P.loot||[]).filter(l=>l.d === b.win_day);
+  const el = document.createElement("div"); el.className = "evo ko"; document.body.appendChild(el);
+  el.innerHTML = `<div class="evobox"><div class="kofig"><div class="kopet">${petFig(p, {scale:.8})}</div>
+      <div class="koboss bicon ${hasImg(`boss_${b.id}.webp`)?"img":""}">${bossIcon(b)}</div><div class="koslash"></div><div class="kotxt">K.O.!</div></div>
+    <div class="eyebrow" style="margin-top:14px">Letzter Treffer</div><div class="h1" style="font-size:28px">${esc(b.name)} besiegt!</div>
+    <p class="help">${num(b.dmg)} Schaden bei ${num(b.hp)} Lebenspunkten.${loot.length ? ` Beute: ${loot.map(l=>l.kind==="acc"?esc((PET_ACC[l.val]||[l.val])[0]):l.kind==="hab"?"Lebensraum "+esc(PET_HAB[l.val]||l.val):l.kind==="egg"?`${esc((PET_INFO[l.val]||{}).name||"")}-Ei 🥚`:l.kind==="theme"?"neue Farbwelt":"✨ Schillern").join(", ")}` : ""}</p>
+    <button class="btn limeb" onclick="this.closest('.evo').remove()">Weiter so! ⚔️</button></div>`;
+  return true;
+}
+// Jahres-Postkarte: Bild zum Teilen/Speichern
+window.petPostcard = async () => {
+  const P = S.data.pet || {}, p = petActive(); if (!p) return;
+  const yr = new Date().getFullYear(), I = PET_INFO[p.sp] || {}, c = document.createElement("canvas"); c.width = 1080; c.height = 1350;
+  const x = c.getContext("2d"), load = src => new Promise(r=>{ const im = new Image(); im.onload = ()=>r(im); im.onerror = ()=>r(null); im.src = src; });
+  const g = x.createLinearGradient(0,0,1080,1350); g.addColorStop(0,"#15111f"); g.addColorStop(1,(I.c||"#A97BFF")+"aa"); x.fillStyle = g; x.fillRect(0,0,1080,1350);
+  const hab = hasImg(`hab_${P.hab||"lichtung"}.webp`) ? await load(`pets/hab_${P.hab||"lichtung"}.webp`) : null;
+  x.save(); x.beginPath(); x.roundRect(70,170,940,760,48); x.clip(); if (hab) x.drawImage(hab,70,170,940,760); else { x.fillStyle="#ffffff10"; x.fillRect(70,170,940,760); } x.restore();
+  const im = await load(petSrc(p.sp, p.stage)); if (im){ const sz = 620 * petNorm(p); x.drawImage(im, 540 - sz/2, 900 - sz*.97, sz, sz); }
+  if (p.acc && hasImg(`acc_${p.acc}.webp`)){ const a = await load(`pets/acc_${p.acc}.webp`), h = (PET_HEAD[p.sp]||[])[Math.max(0,p.stage-1)]; if (a && h){ const sz = 620 * petNorm(p), w = sz * (ACC_FIT[p.acc]||[30])[0]/100;
+    const ox = 540 - sz/2, oy = 900 - sz*.97; x.drawImage(a, ox + sz*h[0]/100 - w/2, oy + sz*(h[1]+7)/100 - w*.82, w, w); } }
+  x.fillStyle = "#fff"; x.textAlign = "center"; x.font = "800 34px system-ui, sans-serif"; x.fillText(`GAMING RECAP · ${yr}`, 540, 110);
+  x.font = "900 86px system-ui, sans-serif"; x.fillText(p.nick || p.stage_name, 540, 1040);
+  x.font = "700 38px system-ui, sans-serif"; x.globalAlpha = .85;
+  x.fillText(`${I.name} · Level ${p.lvl} · ${P.wins||0} Bosse besiegt`, 540, 1105);
+  if (p.imprint) x.fillText(`Geprägt von ${p.imprint}`, 540, 1160);
+  x.globalAlpha = .6; x.font = "600 30px system-ui, sans-serif"; x.fillText(`Gemeinsam mit ${S.data.me_name || "dir"} durchs Jahr 💛`, 540, 1260);
+  const blob = await new Promise(r=>c.toBlob(r, "image/png")), file = new File([blob], `begleiter-${yr}.png`, {type:"image/png"});
+  if (navigator.canShare && navigator.canShare({files:[file]})){ try { await navigator.share({files:[file], title:`Mein Begleiter ${yr}`}); return; } catch(e){ if (e.name === "AbortError") return; } }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = file.name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+};
 // Was seit dem letzten Besuch passiert ist: Erfahrung und Boss-Schaden
 function petGains(p){
   const P = S.data.pet || {}, seen = store.get("gr_pet_xp", {}), bseen = store.get("gr_boss_dmg", {}), out = {xp:0, boss:{}};
@@ -3105,7 +3165,7 @@ function bossRow(b, big, from){
     ${big ? `<p class="help" style="margin:6px 0 0">💡 ${esc(b.weak)}</p>` : ""}</div></div>`;
 }
 const PART_LABEL = {play:"🎮 Spielzeit", rested:"💤 Ausgeruht-Bonus", fav:"❤️ Lieblingsgenre", new:"🆕 Neues Spiel", done:"🏁 Durchgespielt", ach:"🏆 Erfolge", evening:"💞 Gemeinsamer Abend"};
-const REW_LABEL = {boss:"⚔️ Boss besiegt", raid:"🐙 Raid gewonnen", quest:"📋 Aufgabe geschafft"};
+const REW_LABEL = {boss:"⚔️ Boss besiegt", raid:"🐙 Raid gewonnen", quest:"📋 Aufgabe geschafft", duo:"💞 Aufgabe zu zweit", relay:"🏃 Staffelstab"};
 function renderPet(){
   const P = S.data.pet;
   if (!P){ setView(`<div class="empty"><div class="big">🥚</div><h2>Begleiter</h2><p class="help">Wird beim nächsten Abgleich am PC vorbereitet.</p></div>`); return; }
@@ -3129,7 +3189,7 @@ function renderPet(){
       ${petStage(p, true, visit ? `<div class="pvisit">${petFig({...pa.pet}, {scale:.5})}<small>${esc(pa.name)}s ${esc(pa.pet.nick || pa.pet.stage_name)} ist zu Besuch</small></div>` : "")}
       ${g.xp ? `<div class="gainf">+${num(g.xp)} Erfahrung</div>` : ""}
       <div class="pinfo"><div><b class="pname">${esc(petName(p))} <button class="ibtn tiny" onclick="renamePet('${p.id}')" title="Umbenennen">✏️</button></b>
-        <span class="help">${esc(I.name)} · ${p.stage ? `${esc(p.stage_name)} · Stufe ${p.stage} von 3` : "Ei"}${p.shiny ? " · ✨ schillernd" : ""}</span></div>
+        <span class="help">${esc(I.name)} · ${p.stage ? `${esc(p.stage_name)} · Stufe ${p.stage} von 3` : "Ei"}${p.shiny ? " · ✨ schillernd" : ""}${p.imprint ? ` · 🎮 geprägt von ${esc(p.imprint)}` : ""}</span></div>
         ${p.next_name ? `<div class="pnext" title="Nächste Form"><div class="pnfig">${petFig({...p, stage: Math.min(3, p.stage+1), acc:null}, {sil:true, scale:.95})}</div><small>${p.stage ? `ab Lvl ${p.next_stage}` : "schlüpft bald"}</small></div>` : ""}
         <div class="plv"><small>${p.stage ? "Level" : "Schlüpft in"}</small><b>${p.stage ? p.lvl : `${p.hatch_need - p.hatch} T`}</b></div></div>
       <div class="pxp pbig"><i style="width:0" data-w="${prog}%"></i></div>
@@ -3142,10 +3202,12 @@ function renderPet(){
         : `<p class="help" style="margin:0">Die ersten Kämpfe starten, sobald dein PC das nächste Mal abgleicht – meist innerhalb weniger Minuten, wenn er läuft.</p>`}
       <p class="help" style="margin:10px 0 0">${num(P.wins||0)} Siege${P.raid_wins?` · ${P.raid_wins} Raid-Siege`:""}${P.next_loot ? ` · Nächste Beute beim ${P.next_loot[0]}. Sieg` : ""}</p></section>`;
   // Aufgaben
-  if ((P.quests||[]).length) h += `<section class="card s12 x6 reveal"><h3>📋 Aufgaben der Woche <span class="h3s">je +150 Erfahrung</span></h3>${P.quests.map(q=>`<div class="quest ${q.done?"done":""}">
+  if ((P.quests||[]).length) h += `<section class="card s12 x6 reveal"><h3>📋 Aufgaben der Woche <span class="h3s">je +60 Erfahrung</span></h3>${P.quests.map(q=>`<div class="quest ${q.done?"done":""}">
       <span class="qck">${q.done?"✓":""}</span><div><b>${esc(q.t.replace("Lieblingsgenre", p.fav).replace("Ein gemeinsamer Abend", pa ? `Ein gemeinsamer Abend mit ${pa.name}` : "Ein gemeinsamer Abend"))}</b>
       <div class="qbar"><i style="width:0" data-w="${q.prog/q.target*100}%"></i></div></div><small>${q.target >= 60 && q.id === "fav120" ? `${hrs(q.prog)} / ${hrs(q.target)}` : `${num(q.prog)} / ${num(q.target)}`}</small></div>`).join("")}
-      <p class="help" style="margin:8px 0 0">Neue Aufgaben jeden Montag. Kein Muss – wer sie schafft, bekommt einen Schub.</p></section>`;
+      ${P.duo_quest && pa ? (q=>`<div class="quest duo ${q.done?"done":""}"><span class="qck">${q.done?"✓":"💞"}</span><div><b>Zu zweit: ${esc(q.t)}</b>
+        <div class="qbar"><i style="width:0" data-w="${q.prog/q.target*100}%"></i></div></div><small>${q.id==="both8" ? `${hrs(q.prog)} / ${hrs(q.target)}` : `${num(q.prog)} / ${num(q.target)}`}</small></div>`)(P.duo_quest) : ""}
+      <p class="help" style="margin:8px 0 0">Neue Aufgaben jeden Montag. Kein Muss – wer sie schafft, bekommt einen Schub.${pa ? ` Die Aufgabe zu zweit gibt euch beiden +120. 🏃 Staffelstab: Legt ${esc(pa.name)} innerhalb von 2 Std los, nachdem du aufgehört hast (oder umgekehrt), gibt's +40.` : ""}</p></section>`;
   // Sammlung
   const U = P.unlocked || {acc:[], hab:["lichtung"], theme:[]};
   h += `<section class="card s12 x6 reveal"><h3>🎒 Sammlung <span class="h3s">${(U.acc||[]).length} / ${Object.keys(PET_ACC).length} Accessoires</span></h3>
@@ -3161,7 +3223,7 @@ function renderPet(){
       ${(P.gifts_sent||[]).length ? `<span class="help">Zuletzt verschenkt: ${esc((PET_ACC[P.gifts_sent.slice(-1)[0].acc]||[""])[0])}</span>` : ""}</div>` : ""}</section>`;
   // Nest
   const ready = P.eggs_ready || [];
-  h += `<section class="card s12 x6 reveal"><h3>🪺 Nest</h3><div class="nest">${(P.pets||[]).map(q=>`<div class="nst ${q.id===P.active?"on":""}">
+  h += `<section class="card s12 x6 reveal"><h3>🪺 Nest</h3><div class="nest">${(P.pets||[]).map(q=>`<div class="nst ${q.id===P.active?"on":""} ${PET_RARE[q.sp]?"r"+PET_RARE[q.sp]:""}" data-r="${PET_RARE[q.sp]===3?"SEHR SELTEN":"SELTEN"}">
       <div class="nfig">${petFig({...q}, {scale:.95})}</div><b>${esc(petName(q))}</b><small>${q.stage?`Lvl ${q.lvl}`:"Ei"} · ${esc(q.species)}</small>
       ${q.id===P.active ? `<span class="chip on">An deiner Seite</span>` : `<button class="chip" onclick="setActivePet('${q.id}')">Mitnehmen</button>`}</div>`).join("")}
     ${ready.map(sp=>`<div class="nst new"><div class="nfig"><div class="pwrap egg" style="--s:.8;--wob:1"><img class="pimg" src="${petSrc(sp,0)}" alt=""></div></div><b>${esc(PET_INFO[sp].name)}-Ei</b><small>neu erbeutet!</small>
@@ -3169,8 +3231,10 @@ function renderPet(){
     <p class="help" style="margin-bottom:0">Erfahrung bekommt nur der Begleiter an deiner Seite. Die anderen warten gemütlich im Nest.</p></section>`;
   // Album
   const al = new Set(P.album||[]);
-  h += `<section class="card s12 x6 reveal"><h3>📖 Sammelalbum <span class="h3s">${al.size} / 18 entdeckt</span></h3><div class="album">${Object.entries(PET_INFO).map(([sp,inf])=>
-      `<div class="alrow"><small>${esc(inf.name)}</small>${[1,2,3].map(st=>{ const f = al.has(`${sp}_${st}`);
+  if (p.stage) h += `<section class="card s12 x6 reveal"><h3>📮 Jahres-Postkarte</h3><p class="help" style="margin-top:0">Ein Bild von ${esc(petName(p))} mit eurem Jahr – zum Teilen oder Aufheben.</p>
+    <button class="btn ghost small" onclick="petPostcard()">Postkarte erstellen</button></section>`;
+  h += `<section class="card s12 x6 reveal"><h3>📖 Sammelalbum <span class="h3s">${al.size} / ${Object.keys(PET_INFO).length*3} entdeckt</span></h3><div class="album">${Object.entries(PET_INFO).map(([sp,inf])=>
+      `<div class="alrow"><small>${esc(inf.name)}${inf.season?`<br><i style="opacity:.7;font-style:normal">${esc(inf.season)}</i>`:""}</small>${[1,2,3].map(st=>{ const f = al.has(`${sp}_${st}`);
         return `<div class="alc ${f?"":"unk"}" title="${f?esc(inf.stages[st-1]):"Noch nicht entdeckt"}">${petFig({sp, stage:st, lvl:1}, {sil:!f, scale:.95})}<span>${f?esc(inf.stages[st-1]):"???"}</span></div>`; }).join("")}</div>`).join("")}</div></section>`;
   // Erinnerungen
   const mem = P.memories || [];
@@ -3187,10 +3251,10 @@ function renderPet(){
     <div><b>🆕 Neues anfangen</b><span>+100 pro neu angefangenem Spiel.</span></div>
     <div><b>🏆 Erfolge</b><span>+10 pro Steam-Erfolg.</span></div>
     ${pa ? `<div><b>💞 Gemeinsame Abende</b><span>+200 – und der Raid gegen den Koop-Kraken.</span></div>` : ""}
-    <div><b>⚔️ Bosse</b><span>Jede Woche und jeden Monat einer, passend zu deinem Spieltempo. Im Oktober und Dezember gibt es Saison-Bosse.</span></div></div></section>`;
+    <div><b>⚔️ Bosse</b><span>Jede Woche und jeden Monat einer, passend zu deinem Spieltempo. Im Februar, April, Juli, Oktober und Dezember gibt es Saison-Bosse.</span></div></div></section>`;
   setView(h + `</div>`);
   clearInterval(S._pti); S._pti = setInterval(()=>{ const b = document.querySelector(".pethero .pbub"); if (!b || cur() !== "begleiter"){ clearInterval(S._pti); return; } S._pl = (S._pl||0) + 1; b.textContent = petBubble(p); b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop"); }, 9000);
-  setTimeout(()=>{ const evo = petEvolutionCheck();
+  setTimeout(()=>{ const evo = petEvolutionCheck() || petLastHit();
     if (!evo && g.boss.week){ const f = document.querySelector(".pethero .pwrap"); if (f){ f.classList.add("lunge"); setTimeout(()=>f.classList.remove("lunge"), 900); }
       const bi = document.querySelector(".battle .bicon"); if (bi){ setTimeout(()=>{ bi.classList.add("hit"); setTimeout(()=>bi.classList.remove("hit"), 700); }, 380); } }
     petGainsSeen(); petFab(); }, 500);
