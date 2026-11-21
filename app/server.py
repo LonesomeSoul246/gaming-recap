@@ -8,6 +8,7 @@ HLTB      : Spieldauern von HowLongToBeat
 Cloud     : verschlüsselte Kopie auf GitHub Pages fürs Handy
 Nur Python-Standardbibliothek. Alles Persönliche bleibt auf diesem PC bzw. verschlüsselt.
 """
+import base64
 import datetime as dt
 import hashlib
 import json
@@ -122,6 +123,8 @@ def load_config():
 def err_text(e):
     if isinstance(e, urllib.error.URLError) and not isinstance(e, urllib.error.HTTPError):
         return "Keine Verbindung zum Server der Plattform."
+    if isinstance(e, KeyError):
+        return f"Unerwartete Antwort der Plattform (Feld {e} fehlt)."
     return str(e) or e.__class__.__name__
 
 
@@ -219,20 +222,59 @@ def autostart_file():
     ad = os.environ.get("APPDATA")
     if os.name != "nt" or not ad:
         return None
-    return os.path.join(ad, "Microsoft", "Windows", "Start Menu", "Programs", "Startup", "GamingRecap.cmd")
+    return os.path.join(ad, "Microsoft", "Windows", "Start Menu", "Programs", "Startup", "GamingRecap.vbs")
+
+
+def _pythonw():
+    d = os.path.dirname(sys.executable or "")
+    for n in ("pythonw.exe", "pyw.exe"):
+        if os.path.exists(os.path.join(d, n)):
+            return os.path.join(d, n)
+    return "pythonw"
 
 
 def set_autostart(on):
+    """Startet mit Windows ganz ohne schwarzes Fenster (kleines VBScript ruft pythonw direkt auf)."""
     f = autostart_file()
     if not f:
         raise RuntimeError("Autostart gibt es nur unter Windows.")
+    old = f[:-4] + ".cmd"
+    if os.path.exists(old):
+        os.remove(old)
     if on:
-        bat = os.path.join(BASE, "Start.bat")
-        with open(f, "w", encoding="ascii", errors="ignore", newline="\r\n") as h:
-            h.write('@echo off\nstart "Gaming Recap" /min "%s"\n' % bat)
+        q = lambda x: x.replace('"', '""')
+        vbs = ('Set sh = CreateObject("WScript.Shell")\r\n'
+               'sh.CurrentDirectory = "%s"\r\n'
+               'sh.Run """%s"" ""%s""", 0, False\r\n') % (q(BASE), q(_pythonw()), q(os.path.join(BASE, "server.py")))
+        with open(f, "w", encoding="utf-16") as h:   # UTF-16: Umlaute im Benutzernamen gehen so nicht kaputt
+            h.write(vbs)
     elif os.path.exists(f):
         os.remove(f)
     return bool(f and os.path.exists(f))
+
+
+def windows_housekeeping():
+    """Beim Start: alten Autostart (mit CMD-Fenster) umstellen und die „aus dem Internet“-Markierung von den
+    Programmdateien entfernen – sonst fragt Windows bei jedem Start „Herausgeber konnte nicht verifiziert werden“."""
+    if os.name != "nt":
+        return
+    try:
+        f = autostart_file()
+        if f and os.path.exists(f[:-4] + ".cmd"):
+            set_autostart(True)
+    except Exception as e:
+        print("  Autostart umstellen:", e)
+    n = 0
+    for dp, dn, fn in os.walk(BASE):
+        dn[:] = [d for d in dn if d not in ("daten", "__pycache__", ".git")]
+        for x in fn:
+            try:
+                os.remove(os.path.join(dp, x) + ":Zone.Identifier")
+                n += 1
+            except OSError:
+                pass
+    if n:
+        print(f"  Windows-Sicherheitsmarkierung von {n} Dateien entfernt")
 
 
 def playnite_has_console(cfg, dev):
@@ -360,7 +402,18 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
         return None
 
 
-def psn_access_token(npsso):
+PSN_EXPIRED = ("PlayStation-Anmeldung abgelaufen. Hol dir unter Einstellungen › Quellen einen neuen NPSSO-Code "
+               "(dauert 1 Minute). Bis dahin bleiben deine PS5-Spiele mit dem letzten Stand erhalten.")
+psn_lock = threading.Lock()
+
+
+def _psn_token_request(fields):
+    body = urllib.parse.urlencode(dict(fields, token_format="jwt")).encode()
+    return http_json("https://ca.account.sony.com/api/authz/v3/oauth/token", data=body, method="POST",
+                     headers={"Authorization": "Basic " + PSN_BASIC, "Content-Type": "application/x-www-form-urlencoded"})
+
+
+def _psn_from_npsso(npsso):
     q = urllib.parse.urlencode({"access_type": "offline", "client_id": PSN_CLIENT, "redirect_uri": PSN_REDIRECT,
                                 "response_type": "code", "scope": "psn:mobile.v2.core psn:clientapp"})
     req = urllib.request.Request("https://ca.account.sony.com/api/authz/v3/oauth/authorize?" + q,
@@ -370,15 +423,38 @@ def psn_access_token(npsso):
         location = urllib.request.build_opener(_NoRedirect).open(req, timeout=30).headers.get("Location")
     except urllib.error.HTTPError as e:
         location = e.headers.get("Location")
-    if not location or "code=" not in location:
-        raise RuntimeError("PlayStation-Anmeldung fehlgeschlagen. Der NPSSO-Token ist vermutlich abgelaufen. "
-                           "Hol dir einen neuen (siehe Einstellungen).")
-    code = urllib.parse.parse_qs(urllib.parse.urlparse(location).query)["code"][0]
-    body = urllib.parse.urlencode({"code": code, "redirect_uri": PSN_REDIRECT,
-                                   "grant_type": "authorization_code", "token_format": "jwt"}).encode()
-    return http_json("https://ca.account.sony.com/api/authz/v3/oauth/token", data=body, method="POST",
-                     headers={"Authorization": "Basic " + PSN_BASIC,
-                              "Content-Type": "application/x-www-form-urlencoded"})["access_token"]
+    code = (urllib.parse.parse_qs(urllib.parse.urlparse(location or "").query).get("code") or [None])[0]
+    if not code:   # z. B. ...?error=login_required&error_code=4165 – NPSSO ungültig
+        raise RuntimeError(PSN_EXPIRED)
+    return _psn_token_request({"code": code, "redirect_uri": PSN_REDIRECT, "grant_type": "authorization_code"})
+
+
+def psn_access_token(npsso):
+    """Zugriffstoken für die PlayStation-Schnittstelle. Nutzt das gespeicherte Refresh-Token (hält ca. 2 Monate,
+    auch wenn du dich zwischendurch an der PS5 an- und abmeldest) und braucht den NPSSO nur, wenn das nicht mehr geht."""
+    with psn_lock:
+        path = os.path.join(DATA_DIR, "psn_token.json")
+        t = read_json(path, {}) if os.path.exists(path) else {}
+        now = time.time()
+        nh = hashlib.sha256(npsso.strip().encode()).hexdigest()[:16]
+        if t.get("npsso") != nh:      # neuer NPSSO eingetragen → frisch anmelden
+            t = {"npsso": nh}
+        if t.get("access") and t.get("access_exp", 0) > now + 120:
+            return t["access"]
+        j = None
+        if t.get("refresh") and t.get("refresh_exp", 0) > now + 120:
+            try:
+                j = _psn_token_request({"refresh_token": t["refresh"], "grant_type": "refresh_token",
+                                        "scope": "psn:mobile.v2.core psn:clientapp"})
+            except Exception:
+                j = None
+        if j is None:
+            j = _psn_from_npsso(npsso)
+        t.update(access=j["access_token"], access_exp=now + int(j.get("expires_in") or 3000))
+        if j.get("refresh_token"):
+            t.update(refresh=j["refresh_token"], refresh_exp=now + int(j.get("refresh_token_expires_in") or 5000000))
+        write_json(path, t)
+        return t["access"]
 
 
 def iso_duration_minutes(s):
@@ -520,6 +596,9 @@ def record_snapshot(games):
         con.executemany("INSERT OR REPLACE INTO snapshots VALUES (?, ?, ?, ?)",
                         [(day, g["id"], g["device"], g["minutes"]) for g in games])
     con.close()
+    st = kv_get("snap_times", {}) or {}
+    st[day] = now_iso()
+    kv_set("snap_times", dict(sorted(st.items())[-120:]))
 
 
 # ---------------------------------------------------------------- Konsolen-Sessions
@@ -534,51 +613,200 @@ def console_con():
     return con
 
 
-def record_console_sessions(prev_games, prev_sync, games):
-    prev = {g["id"]: g for g in prev_games or []}
-    t_prev = parse_iso(prev_sync) if prev_sync else None
-    if not t_prev:
-        return 0
-    now = time.time()
-    rows = []
-    for g in games:
-        if g.get("device") == "PC":
-            continue
-        p = prev.get(g["id"])
-        if not p or p.get("device") != g.get("device"):
-            continue
-        delta = int(g.get("minutes") or 0) - int(p.get("minutes") or 0)
-        if delta <= 0 or delta > 24 * 60 * max(1, (now - t_prev) / 86400 + 1):
-            continue
-        last = parse_iso(g.get("last_played")) or now
-        last = min(max(last, t_prev), now)
-        key = norm_title(g["title"])
-        secs = delta * 60
-        d_last = dt.date.fromtimestamp(last)
-        d_first = dt.date.fromtimestamp(t_prev)
-        if d_first == d_last:
-            rows.append((key, g["device"], int(last - secs), secs, 0))
-            continue
-        # mehrere Tage: Block am letzten Spieltag (max. 4 Std), Rest gleichmäßig auf die Tage davor
-        midnight = dt.datetime.combine(d_last, dt.time(0, 0)).timestamp()
-        block = int(min(secs, 4 * 3600, max(1800, last - midnight)))
-        rows.append((key, g["device"], int(last - block), block, 1))
-        rest = secs - block
-        days = []
-        d = d_last - dt.timedelta(days=1)
-        while d >= d_first and len(days) < 60:
-            days.append(d)
-            d -= dt.timedelta(days=1)
-        each = rest // len(days) if days else 0
-        for d in days:
-            if each > 0:
-                rows.append((key, g["device"], int(dt.datetime.combine(d, dt.time(20, 0)).timestamp()), int(each), 1))
-    if rows:
-        con = console_con()
-        with con:
-            con.executemany("INSERT OR REPLACE INTO console_sessions VALUES (?, ?, ?, ?, ?)", rows)
+STALE_H = 12          # Zuwachs ohne Spielen seit mehr als 12 Std = Nachmeldung der Plattform (zählt nicht)
+
+
+def _local(ts):
+    return dt.datetime.fromtimestamp(ts)
+
+
+def _spread(start, end, minutes, cap=480):
+    """Verteilt Minuten auf die Kalendertage zwischen start und end (Unix-Zeit). „Zuletzt gespielt“ ist der
+    sicherste Tag: von dort rückwärts bis 8 Std pro Tag auffüllen (nie mehr, als an dem Tag im Zeitfenster
+    lag), einen Rest anteilig auf die freie Zeit der Tage."""
+    end = max(end, start)
+    days, d = [], _local(start).date()
+    while d <= _local(end).date() and len(days) < 62:
+        a = max(start, dt.datetime.combine(d, dt.time()).timestamp())
+        b = min(end, dt.datetime.combine(d + dt.timedelta(days=1), dt.time()).timestamp())
+        days.append([d, max(1, int((b - a) / 60))])
+        d += dt.timedelta(days=1)
+    out = {x: 0 for x, _ in days}
+    left = minutes
+    for x, room in reversed(days):
+        take = min(left, cap, room)
+        out[x] += take
+        left -= take
+        if left <= 0:
+            break
+    if left > 0:
+        free = {x: max(0, room - out[x]) for x, room in days}
+        tot = sum(free.values())
+        for x, _ in days:
+            add = int(left * free[x] / tot) if tot else int(left / len(days))
+            out[x] += add
+        out[days[-1][0]] += minutes - sum(out.values())
+    return {k: int(v) for k, v in out.items() if v > 0}
+
+
+def reconcile_history(games, last_sync, today=None):
+    """Läuft bei jedem Abgleich VOR dem Speichern des heutigen Stands.
+    War der PC aus, liefern PS5/Xbox die Spielzeit gesammelt nach. Wir verteilen sie anhand von
+    „zuerst/zuletzt gespielt“ auf die echten Tage und tragen diese Tage im Verlauf nach.
+    Steigt die Zeit, obwohl das Spiel lange nicht gestartet wurde (Nachmeldung), zählt sie nicht als gespielt.
+    Kommt ein Spiel mit alter Spielzeit neu dazu (neuer Launcher, Import), ist das Altbestand."""
+    today = today or dt.date.today()
+    T = today.isoformat()
+    con = history_con()
+    prev_day = (con.execute("SELECT MAX(day) FROM snapshots WHERE day < ?", (T,)).fetchone() or [None])[0]
+    if not prev_day:
         con.close()
-    return len(rows)
+        return 0
+    prev = {i: (p, m) for i, p, m in con.execute("SELECT id, platform, minutes FROM snapshots WHERE day = ?", (prev_day,))}
+    times = kv_get("snap_times", {}) or {}
+    t_ref = parse_iso(times.get(prev_day)) or dt.datetime.combine(dt.date.fromisoformat(prev_day), dt.time(23, 59)).timestamp()
+    if last_sync and (parse_iso(last_sync) or 0) > t_ref and (parse_iso(last_sync) or 0) < dt.datetime.combine(today, dt.time()).timestamp():
+        t_ref = parse_iso(last_sync)
+    now = min(time.time(), dt.datetime.combine(today + dt.timedelta(days=1), dt.time()).timestamp() - 60)
+    prev_devs = {p for p, _ in prev.values()}
+    plans, absorb, imports, sessions = {}, {}, {}, []
+    for g in games:
+        gid, dev, m = g["id"], g.get("device"), int(g.get("minutes") or 0)
+        p = prev.get(gid)
+        lp = parse_iso(g.get("last_played"))
+        fp = parse_iso(g.get("first_played")) or parse_iso(g.get("added"))
+        if p is None:
+            if dev not in prev_devs or m <= 0:
+                continue
+            genuine = (fp and fp >= t_ref - 3600) or (not fp and m <= IMPORT_MIN)
+            if not genuine:
+                imports[gid] = (dev, m)
+                continue
+            start, base, gain = max(t_ref, fp or t_ref), 0, m
+        else:
+            gain = m - p[1]
+            if gain <= 0:
+                continue
+            if lp and lp < t_ref - STALE_H * 3600:
+                absorb[gid] = gain        # Nachmeldung: nicht gespielt
+                continue
+            start, base = t_ref, p[1]
+        if dev == "PC" and _local(start).date() >= today:
+            continue                     # PC-Spiele: wie bisher, alles heute
+        end = min(now, max(lp or now, start))
+        share = _spread(start, end, gain)
+        if not share:
+            continue
+        if len(share) == 1 and min(share) >= today:
+            continue                     # nur heute: nichts nachzutragen
+        plans[gid] = (dev, base, share)
+        if dev != "PC":
+            k = norm_title(g["title"])
+            for d, v in share.items():
+                if v <= 0:
+                    continue
+                if d == _local(end).date():
+                    sessions.append((k, dev, int(end - v * 60), int(v * 60), 1))
+                else:
+                    sessions.append((k, dev, int(dt.datetime.combine(d, dt.time(20, 0)).timestamp()), int(v * 60), 1))
+    if not (plans or absorb or imports):
+        con.close()
+        return 0
+    gap = []
+    d = dt.date.fromisoformat(prev_day) + dt.timedelta(days=1)
+    while d < today:
+        gap.append(d.isoformat())
+        d += dt.timedelta(days=1)
+    with con:
+        if plans:   # Lücken-Tage als Kopie des letzten Stands anlegen (nur wenn nötig)
+            for gd in gap:
+                con.execute("INSERT OR IGNORE INTO snapshots SELECT ?, id, platform, minutes FROM snapshots WHERE day = ?", (gd, prev_day))
+        for gid, (dev, base, share) in plans.items():
+            cum = base
+            for gd in [prev_day] + gap:
+                dd = dt.date.fromisoformat(gd)
+                cum += share.get(dd, 0)
+                con.execute("INSERT OR REPLACE INTO snapshots VALUES (?, ?, ?, ?)", (gd, gid, dev, cum))
+            if base == 0 and gid not in prev:   # neues Spiel: vor dem ersten Spieltag mit 0 eintragen
+                first = min(share)
+                before = (first - dt.timedelta(days=1)).isoformat()
+                if before >= prev_day:
+                    con.execute("INSERT OR IGNORE INTO snapshots VALUES (?, ?, ?, 0)", (before, gid, dev))
+                else:
+                    con.execute("INSERT OR IGNORE INTO snapshots VALUES (?, ?, ?, 0)", (prev_day, gid, dev))
+        for gid, gain in absorb.items():   # Nachmeldung: in der ganzen Vergangenheit mitführen → zählt nirgends als gespielt
+            con.execute("UPDATE snapshots SET minutes = minutes + ? WHERE id = ? AND day < ?", (gain, gid, T))
+        for gid, (dev, m) in imports.items():
+            con.execute("INSERT OR REPLACE INTO snapshots VALUES (?, ?, ?, ?)", (prev_day, gid, dev, m))
+            for gd in gap:
+                con.execute("INSERT OR REPLACE INTO snapshots VALUES (?, ?, ?, ?)", (gd, gid, dev, m))
+    con.close()
+    if plans:   # nachgetragene Tage gelten als Stand von jetzt – ein zweiter Abgleich heute verteilt nichts erneut
+        st = kv_get("snap_times", {}) or {}
+        for gd in [prev_day] + gap:
+            st[gd] = now_iso()
+        kv_set("snap_times", dict(sorted(st.items())[-120:]))
+    if sessions:
+        cc = console_con()
+        with cc:
+            cc.executemany("INSERT OR REPLACE INTO console_sessions VALUES (?, ?, ?, ?, ?)", sessions)
+        cc.close()
+    out = []
+    if plans:
+        out.append(f"{len(plans)} Spiele auf {len({d for _, _, sh in plans.values() for d in sh})} Tage verteilt")
+    if absorb:
+        out.append(f"{len(absorb)} Nachmeldungen ignoriert")
+    if imports:
+        out.append(f"{len(imports)} Spiele als Altbestand")
+    return ", ".join(out)
+
+
+def repair_history_once(cur_games):
+    """Einmalig: Nachmeldungen der Konsolen in den letzten 30 Tagen aus der Statistik nehmen (z. B. GTA V am 17.11.)."""
+    if kv_get("repair_v1"):
+        return 0
+    games = {g["id"]: g for g in cur_games}
+    con = history_con()
+    days = [r[0] for r in con.execute("SELECT DISTINCT day FROM snapshots ORDER BY day")][-31:]
+    fixed = []
+    for a, b in zip(days, days[1:]):
+        A = dict(con.execute("SELECT id, minutes FROM snapshots WHERE day = ?", (a,)).fetchall())
+        for gid, m in con.execute("SELECT id, minutes FROM snapshots WHERE day = ?", (b,)).fetchall():
+            g = games.get(gid)
+            if not g or g.get("device") == "PC" or gid not in A or m <= A[gid]:
+                continue
+            lp = parse_iso(g.get("last_played"))
+            if lp and lp < dt.datetime.combine(dt.date.fromisoformat(a), dt.time()).timestamp() - STALE_H * 3600:
+                fixed.append((gid, m - A[gid], a, b, norm_title(g["title"])))
+    with con:
+        for gid, gain, a, b, k in fixed:
+            con.execute("UPDATE snapshots SET minutes = minutes + ? WHERE id = ? AND day <= ?", (gain, gid, a))
+    con.close()
+    if fixed:
+        cc = console_con()
+        with cc:
+            for gid, gain, a, b, k in fixed:
+                s0 = dt.datetime.combine(dt.date.fromisoformat(b), dt.time()).timestamp()
+                cc.execute("DELETE FROM console_sessions WHERE game_key = ? AND start >= ? AND start < ?", (k, s0, s0 + 86400))
+        cc.close()
+        print("  Nachmeldungen korrigiert:", ", ".join(f"{k} ({g} Min, {b})" for _, g, a, b, k in fixed))
+    # Lücke vor dem letzten Stand (PC war aus, z. B. GTA VI vom 19.–21.11.): Konsolenzeit auf die Tage verteilen
+    con = history_con()
+    days = [r[0] for r in con.execute("SELECT DISTINCT day FROM snapshots ORDER BY day")]
+    con.close()
+    if len(days) >= 2:
+        a, b = days[-2], days[-1]
+        bd = dt.date.fromisoformat(b)
+        if (bd - dt.date.fromisoformat(a)).days > 1 and (dt.date.today() - bd).days <= 4:
+            con = history_con()
+            rows = con.execute("SELECT id, platform, minutes FROM snapshots WHERE day = ?", (b,)).fetchall()
+            con.close()
+            gl = [dict(games.get(i, {"title": i}), id=i, device=p, minutes=m) for i, p, m in rows]
+            r = reconcile_history(gl, None, today=bd)
+            if r:
+                print("  Lücke nachgetragen:", r)
+    kv_set("repair_v1", now_iso())
+    return len(fixed)
 
 
 def load_console_sessions(since):
@@ -783,12 +1011,19 @@ def clean_kv(key, v):
                 pets.append({"id": re.sub(r"[^a-z0-9]", "", str(p.get("id") or ""))[:12] or f"p{len(pets) + 1}", "sp": p["sp"],
                              "nick": str(p.get("nick") or "")[:24], "start": p["start"]})
         ids = {p["id"] for p in pets}
-        act = [[str(a[0])[:10], a[1]] for a in (v.get("act") or [])[-200:] if isinstance(a, list) and len(a) == 2 and a[1] in ids]
+        act = []
+        for a in (v.get("act") or [])[-300:]:
+            if isinstance(a, list) and len(a) in (2, 3) and a[1] in ids and re.fullmatch(r"\d{4}-\d{2}-\d{2}(T[0-9:.]+(Z|[+-]\d{2}:?\d{2})?)?", str(a[0])):
+                act.append([str(a[0])[:32], a[1]] + ([int(a[2])] if len(a) == 3 and isinstance(a[2], (int, float)) else []))
         acc = {k: str(x)[:20] for k, x in (v.get("acc") or {}).items() if k in ids and x}
         _pet_cache["v"] = None
         gifts = [{"acc": str(g.get("acc"))[:20], "at": str(g.get("at") or "")[:10]} for g in (v.get("gifts") or [])[-50:]
                  if isinstance(g, dict) and g.get("acc") in PET_ACC]
-        return {"pets": pets, "act": act, "acc": acc, "hab": re.sub(r"[^a-z]", "", str(v.get("hab") or ""))[:20], "gifts": gifts}
+        out = {"pets": pets, "act": act, "acc": acc, "hab": re.sub(r"[^a-z]", "", str(v.get("hab") or ""))[:20], "gifts": gifts}
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(v.get("epoch") or "")):
+            out["epoch"] = v["epoch"]
+            out["base"] = {k: int(x) for k, x in (v.get("base") or {}).items() if k in ids and isinstance(x, (int, float))}
+        return out
     if key == "ui":  # Design (Farbwelt), gilt für PC und Handy
         v = v if isinstance(v, dict) else {}
         return {"theme": re.sub(r"[^a-z0-9-]", "", str(v.get("theme") or ""))[:20]}
@@ -843,6 +1078,96 @@ def load_status_log(days=800):
     return [list(r) for r in rows]
 
 
+def _local_ts(ts):
+    """ISO-Zeit (auch mit Z/Offset) → lokale Zeit als 'YYYY-MM-DDTHH:MM:SS'."""
+    t = parse_iso(ts) if len(ts) > 10 else None
+    return dt.datetime.fromtimestamp(t).strftime("%Y-%m-%dT%H:%M:%S") if t else ts[:10]
+
+
+def pet_today_minutes():
+    """Heute schon gespielte Minuten (Stand letzter Abgleich + laufende PC-Session) – Teilungsstelle bei Wechseln."""
+    try:
+        m = _pet_days(dt.date.today()).get(dt.date.today().isoformat(), {}).get("min", 0)
+    except Exception:
+        m = 0
+    for c in TRACKER.current or []:
+        try:
+            m += max(0, int((time.time() - (parse_iso(c.get("since")) or time.time())) / 60))
+        except Exception:
+            pass
+    return m
+
+
+def merge_pet(new, now_minutes=None):
+    """Begleiter-Änderung von PC oder Handy einarbeiten, statt alles zu überschreiben:
+    keine doppelten Eier, Wechsel werden gesammelt (mit Teilungsstelle), Neustart-Epoche bleibt."""
+    old = clean_kv("pet", kv_get("pet", {}) or {})
+    new = clean_kv("pet", new)
+    T = dt.date.today().isoformat()
+    ep = old.get("epoch")
+    pets = [dict(p) for p in old.get("pets") or []]
+    byid = {p["id"]: p for p in pets}
+    owned = {p["sp"] for p in pets}
+    try:
+        ready = set(pet_state(load_config(), force=True).get("eggs_ready") or []) if pets else set()
+    except Exception:
+        ready = set()
+    for p in new.get("pets") or []:
+        if p["id"] in byid:
+            byid[p["id"]]["nick"] = p.get("nick") or ""
+            continue
+        ok = (not pets and PET_SPECIES[p["sp"]]["start"]) or p["sp"] in ready
+        if ok and p["sp"] not in owned:
+            q = dict(p, start=max(p["start"], ep or p["start"], T if pets else p["start"]))
+            pets.append(q)
+            byid[q["id"]] = q
+            owned.add(q["sp"])
+    ids = set(byid)
+    have = {(a[0], a[1]) for a in old.get("act") or []}
+    act = [a for a in old.get("act") or [] if a[1] in ids]
+    nm = pet_today_minutes() if now_minutes is None else now_minutes
+    for a in new.get("act") or []:
+        if (a[0], a[1]) in have or a[1] not in ids:
+            continue
+        ts = _local_ts(a[0])
+        if (ts, a[1]) in have or (ep and ts[:10] < ep):
+            continue
+        if ts[:10] == T:
+            if len(ts) == 10:
+                ts = dt.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+            act.append([ts, a[1], nm])
+        elif ts[:10] < T:
+            act.append([ts if len(ts) > 10 else ts + "T23:59:00", a[1]])
+        have.add((ts, a[1]))
+    out = {"pets": pets, "act": act[-300:], "acc": {k: x for k, x in (new.get("acc") or {}).items() if k in ids},
+           "hab": new.get("hab") or old.get("hab") or "lichtung"}
+    gk = {(g["acc"], g["at"]) for g in old.get("gifts") or []}
+    out["gifts"] = (old.get("gifts") or []) + [g for g in new.get("gifts") or [] if (g["acc"], g["at"]) not in gk]
+    if ep:
+        out["epoch"], out["base"] = ep, old.get("base") or {}
+    _pet_cache["v"] = None
+    return out
+
+
+def pet_soft_reset():
+    """Einmalig: Begleiter-Spiel neu starten. Nur das erste Tier bleibt (geschlüpft, Level 5); Statistik bleibt unberührt."""
+    if kv_get("pet_reset_v1"):
+        return False
+    raw = kv_get("pet", {}) or {}
+    pets = raw.get("pets") or []
+    kv_set("pet_reset_v1", now_iso())
+    if not pets:
+        return False
+    T = dt.date.today().isoformat()
+    first = dict(pets[0], start=T)
+    kv_set("pet", {"pets": [first], "act": [[T, first["id"]]], "acc": {}, "hab": "lichtung", "gifts": [],
+                   "epoch": T, "base": {first["id"]: pet_xp_for(5)}})
+    kv_set("pet_seen", None)
+    _pet_cache["v"] = None
+    print(f"  Begleiter-Spiel neu gestartet: {PET_SPECIES.get(first['sp'], {}).get('name', first['sp'])} bleibt mit Level 5")
+    return True
+
+
 def apply_remote_edits(payload):
     """Änderungen vom Handy übernehmen, sofern sie neuer sind als der Stand am PC."""
     meta = load_meta()
@@ -853,7 +1178,10 @@ def apply_remote_edits(payload):
         if e.get("kind") == "kv":
             k = e.get("key")
             upd = kv_updated(k)
-            if k in KV_KEYS and k != "wrapped" and not (upd and (parse_iso(upd) or 0) >= (e.get("ts") or 0) / 1000):
+            if k == "pet":   # Begleiter wird zusammengeführt, nicht überschrieben
+                kv_set(k, merge_pet(e.get("value")))
+                n += 1
+            elif k in KV_KEYS and k != "wrapped" and not (upd and (parse_iso(upd) or 0) >= (e.get("ts") or 0) / 1000):
                 kv_set(k, clean_kv(k, e.get("value")))
                 n += 1
             continue
@@ -912,6 +1240,8 @@ def run_sync():
         # Konsolen direkt nur dort, wo die direkte Quelle auch geklappt hat
         direct = set()
         psn_games, xbox_games = [], []
+        old = load_cache()
+        old_games = old.get("games") or []
         if cfg["psn_npsso"].strip():
             try:
                 skipped = []
@@ -921,7 +1251,12 @@ def run_sync():
                 sources["PlayStation"] = {"ok": True, "count": len(g), "minutes": sum(x["minutes"] for x in g),
                                           "info": f"{len(skipped)} Apps ausgeblendet: {', '.join(sorted(set(n.split(' [')[0] for n in skipped))[:8])}" if skipped else None}
             except Exception as e:
-                sources["PlayStation"] = {"ok": False, "error": err_text(e)}
+                # Ausfall: letzten Stand behalten, damit nichts verschwindet (Tier-Liste, Statistik, Begleiter)
+                keep = [x for x in old_games if str(x.get("id", "")).startswith("psn_")]
+                psn_games = keep
+                if keep:
+                    direct.add("PlayStation")
+                sources["PlayStation"] = {"ok": False, "error": err_text(e), "count": len(keep), "kept": bool(keep)}
         pn_has_xbox = playnite_has_console(cfg, "Xbox")
         if cfg["xbox_api_key"].strip() and pn_has_xbox:
             sources["Xbox"] = {"ok": True, "count": None, "minutes": None,
@@ -936,15 +1271,26 @@ def run_sync():
             except Exception as e:
                 sources["Xbox"] = {"ok": False, "error": err_text(e)}
         games = build_pc(dict(cfg, _direct_devices=sorted(direct)), sources) + psn_games + xbox_games
-        for name, s in sources.items():
-            print(f"  {name}: " + ((f"{s['count']} Spiele" if s.get("count") is not None else s.get("info") or "ok") if s["ok"] else "FEHLER - " + s["error"]))
-        old = load_cache()
         try:
-            n = record_console_sessions(old.get("games"), old.get("last_sync"), games)
-            if n:
-                print(f"  {n} Konsolen-Sessions ergänzt")
+            fix_genres(games)
         except Exception as e:
-            print("  Konsolen-Sessions:", e)
+            print("  Genres:", e)
+        if not sources.get("Playnite", {}).get("ok", True):   # Playnite-Export kaputt: PC-Spiele vom letzten Mal behalten
+            have = {g["id"] for g in games}
+            games += [x for x in old_games if str(x.get("id", "")).startswith(("pn_", "pnc_", "steam_")) and x["id"] not in have]
+        for name, s in sources.items():
+            print(f"  {name}: " + ((f"{s['count']} Spiele" if s.get("count") is not None else s.get("info") or "ok") if s["ok"] else "FEHLER - " + s["error"] + (" (letzter Stand bleibt)" if s.get("kept") else "")))
+        try:
+            repair_history_once(games)
+        except Exception as e:
+            print("  Korrektur:", e)
+        try:
+            n = reconcile_history(games, old.get("last_sync"))
+            if n:
+                print(f"  Spielzeit nachgetragen: {n}")
+        except Exception as e:
+            traceback.print_exc()
+            print("  Nachtrag:", e)
         write_json(CACHE_PATH, {"last_sync": now_iso(), "sources": sources, "games": games, "pn_images": PN_IMAGES})
         if games:
             record_snapshot(games)
@@ -1037,6 +1383,46 @@ def steamx_worker(cfg, games):
         cloud_state["pending"] = True
 
 
+# Playnite holt Genres manchmal vom falschen Spiel (Marvel Rivals → „Racing, RPG“). Steam kennt die echten,
+# aber nur grob. Wir behalten Playnite-Genres nur, wenn Steam sie bestätigt, und ergänzen Steams eigene.
+_STEAM_NEEDS = {"racing": "Racing", "role-playing (rpg)": "RPG", "rpg": "RPG", "strategy": "Strategy",
+                "real time strategy (rts)": "Strategy", "turn-based strategy (tbs)": "Strategy", "tactical": "Strategy",
+                "sport": "Sports", "sports": "Sports", "simulator": "Simulation", "simulation": "Simulation",
+                "adventure": "Adventure", "point-and-click": "Adventure", "visual novel": "Adventure",
+                "indie": "Indie", "massively multiplayer": "Massively Multiplayer", "mmo": "Massively Multiplayer"}
+_STEAM_SKIP = {"free to play", "free-to-play", "early access", "utilities", "software", "design & illustration",
+               "animation & modeling", "audio production", "video production", "web publishing", "education",
+               "game development", "photo editing", "accounting", "movie", "documentary", "episodic", "short", "tutorial",
+               "violent", "gore", "nudity", "sexual content"}
+
+
+def fix_genres(games):
+    sc = (read_json(SCORES_PATH, {}) or {}).get("scores", {})
+    n = 0
+    for g in games:
+        st = (sc.get(str(g.get("steam_appid") or "")) or {}).get("gn")
+        if not st:
+            continue
+        sset = {x.lower() for x in st}
+        keep = [x for x in g.get("genres") or [] if _STEAM_NEEDS.get(x.lower(), "Action").lower() in sset
+                or (_STEAM_NEEDS.get(x.lower()) is None and ("action" in sset or "casual" in sset))]
+        have = {x.lower() for x in keep}
+        for x in st:
+            xl = x.lower()
+            if xl in _STEAM_SKIP or xl in have:
+                continue
+            if xl == "action" and keep:     # „Shooter“ o. Ä. ist schon genauer
+                continue
+            if any(_STEAM_NEEDS.get(k.lower(), "").lower() == xl for k in keep):
+                continue
+            keep.append(x)
+            have.add(xl)
+        if keep != g.get("genres"):
+            g["genres"] = keep
+            n += 1
+    return n
+
+
 scores_state = {"running": False, "error": None}
 
 
@@ -1072,6 +1458,7 @@ def extras_worker(cfg):
             try:
                 x["trophies"] = extras.psn_trophies(psn_access_token(cfg["psn_npsso"]))
                 x["trophies_at"] = now_iso()
+                extras_state["error"] = None
             except Exception as e:
                 extras_state["error"] = "Trophäen: " + err_text(e)
         if time.time() - (parse_iso(x.get("free_at")) or 0) > 3 * 3600 or any("source" not in f for f in x.get("free") or []):
@@ -1090,6 +1477,22 @@ def first_tracking_day():
     row = con.execute("SELECT MIN(day) FROM snapshots").fetchone()
     con.close()
     return row[0] if row else None
+
+
+def new_games_seen(games=None):
+    """Spiele, die nach Beginn der Aufzeichnung neu aufgetaucht sind (auch Konsole), als {Spielschlüssel: Tag}.
+    Importe mit viel alter Spielzeit zählen nicht als neu."""
+    con = history_con()
+    rows = con.execute("SELECT s.id, s.day, s.minutes FROM snapshots s JOIN (SELECT id, MIN(day) d FROM snapshots GROUP BY id) f "
+                       "ON s.id = f.id AND s.day = f.d WHERE f.d > (SELECT MIN(day) FROM snapshots)").fetchall()
+    con.close()
+    titles = {g["id"]: norm_title(g["title"]) for g in (games if games is not None else load_cache().get("games", []))}
+    out = {}
+    for gid, day, m in rows:
+        k = titles.get(gid)
+        if k and m <= IMPORT_MIN and (k not in out or day < out[k]):
+            out[k] = day
+    return out
 
 
 def finalize_archives(games):
@@ -1392,11 +1795,16 @@ PET_ACC = {"schleife": "Schleife", "headset": "Gaming-Headset", "brille": "Sonne
 PET_HAB = {"lichtung": "Lichtung", "sterne": "Sternenhimmel", "strand": "Strand", "zimmer": "Gaming-Zimmer", "vulkan": "Vulkan",
            "winter": "Winterwald", "kristall": "Kristallhöhle", "riff": "Unterwasser-Riff"}
 # Beute nach Anzahl Siege (Wochen-, Saison- und Monats-Bosse zusammen)
-PET_LOOT = {1: ("acc", "schleife"), 2: ("hab", "sterne"), 3: ("egg", "crysto"), 4: ("acc", "headset"), 5: ("theme", "drachenglut"),
-            6: ("hab", "strand"), 7: ("acc", "brille"), 8: ("acc", "pirat"), 9: ("hab", "zimmer"), 10: ("acc", "krone"),
-            12: ("theme", "mondnacht"), 13: ("hab", "kristall"), 14: ("acc", "zauberhut"), 16: ("egg", "koppla"), 17: ("acc", "wikinger"),
-            18: ("hab", "vulkan"), 20: ("shiny", ""), 22: ("acc", "halo"), 24: ("hab", "riff"), 26: ("acc", "blumen"),
-            28: ("acc", "kapitaen"), 30: ("acc", "diadem"), 40: ("shiny", ""), 50: ("shiny", "")}
+PET_LOOT = {1: ("acc", "schleife"), 3: ("hab", "sterne"), 5: ("acc", "headset"), 7: ("theme", "drachenglut"),
+            9: ("hab", "strand"), 11: ("acc", "brille"), 13: ("acc", "pirat"), 15: ("hab", "zimmer"), 17: ("acc", "krone"),
+            19: ("acc", "muetze"), 21: ("theme", "mondnacht"), 23: ("hab", "kristall"), 25: ("acc", "zauberhut"),
+            28: ("acc", "wikinger"), 31: ("hab", "vulkan"), 34: ("shiny", ""), 37: ("acc", "halo"), 40: ("hab", "riff"),
+            44: ("acc", "blumen"), 48: ("acc", "kapitaen"), 52: ("acc", "diadem"), 60: ("shiny", ""), 75: ("shiny", "")}
+# Eier gibt es zufällig nach Boss-Siegen. Seltenheit: 1 = gewöhnlich, 2 = selten, 3 = sehr selten
+PET_RARITY = {"brasu": 1, "neruma": 1, "moselle": 1, "crysto": 2, "nocti": 2, "koppla": 3}
+PET_RARITY_W = {1: 10, 2: 4, 3: 1.2}
+PET_EGG_CHANCE = {"week": 0.12, "month": 0.35, "raid": 0.35}
+PET_EGG_PITY = 8                 # spätestens nach 8 Siegen ohne Ei kommt eins
 PET_WEEKLY = [("golem", "Backlog-Golem", "🗿", "Durchgespielte Spiele treffen ihn dreifach."),
               ("hydra", "Genre-Hydra", "🐍", "Jedes verschiedene Genre der Woche schlägt einen Kopf ab."),
               ("drache", "Trophäen-Drache", "🐉", "Erfolge und Trophäen sind kritische Treffer."),
@@ -1404,8 +1812,13 @@ PET_WEEKLY = [("golem", "Backlog-Golem", "🗿", "Durchgespielte Spiele treffen 
               ("sphinx", "Entdecker-Sphinx", "🦁", "Jedes neu angefangene Spiel trifft hart."),
               ("gremlin", "Lag-Gremlin", "👾", "Jeder Tag, an dem du spielst, bringt ihn ins Stottern."),
               ("zeitfresser", "Zeitfresser", "⏳", "Ausgeruhte Spieltage nach einer Pause treffen ihn besonders."),
-              ("phantom", "Neon-Phantom", "🌀", "Das Lieblingsgenre deines Begleiters trifft doppelt.")]
-PET_SEASON = {10: ("kuerbis", "Kürbiskönig", "🎃", "Grusel, Horror und Mystery treffen dreifach – Halloween-Special!"),
+              ("phantom", "Neon-Phantom", "🌀", "Das Lieblingsgenre deines Begleiters trifft doppelt."),
+              ("wolke", "Couch-Wolke", "☁️", "Kurze Sessions an vielen Tagen pusten sie weg."),
+              ("koloss", "Pixel-Koloss", "🧱", "Keine Schwäche – hier zählt einfach jede Stunde.")]
+PET_SEASON = {2: ("amor", "Amors Schatten", "💘", "Gemeinsame Abende treffen dreifach – Valentins-Special!"),
+              4: ("osterhase", "Chaos-Hase", "🐰", "Neu angefangene Spiele sind versteckte Eier – Oster-Special!"),
+              7: ("sonnenwurm", "Sonnenwurm", "☀️", "Ausgeruhte Spieltage kühlen ihn ab – Sommer-Special!"),
+              10: ("kuerbis", "Kürbiskönig", "🎃", "Grusel, Horror und Mystery treffen dreifach – Halloween-Special!"),
               12: ("yeti", "Frost-Yeti", "❄️", "Gemütliche Spiele und Ruhetage tauen ihn auf – Winter-Special!")}
 PET_MONTHLY = [("titan", "Uralter Titan", "🌋", "Durchgespielte Spiele sind seine Schwäche."),
                ("leviathan", "Leviathan", "🐋", "Abwechslung bei den Genres schwächt ihn."),
@@ -1421,7 +1834,7 @@ PET_SPOOKY = ("horror", "survival", "mystery")
 
 
 def pet_xp_for(level):
-    return int(round(40 * (level - 1) ** 1.76)) if level > 1 else 0
+    return int(round(40 * (level - 1) ** 1.9)) if level > 1 else 0
 
 
 def pet_level(xp):
@@ -1473,6 +1886,27 @@ def _pet_days(since):
 _pet_cache = {"t": 0, "v": None}
 
 
+def pet_act(raw, pets):
+    """Wechsel-Liste [[Zeitpunkt, Begleiter, Minuten heute beim Wechsel]], zeitlich sortiert (stabil).
+    Ältere Einträge haben nur ein Datum; vor dem Neustart des Begleiter-Spiels zählt nur der letzte Stand."""
+    ids = {p["id"] for p in pets}
+    act = []
+    for n, a in enumerate(raw.get("act") or []):
+        if isinstance(a, list) and len(a) >= 2 and a[1] in ids:
+            act.append((str(a[0]), n, a[1], a[2] if len(a) > 2 and isinstance(a[2], (int, float)) else None))
+    act.sort(key=lambda x: (x[0], x[1]))
+    act = [[ts, pid, mk] for ts, _, pid, mk in act]
+    ep = raw.get("epoch")
+    if ep:
+        before = [a for a in act if a[0][:10] < ep]
+        act = ([[ep, before[-1][1], None]] if before else []) + [a for a in act if a[0][:10] >= ep]
+    if not act:
+        act = [[pets[0]["start"], pets[0]["id"], None]]
+    if act[0][0][:10] > min(p["start"] for p in pets):
+        act.insert(0, [min(p["start"] for p in pets), act[0][1], None])
+    return act
+
+
 def pet_state(cfg, force=False):
     """Berechnet den ganzen Begleiter-Stand aus dem echten Verlauf (deterministisch, nichts doppelt)."""
     if not force and _pet_cache["v"] is not None and time.time() - _pet_cache["t"] < 300:
@@ -1485,16 +1919,43 @@ def pet_state(cfg, force=False):
         return res
     today = dt.date.today()
     T = today.isoformat()
+    epoch = dt.date.fromisoformat(raw["epoch"]) if raw.get("epoch") else None
     start = min(dt.date.fromisoformat(p["start"]) for p in pets)
-    act = sorted(raw.get("act") or [[pets[0]["start"], pets[0]["id"]]])
+    if epoch:
+        start = max(start, epoch)
+    act = pet_act(raw, pets)
     def active_on(d):
+        """Wer am Ende des Tages d (oder zu einem Zeitpunkt d) an deiner Seite ist."""
         cur = act[0][1]
-        for dd, pid in act:
-            if dd <= d:
+        for ts, pid, _ in act:
+            if ts[:len(d)] <= d if len(d) > 10 else ts[:10] <= d:
                 cur = pid
         return cur
+    def segments(iso, total):
+        """[(Begleiter, Minuten)] für einen Tag: Wechsel am Tag teilen die Spielzeit an der gemerkten Stelle."""
+        cur = act[0][1]
+        todays = []
+        for ts, pid, mark in act:
+            if ts[:10] < iso:
+                cur = pid
+            elif ts[:10] == iso:
+                todays.append((ts, pid, mark))
+        out, pos = [], 0
+        for ts, pid, mark in todays:
+            if mark is None:   # alter Eintrag (nur Datum): ganzer Tag; nachträglich übernommen: Tagesende
+                mk = pos if len(ts) == 10 else total
+            else:
+                mk = max(pos, min(total, int(mark)))
+            if mk > pos:
+                out.append((cur, mk - pos))
+                pos = mk
+            cur = pid
+        out.append((cur, total - pos))
+        return out
     gi = _pet_game_info()
     days = _pet_days(start)
+    if epoch:
+        pets = [dict(p, start=max(p["start"], epoch.isoformat())) for p in pets]
     titles = {g["k"]: g["k"] for g in gi.values()}
     titles.update({norm_title(g["title"]): g["title"] for g in load_cache().get("games", [])})
     # Ereignisse
@@ -1539,57 +2000,96 @@ def pet_state(cfg, force=False):
                     evenings.add((dt.datetime.fromtimestamp(max(s0, a2)) - dt.timedelta(hours=5)).date().isoformat())
     for d in evenings:
         add(d, "evening")
-    # 1) Erfahrung pro Tag
+    # 1) Erfahrung pro Tag – bei Wechseln am selben Tag wird die Spielzeit an der Wechselstelle geteilt
     sp_of = {p["id"]: p["sp"] for p in pets}
+    pstart = {p["id"]: p["start"] for p in pets}
     daylog, d, prev_min = {}, start, None
     while d <= today:
         iso = d.isoformat()
         D = days.get(iso, {"min": 0, "per": {}, "started": []})
         E = ev.get(iso, {})
-        pid = active_on(iso)
-        sp = PET_SPECIES.get(sp_of.get(pid), {})
+        segs = segments(iso, D["min"])
+        pid = segs[-1][0]          # wer am Ende des Tages an deiner Seite ist
         raw_m = min(PET_DAY_CAP, D["min"])
         base = min(60, raw_m) + 0.3 * max(0, raw_m - 60)   # erste Stunde voll, danach deutlich weniger
         txt = lambda gid: (gi.get(gid) or {}).get("txt", "")
-        fav = sum(m for gid, m in D["per"].items() if any(w in txt(gid) for w in sp.get("match", ())))
-        cozy = sum(m for gid, m in D["per"].items() if any(w in txt(gid) for w in PET_COZY))
-        spooky = sum(m for gid, m in D["per"].items() if any(w in txt(gid) for w in PET_SPOOKY))
         rested = base > 0 and prev_min == 0
         started = min(3, len(D["started"]))
-        parts = {"play": int(base), "rested": int(base) if rested else 0, "fav": int(0.5 * min(fav, base)), "new": 100 * started,
-                 "done": 500 * E.get("done", 0) + 800 * E.get("full", 0), "ach": min(250, 10 * E.get("ach", 0)), "evening": 200 * E.get("evening", 0)}
         genres = set()
         for gid in D["per"]:
             genres.update((gi.get(gid) or {}).get("genres") or [])
-        daylog[iso] = {"xp": sum(parts.values()), "parts": parts, "min": D["min"], "rested": rested, "pid": pid, "genres": genres,
-                       "started": started, "fav": fav, "cozy": cozy, "spooky": spooky, "played": D["min"] >= 15, **E}
+        cozy = sum(m for gid, m in D["per"].items() if any(w in txt(gid) for w in PET_COZY))
+        spooky = sum(m for gid, m in D["per"].items() if any(w in txt(gid) for w in PET_SPOOKY))
+        split, fav_all = {}, 0
+        for spid, mins in segs:
+            f = (mins / D["min"]) if D["min"] else (1.0 if spid == pid else 0)
+            sp = PET_SPECIES.get(sp_of.get(spid), {})
+            fav = f * sum(m for gid, m in D["per"].items() if any(w in txt(gid) for w in sp.get("match", ())))
+            fav_all += fav
+            pp = {"play": int(base * f), "rested": int(min(30, 0.5 * base) * f) if rested else 0, "fav": int(0.25 * min(fav, base * f))}
+            if spid == pid:
+                pp.update({"new": 100 * started, "done": 500 * E.get("done", 0) + 800 * E.get("full", 0),
+                           "ach": min(250, 10 * E.get("ach", 0)), "evening": 200 * E.get("evening", 0)})
+            x = split.setdefault(spid, {"xp": 0, "min": 0, "parts": {}})
+            x["xp"] += sum(pp.values())
+            x["min"] += mins
+            for k_, v_ in pp.items():
+                x["parts"][k_] = x["parts"].get(k_, 0) + v_
+        parts = split.get(pid, {}).get("parts", {})
+        daylog[iso] = {"xp": sum(x["xp"] for x in split.values()), "parts": parts, "min": D["min"], "rested": rested, "pid": pid,
+                       "genres": genres, "started": started, "fav": int(fav_all), "cozy": cozy, "spooky": spooky,
+                       "played": D["min"] >= 15, "split": split, **E}
         prev_min = D["min"]
         d += dt.timedelta(days=1)
     # 2) Bosse, Aufgaben, Beute
     rewards = []      # (Tag, Grund, Erfahrung)
     loot, history, memories = [], [], []
     got = {"acc": [], "hab": ["lichtung"], "theme": [], "egg": [], "shiny": []}
+    rng_seed = (pets[0]["id"] + pets[0]["start"] + str(raw.get("epoch") or ""))
     def give(kind, val, why, day):
-        if kind == "egg" and (val in got["egg"] or val in sp_of.values()):
-            kind, val = "acc", "herz" if "herz" not in got["acc"] else "blumen"
         if kind == "shiny":
             val = active_on(day)
         if val in got[kind]:
             return
         got[kind].append(val)
         loot.append({"kind": kind, "val": val, "why": why, "d": day})
-    def dmg_of(kind, dl):
-        tot = sum(daylog[x]["xp"] for x in dl)
+    egg_luck = {"since": 0}
+    def roll_egg(kind, bid, day):
+        """Zufälliges Ei nach einem Boss-Sieg (fest ausgewürfelt, ändert sich beim Neuberechnen nicht)."""
+        owned = set(sp_of.values()) | set(got["egg"])
+        pool = [sp for sp in PET_SPECIES if sp not in owned and (sp != "koppla" or pa)]
+        egg_luck["since"] += 1
+        if not pool:
+            return
+        h = int(hashlib.sha256(f"{rng_seed}|{kind}|{bid}|{day}".encode()).hexdigest(), 16)
+        if (h % 10000) / 10000 >= PET_EGG_CHANCE[kind] and egg_luck["since"] < PET_EGG_PITY:
+            return
+        w = [PET_RARITY_W[PET_RARITY.get(sp, 1)] for sp in pool]
+        r = (h // 10000 % 100000) / 100000 * sum(w)
+        for sp, wt in zip(pool, w):
+            r -= wt
+            if r <= 0:
+                break
+        egg_luck["since"] = 0
+        give("egg", sp, {"week": "Wochen-Boss", "month": "Monats-Boss", "raid": "Raid"}[kind], day)
+    def day_dmg(x):
+        return min(240, daylog[x]["min"])
+    def dmg_of(kind, dl, hp):
+        """Schaden = echte Spielzeit (max. 4 Std/Tag). Die Schwäche des Bosses gibt bis zu 35 % extra."""
+        tot = sum(day_dmg(x) for x in dl)
         g = set().union(*[daylog[x]["genres"] for x in dl]) if dl else set()
         S_ = lambda key: sum(daylog[x].get(key, 0) for x in dl)
-        extra = {"golem": 1000 * (S_("done") + S_("full")), "titan": 1500 * (S_("done") + S_("full")),
-                 "hydra": 250 * len(g), "leviathan": 400 * len(g),
-                 "drache": min(600, 20 * S_("ach")), "mecha": min(1500, 30 * S_("ach")),
-                 "nachtmahr": S_("early") // 2 - S_("late"), "sphinx": 400 * S_("started"), "phoenix": 600 * S_("started"),
-                 "gremlin": 300 * sum(1 for x in dl if daylog[x]["played"]), "zeitfresser": 500 * sum(1 for x in dl if daylog[x]["rested"]),
-                 "phantom": S_("fav"), "kuerbis": 3 * S_("spooky"),
-                 "yeti": 2 * S_("cozy") + 400 * sum(1 for x in dl if daylog[x]["rested"])}.get(kind, 0)
-        return max(0, int(tot + extra))
+        played = sum(1 for x in dl if daylog[x]["played"])
+        rested = sum(1 for x in dl if daylog[x]["rested"])
+        extra = {"golem": 150 * (S_("done") + S_("full")), "titan": 300 * (S_("done") + S_("full")),
+                 "hydra": 25 * len(g), "leviathan": 40 * len(g),
+                 "drache": 4 * S_("ach"), "mecha": 5 * S_("ach"),
+                 "nachtmahr": (S_("early") - 2 * S_("late")) // 6, "sphinx": 60 * S_("started"), "phoenix": 90 * S_("started"),
+                 "gremlin": 25 * played, "zeitfresser": 80 * rested,
+                 "phantom": S_("fav") // 3, "wolke": 30 * played, "amor": 150 * S_("evening"),
+                 "osterhase": 80 * S_("started"), "sonnenwurm": 80 * rested, "kuerbis": S_("spooky") // 2,
+                 "yeti": S_("cozy") // 2 + 60 * rested}.get(kind, 0)
+        return max(0, int(tot + max(-0.2 * hp, min(extra, 0.35 * hp))))
     events = []
     monday = start - dt.timedelta(days=start.weekday())
     w = monday
@@ -1609,59 +2109,76 @@ def pet_state(cfg, force=False):
     events.sort(key=lambda e: (e[0], {"week": 0, "month": 1, "raid": 2}[e[1]]))
     current, wins, month_wins, raid_wins, season_won = {}, 0, 0, 0, set()
     pa_done = {(e[1], str(e[3])[:10]) for e in (pa or {}).get("news") or [] if e[0] in ("done", "full")}
+    hist_days = _pet_days(start - dt.timedelta(days=35)) if start > dt.date(2000, 1, 1) else {}
     def week_avg(before):
-        """Durchschnittliche Erfahrung pro Woche in den 4 Wochen vor einem Tag – die Bosse passen sich deinem Spielen an."""
+        """Durchschnittliche Spielzeit pro Woche in den 4 Wochen davor – die Bosse passen sich deinem Spielen an."""
         b0 = (before - dt.timedelta(days=28)).isoformat()
-        xs = [daylog[x]["xp"] for x in daylog if b0 <= x < before.isoformat()]
-        return max(450, sum(xs) / max(1, len(xs)) * 7) if len(xs) >= 7 else 600
+        xs = [min(240, v["min"]) for k_, v in hist_days.items() if b0 <= k_ < before.isoformat()]
+        if len(xs) < 7:
+            return 900
+        return sum(xs) / len(xs) * 7
+    def too_short(kind, key):
+        """Angebrochene Woche/Monat beim Start: Boss erst, wenn genug Zeit bleibt (sonst fällt er sofort)."""
+        if kind == "week":
+            return key < start and (key + dt.timedelta(days=6) - start).days < 3
+        nm = (key.replace(day=28) + dt.timedelta(days=4)).replace(day=1)
+        return key < start and (nm - start).days < 10
+    events = [e for e in events if not too_short(e[1], e[2])]
     for end, kind, key, dl in events:
         live = not end < today
         if kind == "week":
             b = PET_SEASON.get(key.month) or PET_WEEKLY[(key.isocalendar()[1] + key.isocalendar()[0]) % len(PET_WEEKLY)]
-            hp = week_avg(key) * (0.95 + 0.025 * min(wins, 16))
+            hp = min(1800, max(200, 0.85 * week_avg(key))) * (1 + 0.02 * min(wins, 20))
             ends = key + dt.timedelta(days=6)
         elif kind == "month":
             b = PET_MONTHLY[(key.month + key.year) % len(PET_MONTHLY)]
-            hp = week_avg(key) * 4.3 * (1.0 + 0.02 * min(month_wins, 12))
+            hp = min(6500, max(800, 3.4 * week_avg(key))) * (1 + 0.02 * min(month_wins, 12))
             ends = (key.replace(day=28) + dt.timedelta(days=4)).replace(day=1) - dt.timedelta(days=1)
         else:
             b = PET_RAID[(key.year * 12 + key.month) % len(PET_RAID)]
-            hp = int(1200 * 1.15 ** min(raid_wins, 10))
+            hp = int(1600 * 1.12 ** min(raid_wins, 10))
             ends = (key.replace(day=28) + dt.timedelta(days=4)).replace(day=1) - dt.timedelta(days=1)
         hp = int(hp)
-        if kind == "raid":
-            dmg = 500 * sum(daylog[x].get("evening", 0) for x in dl)
-            mine = {k for at, k, st in completions if dl and dl[0] <= at[:10] <= dl[-1]}
-            dmg += 800 * len({k for k, at in pa_done if dl and dl[0] <= at <= dl[-1]} & mine)
-        else:
-            dmg = dmg_of(b[0], dl)
+        if kind == "week" and key < start:   # angefangene Woche vor dem Start: nur anteilig
+            hp = int(hp * max(3, (key + dt.timedelta(days=6) - start).days + 1) / 7)
+        if kind == "month" and key < start.replace(day=1) or (kind != "week" and dl and dl[0] > key.isoformat()):
+            full = (ends - key).days + 1
+            hp = int(hp * max(7, len(dl)) / full)
+        def dmg_upto(sub):
+            if kind == "raid":
+                v = 400 * sum(daylog[x].get("evening", 0) for x in sub)
+                mine = {k for at, k, st in completions if sub and sub[0] <= at[:10] <= sub[-1]}
+                return v + 800 * len({k for k, at in pa_done if sub and sub[0] <= at <= sub[-1]} & mine)
+            return dmg_of(b[0], sub, hp)
+        dmg = dmg_upto(dl)
         won = dmg >= hp
         win_day = end.isoformat()
         if won:   # Siegtag = erster Tag, an dem der Schaden reichte
             for i in range(1, len(dl) + 1):
-                if (dmg_of(b[0], dl[:i]) if kind != "raid" else 0) >= hp:
+                if dmg_upto(dl[:i]) >= hp:
                     win_day = dl[i - 1]
                     break
+            if win_day > T:
+                win_day = T
         rec = {"kind": kind, "id": b[0], "name": b[1], "icon": b[2], "weak": b[3], "hp": hp, "dmg": dmg, "won": won,
                "from": dl[0] if dl else key.isoformat(), "to": end.isoformat(), "live": live, "ends": ends.isoformat(),
-               "season": b[0] in ("kuerbis", "yeti")}
+               "season": b[0] in ("kuerbis", "yeti", "amor", "osterhase", "sonnenwurm"), "win_day": win_day if won else None}
         if live:
             current[kind] = rec
         if won:
             memories.append({"d": win_day, "i": "⚔️", "t": f"{b[1]} besiegt"})
             if kind == "raid":
                 raid_wins += 1
-                give("egg", "koppla", "Raid-Sieg", win_day) if raid_wins == 1 else give("acc", "herz", "Raid-Sieg", win_day)
-                rewards.append((win_day, "raid", 500))
+                if raid_wins == 1:
+                    give("acc", "herz", "Raid-Sieg", win_day)
+                rewards.append((win_day, "raid", 400))
             else:
                 wins += 1
                 if kind == "month":
                     month_wins += 1
-                    if month_wins == 1:
-                        give("egg", "nocti", "Erster Monats-Boss", win_day)
                     rewards.append((win_day, "boss", 300))
                 else:
-                    rewards.append((win_day, "boss", 100 + 10 * min(wins, 20)))
+                    rewards.append((win_day, "boss", 100 + 5 * min(wins, 20)))
                 if b[0] == "kuerbis":
                     give("acc", "kuerbis", "Halloween-Special", win_day)
                 if b[0] == "yeti":
@@ -1669,6 +2186,7 @@ def pet_state(cfg, force=False):
                     give("hab", "winter", "Winter-Special", win_day)
                 if wins in PET_LOOT:
                     give(PET_LOOT[wins][0], PET_LOOT[wins][1], f"{wins}. Sieg", win_day)
+            roll_egg(kind, b[0], win_day)
             history.append(rec)
         elif not live:
             history.append(rec)
@@ -1676,7 +2194,7 @@ def pet_state(cfg, force=False):
         give("acc", "party", "Erstes durchgespieltes Spiel", completions[0][0][:10])
     # Geschenke vom Partner
     for gft in ((pa or {}).get("pet") or {}).get("gifts") or []:
-        if gft.get("acc") in PET_ACC:
+        if gft.get("acc") in PET_ACC and str(gft.get("at") or T)[:10] >= start.isoformat():
             give("acc", gft["acc"], f"Geschenk von {pa.get('name') or 'Partner'}", str(gft.get("at") or T)[:10])
     # Wochen-Aufgaben
     quests = {}
@@ -1708,7 +2226,7 @@ def pet_state(cfg, force=False):
                 if prog >= target and not doneday:
                     doneday = x
             if doneday:
-                rewards.append((doneday, "quest", 150))
+                rewards.append((doneday, "quest", 60))
             qs.append({"id": qid, "t": label, "target": target, "prog": min(prog, target), "done": bool(doneday)})
         quests[w.isoformat()] = qs
         w += dt.timedelta(days=7)
@@ -1716,27 +2234,43 @@ def pet_state(cfg, force=False):
     rew_by = {}
     for day, why, x in rewards:
         rew_by.setdefault(day, []).append((why, x))
-    xp = {p["id"]: 0 for p in pets}
+    base_xp = {k: int(v) for k, v in (raw.get("base") or {}).items() if k in sp_of}
+    xp = {p["id"]: base_xp.get(p["id"], 0) for p in pets}
     pdays = {p["id"]: 0 for p in pets}
     hatch_day, stage_day = {}, {}
+    for pid in base_xp:   # nach dem Neustart des Begleiter-Spiels schon geschlüpft
+        hatch_day[pid] = epoch.isoformat() if epoch else pstart[pid]
+        pdays[pid] = PET_HATCH_DAYS
     for p in pets:
-        memories.append({"d": p["start"], "i": "🥚", "t": f"{PET_SPECIES[p['sp']]['name']}-Ei ausgesucht"})
+        memories.append({"d": p["start"], "i": "🥚" if p["id"] not in base_xp else "🌱",
+                         "t": f"{PET_SPECIES[p['sp']]['name']}-Ei ausgesucht" if p["id"] not in base_xp else f"Neustart mit {PET_SPECIES[p['sp']]['name']}"})
+    last_hatched = None
     for iso in sorted(daylog):
-        pid = daylog[iso]["pid"]
-        if pid not in xp:
-            continue
-        xp[pid] += daylog[iso]["xp"] + sum(x for _, x in rew_by.get(iso, []))
-        if daylog[iso]["played"]:
-            pdays[pid] += 1
-        if pdays[pid] >= PET_HATCH_DAYS and pid not in hatch_day:
-            hatch_day[pid] = iso
-            memories.append({"d": iso, "i": "🐣", "t": f"{PET_SPECIES[sp_of[pid]]['stages'][0]} ist geschlüpft"})
+        L = daylog[iso]
+        for spid, x in L["split"].items():
+            if spid not in xp or iso < pstart[spid]:
+                continue
+            if spid in hatch_day:
+                xp[spid] += x["xp"]          # Erfahrung erst nach dem Schlüpfen
+            elif x["min"] >= 15:
+                pdays[spid] += 1             # Ei: zählt nur Spieltage, an denen es dabei war
+                if pdays[spid] >= PET_HATCH_DAYS:
+                    hatch_day[spid] = iso
+                    memories.append({"d": iso, "i": "🐣", "t": f"{PET_SPECIES[sp_of[spid]]['stages'][0]} ist geschlüpft"})
+        pid = L["pid"]
         if pid in hatch_day:
-            lv = pet_level(xp[pid])
-            for si, need in ((2, PET_STAGE_LV[0]), (3, PET_STAGE_LV[1])):
-                if lv >= need and (pid, si) not in stage_day:
-                    stage_day[(pid, si)] = iso
-                    memories.append({"d": iso, "i": "✨", "t": f"Entwickelt zu {PET_SPECIES[sp_of[pid]]['stages'][si - 1]}"})
+            last_hatched = pid
+        gain = sum(x for _, x in rew_by.get(iso, []))
+        tgt = pid if pid in hatch_day else last_hatched   # Belohnungen für Eier bekommt der zuletzt aktive Begleiter
+        if gain and tgt:
+            xp[tgt] += gain
+        for spid in L["split"]:
+            if spid in hatch_day and spid in xp:
+                lv = pet_level(xp[spid])
+                for si, need in ((2, PET_STAGE_LV[0]), (3, PET_STAGE_LV[1])):
+                    if lv >= need and (spid, si) not in stage_day:
+                        stage_day[(spid, si)] = iso
+                        memories.append({"d": iso, "i": "✨", "t": f"Entwickelt zu {PET_SPECIES[sp_of[spid]]['stages'][si - 1]}"})
     for at, k, st in completions:
         memories.append({"d": at[:10], "i": "🏁", "t": f"{titles.get(k, k)} {'durchgespielt' if st == 'durchgespielt' else 'zu 100 % geschafft'}"})
     for l in loot:
@@ -2450,28 +2984,44 @@ def app_files():
     return files, h
 
 
-def clean_tiers(games):
-    """Tier-Liste erst ab 5 Stunden: Einordnungen von Spielen darunter entfernen."""
-    if not games:
-        return 0
-    tot = {}
-    for g in games:
-        k = norm_title(g["title"])
-        tot[k] = tot.get(k, 0) + int(g.get("minutes") or 0)
+def recover_tiers(gh, cfg, max_versions=40):
+    """Holt verlorene Tier-Einordnungen aus älteren Backups (GitHub-Verlauf von backup.enc) zurück.
+    Füllt nur leere Einordnungen – nichts, was du danach selbst eingeordnet hast, wird überschrieben."""
     con = app_con()
-    keys = [k for (k,) in con.execute("SELECT key FROM meta WHERE tier IS NOT NULL") if tot.get(k, 0) < 300]
-    with con:
-        con.executemany("UPDATE meta SET tier = NULL, updated = ? WHERE key = ?", [(now_iso(), k) for k in keys])
+    empty = {k for (k,) in con.execute("SELECT key FROM meta WHERE tier IS NULL")}
     con.close()
-    return len(keys)
+    if not empty:
+        return {"restored": 0, "checked": 0}
+    commits = gh.call("GET", f"/repos/{gh.repo}/commits?path=backup.enc&per_page={max_versions}&sha={gh.branch}") or []
+    found, checked = {}, 0
+    for c in commits:
+        try:
+            meta_ = gh.call("GET", f"/repos/{gh.repo}/contents/backup.enc?ref={c['sha']}")
+            blob = gh.call("GET", f"/repos/{gh.repo}/git/blobs/{meta_['sha']}")
+            b = cloud.decrypt(base64.b64decode(blob.get("content", "")), cfg["cloud_pass"])
+        except Exception:
+            continue
+        checked += 1
+        t = (b.get("tables") or {}).get("meta") or {}
+        cols = t.get("cols") or []
+        if "tier" not in cols or "key" not in cols:
+            continue
+        ki, ti = cols.index("key"), cols.index("tier")
+        for r in t.get("rows") or []:
+            k, tv = r[ki], r[ti]
+            if k in empty and tv in TIERS and k not in found:   # neuester Stand zuerst
+                found[k] = tv
+        if len(found) >= len(empty):
+            break
+    con = app_con()
+    with con:
+        con.executemany("UPDATE meta SET tier = ? WHERE key = ? AND tier IS NULL", [(v, k) for k, v in found.items()])
+    con.close()
+    return {"restored": len(found), "checked": checked}
 
 
 def build_snapshot(cfg, gh):
     cache = load_cache()
-    try:
-        clean_tiers(cache.get("games", []))
-    except Exception as e:
-        print("  Tier-Liste:", e)
     games = []
     for g in cache.get("games", []):
         g = {k: v for k, v in g.items() if k not in ("install_dir",)}
@@ -2496,7 +3046,7 @@ def shared_data(cfg, games):
         "csessions": load_console_sessions(int(time.time()) - 800 * 86400),
         "status_log": load_status_log(), "goals": kv_get("goals", {}), "goals_updated": kv_updated("goals"),
         "year_overrides": kv_get("year_overrides", {}), "wrapped_archive": kv_get("wrapped", {}), "notpc": kv_get("notpc", {}),
-        "tracking_since": first_tracking_day(), "health": health(cfg),
+        "tracking_since": first_tracking_day(), "health": health(cfg), "new_games": new_games_seen(),
         "kv_updated": {k: kv_updated(k) for k in ("goals", "year_overrides", "wrapped", "notpc", "snotes", "covers", "paid", "notify", "critic")},
         "critic": kv_get("critic", {}),
         "notify": notify_prefs(cfg), "push_ready": bool((cfg.get("push_topic") or "").strip()),
@@ -2619,6 +3169,13 @@ def cloud_sync(force=False):
             except ValueError:
                 print("  Cloud: Änderung vom Handy mit falschem Passwort verworfen")
             deletes.append(item["path"])
+        if not kv_get("tiers_recovered_v1"):
+            try:
+                r = recover_tiers(gh, cfg)
+                kv_set("tiers_recovered_v1", dict(r, at=now_iso()))
+                print(f"  Tier-Liste: {r['restored']} Einordnungen aus {r['checked']} Backups zurückgeholt")
+            except Exception as e:
+                print("  Tier-Liste zurückholen:", err_text(e))
         snap = build_snapshot(cfg, gh)
         digest = hashlib.sha256(json.dumps(snap, sort_keys=True, default=str).encode()).hexdigest()
         files = {}
@@ -2670,8 +3227,19 @@ def cloud_sync(force=False):
         cloud_lock.release()
 
 
+def psn_changed(cfg):
+    """Leichter PS5-Check: hat sich Spielzeit oder „zuletzt gespielt“ seit dem letzten Abgleich geändert?"""
+    try:
+        now = {g["id"]: (g["minutes"], g.get("last_played")) for g in fetch_psn(cfg, [])}
+    except Exception:
+        return False
+    old = {g["id"]: (g["minutes"], g.get("last_played")) for g in load_cache().get("games", []) if str(g.get("id", "")).startswith("psn_")}
+    return any(old.get(k) != v for k, v in now.items())
+
+
 def scheduler():
     last_export, last_run, last_cloud, last_edits, last_health, started = None, 0, 0, 0, 0, time.time()
+    last_psn = time.time()
     while True:
         cfg = load_config()
         notify.PUSH["topic"] = (cfg.get("push_topic") or "").strip() or None
@@ -2683,6 +3251,13 @@ def scheduler():
         if time.time() - last_run > hours * 3600 or (mtime and mtime != last_export and time.time() - last_run > 900):
             last_export, last_run = mtime, time.time()
             run_sync()
+            last_psn = time.time()
+        elif (cfg.get("psn_npsso") or "").strip() and time.time() - last_psn > 600 and time.time() - last_run > 600:
+            # PS5 alle 10 Min. kurz fragen; nur wenn sich etwas getan hat, voll abgleichen
+            last_psn = time.time()
+            if psn_changed(cfg):
+                last_run = time.time()
+                run_sync()
         # Cloud: Änderungen sofort (max. alle 5 Min.), sonst alle 15 Min. nach Handy-Änderungen schauen
         try:
             check_notifications(cfg)
@@ -2711,13 +3286,13 @@ def scheduler():
         if cloud_ready(cfg) and not state["syncing"]:
             gap = time.time() - last_cloud
             has_edits = False
-            if time.time() - last_edits > 120:  # Handy-Änderungen: alle 2 Minuten nachsehen (1 kleine Anfrage)
+            if time.time() - last_edits > 60:  # Handy-Änderungen: jede Minute nachsehen (1 kleine Anfrage)
                 last_edits = time.time()
                 try:
                     has_edits = bool(cloud.GitHub(cfg["gh_repo"], cfg["gh_token"]).list_edits())
                 except Exception:
                     pass
-            if has_edits or (cloud_state.get("pending") and gap > 300) or gap > 900:
+            if has_edits or (cloud_state.get("pending") and gap > 60) or gap > 900:
                 last_cloud = time.time()
                 cloud_sync()
         time.sleep(20)
@@ -2963,6 +3538,16 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(400, {"error": "Backup passt nicht zum Cloud-Passwort."})
             except Exception as e:
                 return self._send(500, {"error": err_text(e)})
+        if path == "/api/tiers/recover":
+            if not self._local():
+                return self._send(403, {"error": "Nur am PC"})
+            cfg = load_config()
+            if not cloud_ready(cfg):
+                return self._send(400, {"error": "Handy-Cloud ist nicht eingerichtet."})
+            try:
+                return self._send(200, recover_tiers(cloud.GitHub(cfg["gh_repo"], cfg["gh_token"]), cfg))
+            except Exception as e:
+                return self._send(500, {"error": err_text(e)})
         if path == "/api/push/test":
             if not self._local():
                 return self._send(403, {"error": "Nur am PC"})
@@ -3019,7 +3604,7 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/kv":
             if body.get("key") not in KV_KEYS:
                 return self._send(400, {"error": "Unbekannter Schlüssel"})
-            val = clean_kv(body["key"], body.get("value"))
+            val = merge_pet(body.get("value")) if body["key"] == "pet" else clean_kv(body["key"], body.get("value"))
             if body["key"] == "wrapped":  # abgeschlossene Zeiträume bleiben, wie sie sind
                 old = kv_get("wrapped", {}) or {}
                 for k, a in old.items():
@@ -3172,6 +3757,11 @@ def main():
             webbrowser.open(f"http://localhost:{PORT}")
         return
     auto_update_extension()
+    windows_housekeeping()
+    try:
+        pet_soft_reset()
+    except Exception as e:
+        print("  Begleiter-Neustart:", e)
     TRACKER.set_targets(tracker_targets(load_cache().get("games", [])))
     print("=" * 60)
     print(f"  Gaming Recap {VERSION} läuft:  http://localhost:{PORT}")

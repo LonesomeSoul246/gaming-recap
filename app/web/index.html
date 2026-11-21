@@ -908,6 +908,13 @@ body::after{content:"";position:fixed;right:-15vw;bottom:-25vh;width:60vw;height
 .duoav img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}.duoav.me{box-shadow:0 0 0 3px var(--acc)}.duoav.pa{box-shadow:0 0 0 3px var(--violet)}
 .crown{position:absolute;top:-22px;font-size:24px;z-index:2;filter:drop-shadow(0 4px 8px #0008);animation:crownIn .7s cubic-bezier(.3,1.6,.5,1) backwards .3s}
 @keyframes crownIn{from{transform:translateY(-12px) rotate(-20deg);opacity:0}}
+.whearts{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.whearts i{position:absolute;left:var(--x);bottom:-30px;font-style:normal;font-size:calc(22px * var(--s));color:#FF7AB6;opacity:0;animation:wheart var(--d) linear infinite;animation-delay:var(--dl)}
+@keyframes wheart{0%{transform:translateY(0) rotate(-10deg);opacity:0}12%{opacity:.55}100%{transform:translateY(-120cqh) rotate(14deg);opacity:0}}
+.wopp{display:flex;align-items:center;justify-content:center;gap:14px;margin:18px 0;position:relative;z-index:1}.wopp>div{display:flex;flex-direction:column;align-items:center;gap:6px;width:38%;text-align:center}
+.wopp .poster{width:100%;max-width:150px;border-radius:14px}.wopp small{font-size:12px;opacity:.8}.wopp .duoheart{margin:0}
+.wpets{display:flex;justify-content:center;gap:6%;margin:10px 0 16px;position:relative;z-index:1}.wpets>div{display:flex;flex-direction:column;align-items:center;width:44%}.wpets .pwrap{width:100%;margin:0}.wpets small{opacity:.8;font-size:12px}
+@media (prefers-reduced-motion:reduce){.whearts{display:none}}
 .duoheart{font-size:30px;line-height:1;background:linear-gradient(135deg,var(--acc),#FF7AB6 55%,var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent;animation:beat 2.4s ease-in-out infinite;margin-bottom:32px}
 @keyframes beat{0%,100%{transform:scale(1)}12%{transform:scale(1.18)}24%{transform:scale(1)}36%{transform:scale(1.1)}}
 @media (prefers-reduced-motion:reduce){.duoheart{animation:none}}
@@ -972,6 +979,8 @@ body::after{content:"";position:fixed;right:-15vw;bottom:-25vh;width:60vw;height
 .splitbar{display:flex;height:8px;border-radius:99px;overflow:hidden;margin:6px 0 3px;background:var(--violet)}.splitbar i{height:100%}.splitbar i.me{background:var(--acc)}.splitbar i.pa{flex:1}
 .bv{display:flex;justify-content:space-between;font-size:11px;font-weight:800}
 @media(max-width:699px){.bgrid{grid-template-columns:1fr}}
+.bgrid .brow{grid-template-columns:44px minmax(0,1fr)!important;gap:10px;padding:8px 6px}.bgrid .brow .poster{width:44px}.bgrid .bm{min-width:0}
+.bgrid{grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr))}.bt{min-width:0}.bv{gap:8px}
 .ghist{display:flex;align-items:flex-end;gap:3px;height:96px;margin:6px 0 2px;padding-bottom:16px;position:relative}
 .gh{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative}
 .gh i{display:block;width:100%;max-width:18px;border-radius:4px 4px 2px 2px;background:var(--acc);transition:height .9s cubic-bezier(.2,.8,.2,1);min-height:0}
@@ -1093,6 +1102,7 @@ body::after{content:"";position:fixed;right:-15vw;bottom:-25vh;width:60vw;height
 .petfab img{width:56px;height:56px;object-fit:contain;animation:fabbob 3s ease-in-out infinite;filter:drop-shadow(0 3px 4px #0007)}.petfab img.shiny{filter:drop-shadow(0 3px 4px #0007) hue-rotate(150deg)}
 .petfab.egg img{width:44px;height:44px;animation:pwob 3s ease-in-out infinite;--s:1;--wob:1}
 @keyframes fabbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.petbusy .nest button,.petbusy .ci,.petbusy .chip{pointer-events:none;opacity:.55}
 .fabdot{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:var(--cyan);color:#0a1c2a;font-size:11px;font-weight:900;font-style:normal;display:grid;place-items:center;box-shadow:0 0 0 2px var(--panel)}
 @media(min-width:1000px){.petfab{display:none}}
 .petfab[hidden]{display:none}
@@ -1348,7 +1358,7 @@ async function loadCloud(force){
     sessions:snap.sessions||[], csessions:snap.csessions||[], status_log:snap.status_log||[], goals, steam:snap.steam||{}, prefs:snap.prefs||{},
     year_overrides: kvs.year_overrides, wrapped_archive: kvs.wrapped, notpc: kvs.notpc, snotes: kvs.snotes, covers: kvs.covers, paid: kvs.paid, notify: kvs.notify, critic: kvs.critic, push_ready: !!snap.push_ready, wl_deals: snap.wl_deals || {}, metacritic: snap.metacritic || {},
     values: snap.values || {}, values_at: snap.values_at, xcovers: snap.xcovers || {}, partner_url: snap.partner_url || null, partner: snap.partner || null, me_name: snap.me_name || "", me_duo: snap.me_duo || null, greets: snap.greets || [], push_topic: snap.push_topic || null, ui: snap.ui || {}, ghist: snap.ghist || null, pet: snap.pet || null, pet_raw: snap.pet_raw || {}, pet_imgs: snap.pet_imgs || [],
-    tracking_since: snap.tracking_since, health: snap.health || [],
+    tracking_since: snap.tracking_since, health: snap.health || [], new_games: snap.new_games || {},
     trophies: snap.trophies || [], free_games: snap.free_games || [],
     playing:[], can_edit:false, period: p ? p.info : {period:"all"}, period_minutes: p ? p.pm : null};
   S.pcache = {}; S.yearPM = undefined; S.yearInfo = undefined; syncTheme();
@@ -2746,7 +2756,10 @@ function doneInYear(y){
 }
 // Neue Spiele zählen erst ab dem ersten Abgleich (vorher hat Playnite alles auf einmal importiert)
 function addedInYear(y){ const t0 = S.data.tracking_since ? new Date(S.data.tracking_since + "T23:59:59") : null;
-  return blGames().filter(g=>g.added && g.added.getFullYear()===Number(y) && (!t0 || g.added > t0)); }
+  const out = new Map(blGames().filter(g=>g.added && g.added.getFullYear()===Number(y) && (!t0 || g.added > t0)).map(g=>[g.key, g]));
+  // auch Konsolenspiele und alles, was neu im Verlauf aufgetaucht ist
+  for (const [k, day] of Object.entries(S.data.new_games||{})) if (day.startsWith(y) && !out.has(k)){ const g = S.gmap.get(k); if (g) out.set(k, g); }
+  return [...out.values()]; }
 function goalsCard(){
   const y = String(new Date().getFullYear()), g = (S.data.goals||{})[y] || {};
   const done = doneInYear(y).length, added = addedInYear(y).length;
@@ -2904,11 +2917,18 @@ const PET_ACC = {schleife:["Schleife","🎀"], headset:["Gaming-Headset","🎧"]
   kuerbis:["Kürbis-Hütchen","🎃"], wikinger:["Wikingerhelm","🪖"], party:["Partyhütchen","🎉"], halo:["Heiligenschein","💫"], diadem:["Kristall-Diadem","💎"], kapitaen:["Kapitänsmütze","⚓"]};
 const PET_HAB = {lichtung:"Lichtung", sterne:"Sternenhimmel", strand:"Strand", zimmer:"Gaming-Zimmer", vulkan:"Vulkan", winter:"Winterwald", kristall:"Kristallhöhle", riff:"Unterwasser-Riff"};
 // Kopf (x, Oberkante, Augen) in Prozent – aus den Bildern ermittelt
-const PET_HEAD = {"brasu": [[30, 35, 52], [26, 34, 49], [22, 44, 56]], "neruma": [[38, 44, 50], [42, 51, 58], [46, 53, 58]], "moselle": [[31, 32, 51], [25, 24, 41], [22, 54, 64]], "crysto": [[24, 29, 47], [24, 41, 54], [26, 42, 54]], "nocti": [[50, 40, 54], [50, 48, 59], [50, 54, 66]], "koppla": [[26, 50, 60], [26, 46, 57], [28, 55, 64]]};
+// Kopf je Art/Stufe in % des Bildes: [Mitte x, Oberkante y, Augenhöhe y, Kopfbreite] (aus den Bildern ausgemessen)
+const PET_HEAD = {"brasu":[[35,32,57,55],[28,43,60,37],[20,50,68,30]],"neruma":[[37,52,65,40],[33,54,67,35],[47,63,72,22]],
+  "moselle":[[30,40,58,55],[25,48,63,40],[25,74,81,24]],"crysto":[[27,38,66,50],[30,54,72,35],[22,64,77,30]],
+  "nocti":[[38,46,66,40],[44,62,71,24],[48,63,68,22]],"koppla":[[22,57,72,32],[25,58,72,30],[38,70,77,22]]};
+// sichtbare Figur je Bild (Breite, Höhe als Anteil) – damit spätere Stufen nicht kleiner wirken, nur weil sie breiter sind
+const PET_BOX = {"brasu_1":[0.917,0.779],"brasu_2":[0.918,0.667],"brasu_3":[0.92,0.554],"neruma_1":[0.921,0.537],"neruma_2":[0.92,0.545],"neruma_3":[0.925,0.442],"moselle_1":[0.925,0.883],"moselle_2":[0.921,0.779],"moselle_3":[0.922,0.462],"crysto_1":[0.917,0.796],"crysto_2":[0.921,0.61],"crysto_3":[0.921,0.543],"nocti_1":[0.925,0.654],"nocti_2":[0.922,0.504],"nocti_3":[0.92,0.526],"koppla_1":[0.917,0.5],"koppla_2":[0.92,0.515],"koppla_3":[0.922,0.419]};
+const petNorm = p => { const b = p && p.stage && PET_BOX[`${p.sp}_${p.stage}`]; if (!b) return 1;
+  return Math.max(.85, Math.min(1.25, .75 / (Math.pow(b[1], .6) * Math.pow(b[0], .4)))); };
 const petSrc = (sp, stage) => `pets/${sp}_${stage ? stage : "ei"}.webp`;
 // Sitz der Accessoire-Bilder: Breite (in % der Figur) und wo sie hingehören
 const ACC_FIT = {krone:[30,"hat"], zauberhut:[36,"hat"], muetze:[32,"hat"], pirat:[40,"hat"], weihnacht:[36,"hat"], kuerbis:[30,"hat"], wikinger:[34,"hat"],
-  party:[22,"hat"], kapitaen:[36,"hat"], diadem:[30,"hat"], blumen:[34,"hat"], headset:[40,"head"], halo:[34,"halo"], schleife:[22,"hat"], brille:[30,"eyes"], herz:[16,"neck"]};
+  party:[22,"hat"], kapitaen:[36,"hat"], diadem:[30,"hat"], blumen:[34,"hat"], headset:[40,"head"], halo:[34,"halo"], schleife:[22,"hat"], brille:[30,"eyes"], herz:[22,"neck"]};
 const hasImg = n => ((S.data||{}).pet_imgs||[]).includes(n);
 const accIcon = id => hasImg(`acc_${id}.webp`) ? `<img src="pets/acc_${id}.webp" alt="">` : (PET_ACC[id]||["",""])[1];
 const bossIcon = b => hasImg(`boss_${b.id}.webp`) ? `<img src="pets/boss_${b.id}.webp" alt="">` : b.icon;
@@ -2921,11 +2941,12 @@ function petScale(p){
 function petFig(p, opts={}){
   if (!p) return "";
   const party = opts.party && p.stage && !p.acc ? "party" : null, a = p.acc || party;
-  const head = (PET_HEAD[p.sp]||[])[Math.max(0,p.stage-1)] || [50,30,45];
+  const head = (PET_HEAD[p.sp]||[])[Math.max(0,p.stage-1)] || [50,30,45,40];
   let acc = "";
   if (a && p.stage && !opts.sil){
     if (hasImg(`acc_${a}.webp`)){
-      const [w, kind] = ACC_FIT[a] || [30,"hat"];
+      const [w0, kind] = ACC_FIT[a] || [30,"hat"];
+      const w = Math.round(w0 * Math.max(.7, Math.min(1.35, (head[3]||40) / 40)) * (kind==="eyes" ? 1.25 : 1));
       const pos = {hat:[head[1] + 7, "-50%,-82%"], head:[head[1] + 8, "-50%,-50%"], halo:[head[1] - 6, "-50%,-50%"], eyes:[head[2], "-50%,-50%"], neck:[head[2] + 12, "-50%,0"]}[kind];
       acc = `<span class="pacc img" style="left:${head[0]}%;top:${pos[0]}%;width:${w}cqw;height:${w}cqw;transform:translate(${pos[1]})"><img src="pets/acc_${a}.webp" alt=""></span>`;
     } else {
@@ -2933,7 +2954,7 @@ function petFig(p, opts={}){
       acc = `<span class="pacc" style="left:${head[0]}%;top:${ay}%">${accIcon(a)}</span>`;
     }
   }
-  return `<div class="pwrap ${p.stage?"":"egg"} ${opts.cls||""}" style="--s:${opts.scale || petScale(p)};--wob:${p.stage?0:(p.hatch||0)}">
+  return `<div class="pwrap ${p.stage?"":"egg"} ${opts.cls||""}" style="--s:${((opts.scale || petScale(p)) * petNorm(p)).toFixed(3)};--wob:${p.stage?0:(p.hatch||0)}">
     <img class="pimg ${p.shiny?"shiny":""} ${opts.sil?"sil":""}" src="${petSrc(p.sp, p.stage)}" alt="${esc(p.stage_name||"")}" draggable="false">${acc}</div>`;
 }
 const petName = p => p ? (p.nick || (p.stage ? p.stage_name : `${p.species}-Ei`)) : "";
@@ -2979,14 +3000,20 @@ function petStage(p, big, extra=""){
     <div class="pdecor"></div>${extra}${petFig(p, {party: !!P.party})}<div class="pbub">${esc(petBubble(p))}</div></div>`;
 }
 async function savePet(mut, msg){
+  if (S.petBusy) return;              // Doppelklicks ignorieren
+  S.petBusy = true; document.body.classList.add("petbusy");
   const raw = JSON.parse(JSON.stringify(S.data.pet_raw || {pets:[], act:[], acc:{}, hab:"lichtung", gifts:[]}));
+  raw.act = raw.act || [];
+  const before = raw.act.length;
   mut(raw);
-  try { await saveKv("pet", raw); } catch(e){ toast("Speichern hat nicht geklappt"); return; }
+  try { await saveKv("pet", raw); } catch(e){ toast("Speichern hat nicht geklappt"); S.petBusy = false; document.body.classList.remove("petbusy"); return; }
+  S.petBusy = false; document.body.classList.remove("petbusy");
   S.data.pet_raw = raw;
   if (msg) toast(msg);
   if (!CLOUD){ await load(true); return; }
   const P = S.data.pet = S.data.pet || {pets:[]};
-  P.hab = raw.hab || P.hab; P.active = (raw.act.slice(-1)[0]||[])[1] || P.active;
+  P.hab = raw.hab || P.hab; if (raw.act.length > before) P.active = raw.act.slice(-1)[0][1];
+  P.eggs_ready = (P.eggs_ready||[]).filter(sp => !raw.pets.some(r=>r.sp===sp));
   raw.pets.forEach(r=>{ let p = (P.pets||[]).find(x=>x.id===r.id);
     if (!p){ const I = PET_INFO[r.sp]; p = {id:r.id, sp:r.sp, species:I.name, stage:0, stage_name:"Ei", lvl:1, xp:0, xp_lv:0, xp_next:40, hatch:0, hatch_need:3, fav:I.fav, start:r.start}; (P.pets = P.pets||[]).push(p); }
     p.nick = r.nick || ""; p.acc = (raw.acc||{})[r.id] || null; });
@@ -2994,8 +3021,10 @@ async function savePet(mut, msg){
   quietRoute();
 }
 const todayIso = () => new Date().toLocaleDateString("sv-SE");
-window.chooseEgg = sp => savePet(r=>{ const id = "p" + ((r.pets||[]).length + 1); r.pets = [...(r.pets||[]), {id, sp, start: todayIso()}]; r.act = [...(r.act||[]), [todayIso(), id]]; }, "Dein Ei liegt im Nest 🥚");
-window.setActivePet = id => savePet(r=>{ r.act = [...(r.act||[]), [todayIso(), id]]; }, "Dein Begleiter ist jetzt an deiner Seite");
+const nowIso = () => new Date().toISOString();
+window.chooseEgg = sp => { if ((S.data.pet_raw||{pets:[]}).pets.some(p=>p.sp===sp)) return;
+  savePet(r=>{ const id = "p" + Date.now().toString(36).slice(-7); r.pets = [...(r.pets||[]), {id, sp, start: todayIso()}]; r.act = [...(r.act||[]), [nowIso(), id]]; }, "Dein Ei liegt im Nest 🥚"); };
+window.setActivePet = id => { if ((S.data.pet||{}).active === id) return; savePet(r=>{ r.act = [...(r.act||[]), [nowIso(), id]]; }, "Dein Begleiter ist jetzt an deiner Seite"); };
 window.setPetAcc = (id, acc) => savePet(r=>{ r.acc = r.acc||{}; if (r.acc[id] === acc) delete r.acc[id]; else r.acc[id] = acc; });
 window.setPetHab = hab => savePet(r=>{ r.hab = hab; });
 window.renamePet = id => { const p = (S.data.pet.pets||[]).find(x=>x.id===id); const n = prompt("Wie soll dein Begleiter heißen?", petName(p)); if (n === null) return; savePet(r=>{ const x = r.pets.find(y=>y.id===id); if (x) x.nick = n.trim().slice(0,24); }); };
@@ -3040,11 +3069,14 @@ function petFab(){
   const fab = $("#petFab"); if (!fab) return;
   const p = S.data && S.data.pet && petActive(), on = cur() === "begleiter" || !S.data || !S.data.pet;
   fab.hidden = on;
-  if (on) return;
-  const g = p ? petGains(p) : {xp:0}, P = S.data.pet;
-  const news = (g.xp > 0) || (P.eggs_ready||[]).length || (p && !p.stage && p.hatch >= p.hatch_need);
+  const P = (S.data && S.data.pet) || {}, g = p ? petGains(p) : {xp:0};
+  // Hinweis nur für Neues seit dem letzten Besuch der Begleiter-Seite
+  const nkey = [p ? p.id : "", p ? p.stage : "", p ? p.lvl : "", (P.eggs_ready||[]).join(","), (P.loot||[]).length, P.wins||0, P.raid_wins||0, todayIso()].join("|");
+  if (on){ if (S.data && S.data.pet) store.set("gr_petseen", nkey); return; }
+  const fresh = store.get("gr_petseen", "") !== nkey;
+  const news = fresh && ((g.xp > 0) || (P.eggs_ready||[]).length || (P.loot||[]).length || (p && p.stage));
   fab.innerHTML = p ? `<img class="${p.shiny?"shiny":""}" src="${petSrc(p.sp, p.stage)}" alt="">${news?`<i class="fabdot">${g.xp > 0 ? "+" + (g.xp > 999 ? Math.round(g.xp/100)/10 + "k" : g.xp) : "!"}</i>`:""}`
-    : `<img src="pets/moselle_ei.webp" alt=""><i class="fabdot">!</i>`;
+    : `<img src="pets/moselle_ei.webp" alt="">${(P.pets||[]).length ? "" : `<i class="fabdot">!</i>`}`;
   fab.classList.toggle("egg", !p || !p.stage);
 }
 function petMini(){
@@ -3260,6 +3292,27 @@ function duoEvenings(p){
   return {list, n:list.length, min:list.reduce((s,e)=>s+e.min,0), best:[...list].sort((a,b)=>b.min-a.min)[0], top};
 }
 const GREETS = [["💪","Ich feuer dich an!"],["💞","Hab dich lieb"],["🎮","Lust, zusammen zu zocken?"],["👏","Glückwunsch!"],["🍕","Pause? Essen ist fertig"],["😴","Gute Nacht, Player 2"]];
+// Grüße nach Lage: Tageszeit, was der andere gerade macht, und viel Liebe 💞
+const GREET_POOL = {
+  love: [["💞","Hab dich lieb"],["🥰","Du bist mein Lieblings-Koop-Partner"],["💘","Du hast mein Herz gelootet"],["🫶","Player 1 vermisst Player 2"],["💌","Nur kurz: Ich denk an dich"],
+         ["🌹","Legendärer Drop: du"],["🍀","Mit dir ist jeder Run ein Glücksrun"],["🧸","Kuscheln &gt; Respawn"],["✨","Du bist mein Main Quest"],["💍","Bester Spielstand meines Lebens: wir"]],
+  morning: [["☀️","Guten Morgen, Sonnenschein"],["☕","Kaffee ist fertig, Player 2"],["🌅","Neuer Tag, neue Quests – du schaffst das"]],
+  day: [["💪","Du rockst den Tag"],["🍫","Snack-Lieferung im Anflug"],["📱","Kurze Pause? Ich wink dir zu"]],
+  evening: [["🎮","Lust, zusammen zu zocken?"],["🍕","Pause? Essen ist fertig"],["🛋️","Couch ist frei – Koop-Abend?"],["🍿","Filmabend oder Zockabend?"]],
+  night: [["😴","Gute Nacht, Player 2"],["🌙","Speicher ab und komm kuscheln"],["💤","Letzter Boss morgen – jetzt ab ins Bett"]],
+  playing: [["🔥","Ich feuer dich an!"],["🎯","Zeig dem Spiel, wer der Boss ist"],["🏆","Hol dir den Sieg, ich glaub an dich"],["🧃","Trinken nicht vergessen, Gamer"]],
+  done: [["🎉","Glückwunsch zum Durchspielen!"],["👑","Abgeschlossen wie ein Profi"],["🥳","Party! Wieder eins geschafft"]],
+};
+function greetChoices(p){
+  const h = new Date().getHours(), seed = Math.floor(Date.now() / 36e5) + (S.greetShuffle||0), pick = (arr, n, off=0) => { const out = [];
+    for (let i = 0; i < arr.length && out.length < n; i++) out.push(arr[(seed * 7 + off + i * 3) % arr.length]); return [...new Set(out)]; };
+  const ctx = [], live = duoLive(p)[0], news = (p.news||[]).find(e => ["done","full"].includes(e[0]) && Date.now() - Date.parse(e[3]) < 2*864e5);
+  if (live) ctx.push(...pick(GREET_POOL.playing, 2));
+  if (news) ctx.push(...pick(GREET_POOL.done, 1));
+  ctx.push(...pick(GREET_POOL[h < 5 || h >= 23 ? "night" : h < 11 ? "morning" : h < 17 ? "day" : "evening"], 2, 1));
+  const out = [...ctx.slice(0, 3), ...pick(GREET_POOL.love, 6 - Math.min(3, ctx.length), 2)];
+  return out.map(([e,t]) => [e, t.replace("&gt;", ">")]);
+}
 window.sendGreet = async (text, btn) => {
   const p = S.data.partner; if (!p || !p.topic) return;
   if (btn){ btn.disabled = true; setTimeout(()=>btn.disabled = false, 8000); }
@@ -3286,7 +3339,7 @@ function duoGreetBox(){
   const got = [...(S.data.greets||[])].sort((a,b)=>b.at-a.at).slice(0,4), sent = store.get("gr_greets_sent", []).slice(-1)[0];
   el.innerHTML = `${got.length ? got.map((g,i)=>`<div class="greet ${i===0 && Date.now()/1000 - g.at < 3600 ? "new" : ""}"><b>${esc(g.msg)}</b><small>${esc((g.title||"").replace(/^💞\s*/,""))} · ${relT(g.at)}</small></div>`).join("")
       : `<p class="help" style="margin:0 0 10px">Noch keine Grüße bekommen. Mach den Anfang 💌</p>`}
-    ${p.topic ? `<div class="gbtns">${GREETS.map(([e,t])=>`<button class="chip" onclick="sendGreet('${e} ${t}', this)">${e} ${t}</button>`).join("")}</div>
+    ${p.topic ? `<div class="gbtns">${(S._gc = greetChoices(p)).map(([e,t],i)=>`<button class="chip" onclick="sendGreet(S._gc[${i}].join(' '), this)">${e} ${esc(t)}</button>`).join("")}<button class="chip" title="Andere Grüße" onclick="S.greetShuffle=(S.greetShuffle||0)+1;duoGreetBox()">🔀</button></div>
       ${sent ? `<p class="help" style="margin:8px 0 0">Zuletzt gesendet: ${esc(sent.msg)} · ${relT(sent.at)}</p>` : ""}`
       : `<p class="help" style="margin:8px 0 0">Grüße schicken geht, sobald ${esc(p.name)} Push aufs Handy eingerichtet und die neueste Version hat.</p>`}`;
 }
@@ -3414,8 +3467,9 @@ window.startDuoStory = () => {
   const myAv = D.me.avatar || ((S.data.steam||{}).me||{}).avatar;
   const L = [], cover = g => `<div class="poster">${g && g.g ? img(g.g.covers, g.t) : g && g.c ? `<img src="${esc(g.c)}" alt="">` : ph((g||{}).t||"")}</div>`;
   const blobs = (...c) => c.map((col,i)=>`<div class="wblob" style="background:${col};width:${60+i*14}cqw;height:${60+i*14}cqw;left:${[-20,40,-10,50][i%4]}%;top:${[-10,30,60,-20][i%4]}%;animation-delay:${-i*3}s"></div>`).join("");
+  const hearts = () => `<div class="whearts" aria-hidden="true">${Array.from({length:14},(_,i)=>`<i style="--x:${(i*37)%100}%;--d:${6+(i*7)%7}s;--dl:${-(i*1.3)%8}s;--s:${.6+(i%4)*.25}">♥</i>`).join("")}</div>`;
   const av2 = `<div class="sduo w-in d1">${duoAv(myAv, meName, "me")}<span class="duoheart">♥</span>${duoAv(p.avatar, p.name, "pa")}</div>`;
-  L.push({bg:"#15111f", tr:"zoom", html:`${blobs("#33C3FF55","#A97BFF66","#FF7AB633")}<div class="k w-in">Gaming Recap · Wir zwei</div>${av2}
+  L.push({bg:"#15111f", tr:"zoom", html:`${blobs("#33C3FF55","#A97BFF66","#FF7AB633")}${hearts()}<div class="k w-in">Gaming Recap · Wir zwei</div>${av2}
     <div class="h w-in d2 split">Unser Gaming-Jahr ${yr}.</div><p class="w-in d3">${esc(meName)} & ${esc(p.name)} – eine Story für euch zwei.</p>`});
   if (!sum){ L.push({bg:"#181B21", html:`<div class="h">Dieses Jahr ist noch nichts erfasst.</div><p>Spielt ein bisschen – dann füllt sich eure Story.</p>`}); return openStory(L); }
   L.push({bg:"#121522", html:`${blobs("#33C3FF55","#A97BFF55")}<div class="wglass"><div class="k w-in">Zusammen habt ihr ${yr}</div>
@@ -3444,12 +3498,31 @@ window.startDuoStory = () => {
     L.push({bg:"#1a1220", html:`${blobs("#FF7AB633","#7C8CFF55")}<div class="k w-in">Wochen-Duelle ${yr}</div>
       <div class="wbig w-in d1" style="font-size:clamp(56px,20cqw,120px)">${w0}:${w1}</div>
       <p class="w-in d2"><b class="cme">${esc(meName)}</b> gegen <b class="cpa">${esc(p.name)}</b>${streak.n>1?` · aktuell ${streak.n} Siege in Folge für ${esc(streak.who?p.name:meName)}`:""}.${crowns[0]+crowns[1] ? ` Monatskronen: 👑 ${crowns[0]} : ${crowns[1]}.` : ""}</p>`}); }
+  // Gegensätze: wer liebt was, das der/die andere kaum anfasst
+  const opp = (side) => [...mine.values()].map(x=>[x, theirs.get(x.k)]).filter(([x,y])=>y && (side ? y.y > 300 && x.y < 60 : x.y > 300 && y.y < 60) && (x.y||y.y))
+    .sort((u,v)=> side ? v[1].y-u[1].y : v[0].y-u[0].y)[0];
+  const mOnly = opp(0), pOnly = opp(1);
+  if (mOnly || pOnly) L.push({bg:"#1b1424", html:`${blobs("#33C3FF44","#FF7AB644")}<div class="k w-in">Gegensätze ziehen sich an</div>
+    <div class="wopp">${mOnly?`<div class="w-in d1">${cover(mOnly[0])}<b class="cme">${esc(meName)}</b><small>${esc(mOnly[0].t)} · ${hrs(mOnly[0].y)}</small></div>`:""}
+    <span class="duoheart w-in d2">♥</span>${pOnly?`<div class="w-in d3">${cover(pOnly[1])}<b class="cpa">${esc(p.name)}</b><small>${esc(pOnly[1].t)} · ${hrs(pOnly[1].y)}</small></div>`:""}</div>
+    <p class="w-in d4">Das liebt jeweils nur eine*r von euch. Vielleicht ein Abend zum Reinschnuppern? 😉</p>`});
+  // Eure Begleiter nebeneinander
+  const myPet = S.data.pet && petActive(), paPet = (p.pet && p.pet.sp) ? p.pet : null;
+  if (myPet && myPet.stage && paPet && paPet.stage) L.push({bg:"#10201a", html:`${blobs("#14F0C844","#FF7AB633")}${hearts()}<div class="k w-in">Eure Begleiter</div>
+    <div class="wpets"><div class="w-in d1">${petFig(myPet, {scale:.9})}<b class="cme">${esc(myPet.nick||myPet.stage_name)}</b><small>Level ${myPet.lvl}</small></div>
+    <div class="w-in d2">${petFig({...paPet, hatch:3}, {scale:.9})}<b class="cpa">${esc(paPet.nick||paPet.stage_name)}</b><small>Level ${paPet.lvl}</small></div></div>
+    <div class="h w-in d3 split" style="font-size:clamp(26px,8cqw,46px)">Kleine Helden, großes Team.</div>`});
+  // Liebesgrüße
+  const gotN = (S.data.greets||[]).filter(g=>new Date(g.at*1000).getFullYear()===yr).length, sentN = store.get("gr_greets_sent", []).length;
+  if (gotN + sentN >= 2) L.push({bg:"#22111c", html:`${blobs("#FF7AB666","#A97BFF55")}${hearts()}<div class="k w-in">Post für dich</div>
+    <div class="xl w-in d1" data-count="${gotN + sentN}">0</div><div class="h w-in d2 split">Grüße hin und her.</div>
+    <p class="w-in d3">Mitten im Zocken an den anderen denken – das ist Koop auf Profi-Niveau. 💌</p>`});
   L.push({bg:"#0e1b1d", html:`${blobs("#14F0C855","#A97BFF44")}<div class="k w-in">Euer Gaming-Match</div>
     <div class="xl w-in d1" data-count="${match.pct}" data-pre="">0</div><div class="h w-in d2" style="font-size:clamp(30px,9.5cqw,58px);overflow-wrap:anywhere">${matchText(match.pct)}.</div>
     <p class="w-in d3">${match.gen.length?`Ihr trefft euch am ehesten bei <b>${esc(match.gen[0][0])}</b>.`:""} ${D.both.length} Spiele habt ihr beide gespielt.</p>`});
   const next = [...mine.values()].filter(x=>x.own && theirs.has(x.k) && theirs.get(x.k).own && (x.mp || theirs.get(x.k).mp) && x.m + theirs.get(x.k).m < 300)
     .sort((u,v)=>(v.g.critic||70)-(u.g.critic||70))[0];
-  L.push({bg:"#15111f", html:`${blobs("#33C3FF44","#A97BFF55","#FF7AB633")}${av2}<div class="h w-in d2 split">Auf ein weiteres Jahr, Player 2.</div>
+  L.push({bg:"#15111f", html:`${blobs("#33C3FF44","#A97BFF55","#FF7AB633")}${hearts()}${av2}<div class="h w-in d2 split">Auf ein weiteres Jahr, Player 2.</div>
     <p class="w-in d3">${next?`Vorschlag fürs nächste Jahr: <b>${esc(next.t)}</b> – habt ihr beide und lässt sich zusammen spielen.`:"Danke fürs gemeinsame Zocken."} 💞</p>`});
   openStory(L);
 };
@@ -3464,7 +3537,7 @@ const EXPLAIN = {
   pcvs: ["PC vs. Konsole", "Anteil deiner Spielzeit am PC im Vergleich zu PlayStation und Xbox im gewählten Zeitraum."],
   backlog: ["PC-Backlog", "Alle PC-Spiele, die du besitzt (Stores wählbar in den Einstellungen). „Geschafft“ = durchgespielt oder komplett. Der Status wird automatisch erkannt (z. B. nie gestartet, angefangen) – du kannst ihn im Spiel-Detail ändern. Story-Dauern kommen von IGDB."],
   duo: ["Wir zwei", "Zwei Gaming-Recap-Installationen teilen verschlüsselt Spielliste, Spielzeiten, Genres, Tier-Liste und was gerade läuft (keine Keys, keine Notizen). Aktualisiert sich etwa alle 5–10 Minuten, solange beide PCs laufen."],
-  pet: ["Begleiter", "Dein Begleiter wächst mit deinem echten Spielen: Die erste Stunde am Tag zählt voll, danach weniger (höchstens 3 Std pro Tag). Nach einem Tag Pause zählt der nächste Spieltag doppelt. Durchspielen, neue Spiele anfangen, Erfolge und gemeinsame Abende geben extra Erfahrung, sein Lieblingsgenre 50 % mehr. Stufe 2 kommt ab Level 10 (etwa nach einem Monat), die Endform ab Level 25 (etwa nach vier Monaten). Jede Woche und jeden Monat kommt ein Boss – Siege bringen Beute: Accessoires, Lebensräume, Farbwelten und neue Eier."],
+  pet: ["Begleiter", "Dein Begleiter wächst mit deinem echten Spielen (PC und Konsole): Die erste Stunde am Tag zählt voll, danach weniger (höchstens 3 Std pro Tag). Nach einem Ruhetag gibt es einen kleinen Ausgeruht-Bonus. Durchspielen, neue Spiele anfangen, Erfolge und gemeinsame Abende geben extra Erfahrung, sein Lieblingsgenre ein Viertel mehr. Ein Ei schlüpft nach 3 Spieltagen, an denen es dabei war – vorher sammelt es keine Erfahrung. Wechselst du mitten am Tag, wird die Spielzeit des Tages an der Stelle geteilt. Stufe 2 kommt ab Level 10, die Endform ab Level 25 (bei normalem Spielen nach einigen Monaten). Jede Woche und jeden Monat kommt ein Boss, der sich an deiner üblichen Spielzeit orientiert – meist fällt er gegen Ende der Woche. Siege bringen Beute: Accessoires, Lebensräume, Farbwelten und mit etwas Glück ein neues Ei (manche Arten sind selten)."],
   evenings: ["Gemeinsame Abende", "Wenn ihr beide gleichzeitig dasselbe Spiel am PC spielt (mindestens 15 Minuten überlappend), zählt das als gemeinsamer Abend. Grundlage sind die Sessions, die Gaming Recap auf beiden PCs misst. Nach Mitternacht zählt noch zum Vorabend."],
   match: ["Gaming-Match", "Wie ähnlich ihr spielt: zu 60 % eure Genres (Anteil an der Spielzeit) und zu 40 %, wie viele Spiele ihr beide gespielt habt. Die Monatskrone 👑 bekommt, wer im laufenden Monat mehr gespielt hat; das Wochen-Duell zählt die Kalenderwochen (Mo–So)."],
   coop: ["Zusammen spielen", "Spiele, die ihr beide besitzt und die laut Playnite Mehrspieler oder Koop haben – sortiert nach Wertung."],
@@ -4692,6 +4765,21 @@ if (CLOUD && "serviceWorker" in navigator){
 }
 nav();
 load();
+// Handy: beim Zurückkehren in die App und alle 3 Min. still nach neuen Daten schauen
+if (CLOUD){
+  let lastPoll = Date.now();
+  const poll = async () => {
+    if (document.hidden || !pass() || !S.snap || cur()==="wrapped" || Date.now() - lastPoll < 45000) return;
+    lastPoll = Date.now();
+    try {
+      const r = await fetch(`data.enc?t=${Date.now()}`, {cache:"no-store"}); if (!r.ok) return;
+      const text = await r.text(); if (!text || text === store.get("gr_blob", null)) return;
+      if ($("dialog[open]")) { lastPoll = 0; return; }
+      loadCloud(true);
+    } catch(e){}
+  };
+  document.addEventListener("visibilitychange", poll); setInterval(poll, 180000);
+}
 if (LOCAL) setInterval(()=>{ if (!document.hidden && cur()!=="wrapped") fetch("/api/data?period="+S.period).then(r=>r.json()).then(d=>{
   const changed = JSON.stringify(d.playing) !== JSON.stringify(S.data && S.data.playing) || d.last_sync !== (S.data && S.data.last_sync);
   if (changed && !$("#detail").open && !$("#picker").open && !$("#settings").open) load(true);

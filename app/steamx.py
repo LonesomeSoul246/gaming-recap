@@ -237,11 +237,14 @@ def review_summaries(appids):
 
 
 def metacritic(appid):
-    """Metascore der Fachpresse, wie ihn der Steam-Store anzeigt."""
-    j = http_json(f"{STORE}/api/appdetails?" + urllib.parse.urlencode({"appids": appid, "filters": "metacritic", "cc": "de"}), timeout=20)
+    """Metascore der Fachpresse und Genres, wie sie der Steam-Store anzeigt: (score, [genres])."""
+    j = http_json(f"{STORE}/api/appdetails?" + urllib.parse.urlencode({"appids": appid, "filters": "metacritic,genres", "cc": "de", "l": "english"}), timeout=20)
     d = (j.get(str(appid)) or {}).get("data") or {}
-    m = d.get("metacritic") if isinstance(d, dict) else None
-    return int(m["score"]) if m and m.get("score") else None
+    if not isinstance(d, dict):
+        return None, []
+    m = d.get("metacritic")
+    gn = [str(x.get("description")) for x in d.get("genres") or [] if isinstance(x, dict) and x.get("description")]
+    return (int(m["score"]) if m and m.get("score") else None), gn
 
 
 def update_scores(cache_path, appids, limit=400, delay=1.2, status=None):
@@ -250,7 +253,7 @@ def update_scores(cache_path, appids, limit=400, delay=1.2, status=None):
     now = int(time.time())
     def stale(e):
         age = now - (e.get("t") or 0)
-        return age > 14 * DAY or ("rp" not in e and "mc" not in e and age > 3600) or (e.get("v") != 2)
+        return age > 14 * DAY or ("rp" not in e and "mc" not in e and age > 3600) or (e.get("v") != 3)
     todo = [a for a in dict.fromkeys(str(x) for x in appids) if stale(sc.get(a, {}))][:limit]
     if not todo:
         return 0
@@ -259,10 +262,10 @@ def update_scores(cache_path, appids, limit=400, delay=1.2, status=None):
     # 1) Nutzerrezensionen gesammelt
     revs = review_summaries(todo)
     for a in todo:
-        e = {k: v for k, v in sc.get(a, {}).items() if k == "mc"}
+        e = {k: v for k, v in sc.get(a, {}).items() if k in ("mc", "gn")}
         e.update(revs.get(a, {}))
         e["t"] = now
-        e["v"] = 2
+        e["v"] = 3
         sc[a] = e
     write_json(cache_path, c)
     if status is not None:
@@ -271,9 +274,11 @@ def update_scores(cache_path, appids, limit=400, delay=1.2, status=None):
     fails = 0
     for n, a in enumerate(todo, 1):
         try:
-            m = metacritic(a)
+            m, gn = metacritic(a)
             if m:
                 sc[a]["mc"] = m
+            if gn:
+                sc[a]["gn"] = gn
             fails = 0
         except ValueError:
             pass
