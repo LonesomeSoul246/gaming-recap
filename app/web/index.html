@@ -1111,6 +1111,12 @@ body::after{content:"";position:fixed;right:-15vw;bottom:-25vh;width:60vw;height
 .petfab.egg img{width:44px;height:44px;animation:pwob 3s ease-in-out infinite;--s:1;--wob:1}
 @keyframes fabbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 .petbusy .nest button,.petbusy .ci,.petbusy .chip{pointer-events:none;opacity:.55}
+.pwrap.aura::after{content:"";position:absolute;inset:-6% 0 0;pointer-events:none;z-index:3;background:
+  radial-gradient(circle,#fff 0 1.5px,transparent 2.5px) 18% 30%/14% 14%,radial-gradient(circle,#FFE08A 0 1.5px,transparent 2.5px) 70% 20%/18% 18%,
+  radial-gradient(circle,#fff 0 1px,transparent 2px) 40% 60%/22% 22%;animation:sparkle 3.5s ease-in-out infinite;opacity:.8}
+@keyframes sparkle{50%{opacity:.15;transform:translateY(-3%)}}@media (prefers-reduced-motion:reduce){.pwrap.aura::after{animation:none}}
+.hrows{display:grid;gap:10px}.hrow{display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;align-items:start}.hrow>span{font-size:22px;line-height:1.2}
+.hrow b{display:block;font-size:14px}.hrow small{display:block;color:var(--muted);font-size:13px;line-height:1.45}
 .quest.duo{background:linear-gradient(90deg,#FF7AB614,transparent);border-radius:12px}
 .nst.r2 .nfig{filter:drop-shadow(0 0 10px #7FC8FFaa)}.nst.r3 .nfig{filter:drop-shadow(0 0 12px #FFB547cc)}
 .nst.r2::after,.nst.r3::after{content:attr(data-r);position:absolute;top:6px;right:8px;font-size:10px;font-weight:900;letter-spacing:.5px;color:#7FC8FF}
@@ -1296,6 +1302,7 @@ const THEMES = [
   ["kirsch","Kirschblüte","Zartes Rosa und Flieder", {acc:"#FF8FB8", violet:"#B794F6", cyan:"#7FDBCA", pink:"#F6A6C9", ink2:"#2B0A18", bg:"#151015", panel:"#1F171E", panel2:"#281E27", glow:"#3A2436", deep:"#191118", deep2:"#1c151b"}],
   ["mono","Mono","Schlicht in Weiß und Grau", {acc:"#E8ECF2", violet:"#8E99AB", cyan:"#C9D3E0", pink:"#AEB8C6", ink2:"#0B0C0E", bg:"#0E0F11", panel:"#17181B", panel2:"#1E2024", glow:"#26282D", deep:"#121315", deep2:"#141518"}],
   ["drachenglut","Drachenglut","Boss-Beute: Glut und Gold", {acc:"#FFB020", violet:"#FF5A36", cyan:"#FFE08A", pink:"#FF7A59", ink2:"#2A1A00", bg:"#120C08", panel:"#1E1510", panel2:"#2A1D15", glow:"#4A2A14", deep:"#170f0a", deep2:"#1a120d"}, true],
+  ["jahreszeiten","Vier Jahreszeiten","Alle Saison-Tiere gesammelt: Eis, Blüte, Sonne, Herz", {acc:"#7FC8FF", violet:"#FF7AB6", cyan:"#FFD166", pink:"#FF9EC4", ink2:"#0D1B2A", bg:"#0F1117", panel:"#181B24", panel2:"#20242F", glow:"#2B3044", deep:"#121520", deep2:"#151826"}, true],
   ["mondnacht","Mondnacht","Boss-Beute: Silber und Indigo", {acc:"#B8C8FF", violet:"#7C6BD6", cyan:"#9FE7FF", pink:"#C9B8FF", ink2:"#101836", bg:"#0B0D1C", panel:"#141729", panel2:"#1B1F36", glow:"#28305A", deep:"#0e1022", deep2:"#111426"}, true],
 ];
 const THEME = {base: null, cur: "nacht"};
@@ -2963,21 +2970,23 @@ function petScale(p){
 }
 function petFig(p, opts={}){
   if (!p) return "";
-  const party = opts.party && p.stage && !p.acc ? "party" : null, a = p.acc || party;
+  const party = opts.party && p.stage && !p.acc ? "party" : null;
   const head = (PET_HEAD[p.sp]||[])[Math.max(0,p.stage-1)] || [50,30,45,40];
   let acc = "";
+  for (const a of [p.acc || party, p.acc2].filter(Boolean)){
   if (a && p.stage && !opts.sil){
     if (hasImg(`acc_${a}.webp`)){
       const [w0, kind] = ACC_FIT[a] || [30,"hat"];
       const w = Math.round(w0 * Math.max(.7, Math.min(1.35, (head[3]||40) / 40)) * (kind==="eyes" ? 1.25 : 1));
       const pos = {hat:[head[1] + 7, "-50%,-82%"], head:[head[1] + 8, "-50%,-50%"], halo:[head[1] - 6, "-50%,-50%"], eyes:[head[2], "-50%,-50%"], neck:[head[2] + 12, "-50%,0"]}[kind];
-      acc = `<span class="pacc img" style="left:${head[0]}%;top:${pos[0]}%;width:${w}cqw;height:${w}cqw;transform:translate(${pos[1]})"><img src="pets/acc_${a}.webp" alt=""></span>`;
+      acc += `<span class="pacc img" style="left:${head[0]}%;top:${pos[0]}%;width:${w}cqw;height:${w}cqw;transform:translate(${pos[1]})"><img src="pets/acc_${a}.webp" alt=""></span>`;
     } else {
       const ay = a === "brille" ? head[2] : ["schleife","blumen","herz","halo"].includes(a) ? head[1] + (a==="halo" ? -6 : 2) : head[1] - 3;
-      acc = `<span class="pacc" style="left:${head[0]}%;top:${ay}%">${accIcon(a)}</span>`;
+      acc += `<span class="pacc" style="left:${head[0]}%;top:${ay}%">${accIcon(a)}</span>`;
     }
   }
-  return `<div class="pwrap ${p.stage?"":"egg"} ${opts.cls||""}" style="--s:${((opts.scale || petScale(p)) * petNorm(p)).toFixed(3)};--wob:${p.stage?0:(p.hatch||0)}">
+  }
+  return `<div class="pwrap ${p.stage?"":"egg"} ${p.aura && !opts.sil ? "aura" : ""} ${opts.cls||""}" style="--s:${((opts.scale || petScale(p)) * petNorm(p)).toFixed(3)};--wob:${p.stage?0:(p.hatch||0)}">
     <img class="pimg ${p.shiny?"shiny":""} ${opts.sil?"sil":""}" src="${petSrc(p.sp, p.stage)}" alt="${esc(p.stage_name||"")}" draggable="false">${acc}</div>`;
 }
 const petName = p => p ? (p.nick || (p.stage ? p.stage_name : `${p.species}-Ei`)) : "";
@@ -3039,7 +3048,7 @@ async function savePet(mut, msg){
   P.eggs_ready = (P.eggs_ready||[]).filter(sp => !raw.pets.some(r=>r.sp===sp));
   raw.pets.forEach(r=>{ let p = (P.pets||[]).find(x=>x.id===r.id);
     if (!p){ const I = PET_INFO[r.sp]; p = {id:r.id, sp:r.sp, species:I.name, stage:0, stage_name:"Ei", lvl:1, xp:0, xp_lv:0, xp_next:40, hatch:0, hatch_need:3, fav:I.fav, start:r.start}; (P.pets = P.pets||[]).push(p); }
-    p.nick = r.nick || ""; p.acc = (raw.acc||{})[r.id] || null; });
+    p.nick = r.nick || ""; p.acc = (raw.acc||{})[r.id] || null; p.acc2 = (raw.acc2||{})[r.id] || null; });
   P.gifts_sent = raw.gifts || []; P.gift_ok = false;
   quietRoute();
 }
@@ -3048,7 +3057,9 @@ const nowIso = () => new Date().toISOString();
 window.chooseEgg = sp => { if ((S.data.pet_raw||{pets:[]}).pets.some(p=>p.sp===sp)) return;
   savePet(r=>{ const id = "p" + Date.now().toString(36).slice(-7); r.pets = [...(r.pets||[]), {id, sp, start: todayIso()}]; r.act = [...(r.act||[]), [nowIso(), id]]; }, "Dein Ei liegt im Nest 🥚"); };
 window.setActivePet = id => { if ((S.data.pet||{}).active === id) return; savePet(r=>{ r.act = [...(r.act||[]), [nowIso(), id]]; }, "Dein Begleiter ist jetzt an deiner Seite"); };
-window.setPetAcc = (id, acc) => savePet(r=>{ r.acc = r.acc||{}; if (r.acc[id] === acc) delete r.acc[id]; else r.acc[id] = acc; });
+// Zwei Plätze: Kopf (Hüte, Ohren, Kronen …) und Gesicht/Hals (Brille, Anhänger)
+const accSlot = a => ["eyes","neck"].includes((ACC_FIT[a]||[0,"hat"])[1]) ? "acc2" : "acc";
+window.setPetAcc = (id, acc) => savePet(r=>{ const k = accSlot(acc); r[k] = r[k]||{}; if (r[k][id] === acc) delete r[k][id]; else r[k][id] = acc; });
 window.setPetHab = hab => savePet(r=>{ r.hab = hab; });
 window.renamePet = id => { const p = (S.data.pet.pets||[]).find(x=>x.id===id); const n = prompt("Wie soll dein Begleiter heißen?", petName(p)); if (n === null) return; savePet(r=>{ const x = r.pets.find(y=>y.id===id); if (x) x.nick = n.trim().slice(0,24); }); };
 window.sendGift = () => {
@@ -3075,6 +3086,26 @@ function petEvolutionCheck(){
   for (let i = 0; i < 26; i++){ const c = document.createElement("i"); c.className = "conf"; c.style.left = Math.random()*100 + "%"; c.style.background = [I.c,"#FFD166","#fff","#FF8FB8"][i%4]; c.style.animationDelay = (1.6 + Math.random()*.8) + "s"; el.appendChild(c); }
   return true;
 }
+// Spielregeln an einer Stelle (beim ersten Öffnen nach dem Neustart mit „Was ist neu“)
+window.petHelp = (fresh) => {
+  const row = (i, t, d) => `<div class="hrow"><span>${i}</span><div><b>${t}</b><small>${d}</small></div></div>`;
+  $("#infoBody").innerHTML = `<button class="ibtn dclose" onclick="$('#info').close()">✕</button>
+    <div class="eyebrow">${fresh ? "Neustart · Das ist neu" : "Begleiter"}</div><div class="h1" style="font-size:clamp(28px,6vw,40px);margin:6px 0 10px">So funktioniert's</div>
+    ${fresh ? `<p class="help" style="margin-top:0">Das Begleiter-Spiel wurde einmal neu gestartet: Dein erstes Tier ist geblieben (Level 5), alles andere beginnt frisch – fairer und langsamer, damit es lange Spaß macht. Deine Spielzeiten und Statistiken sind unverändert.</p>` : ""}
+    <div class="hrows">
+    ${row("🎮","Erfahrung","Kommt aus deiner echten Spielzeit am PC und auf Konsole. Die erste Stunde am Tag zählt voll, danach weniger (höchstens 3 Std/Tag). Läuft ein Spiel 30 Min ohne Eingabe, zählt das nicht.")}
+    ${row("🥚","Eier","Schlüpfen nach 3 Spieltagen (je 15 Min), an denen sie dabei waren. Vorher sammeln sie keine Erfahrung.")}
+    ${row("🔁","Wechseln","Wechselst du mitten am Tag, wird die Spielzeit an der Stelle geteilt. Tiere im Nest wachsen mit 10 % mit.")}
+    ${row("🌱","Stufen","Ei → Baby (Stufe 1) → Stufe 2 ab Level 10 → Endform (Stufe 3) ab Level 25. Danach gibt es Sterne bei Level 30, 40 und 50 und die Endform glitzert.")}
+    ${row("⚔️","Bosse","Jede Woche und jeden Monat einer. Sie richten sich nach deiner üblichen Spielzeit – meist fallen sie gegen Ende der Woche. Ein Sieg bleibt ein Sieg.")}
+    ${row("🎁","Beute","Accessoires, Lebensräume, Farbwelten. Eier gibt es zufällig nach Siegen – spätestens nach 8 Siegen kommt eins.")}
+    ${row("💎","Seltenheit","Selten: Crysto, Nocti, Frostel, Bluma (leuchten blau). Sehr selten: Koppla, Sola, Herzi (leuchten gold). Saison-Tiere gibt es nur in ihrer Jahreszeit; alle vier zusammen schalten eine Farbwelt frei.")}
+    ${row("🎀","Accessoires","Zwei Plätze: Kopf (Hut, Krone, Ohren …) und Gesicht/Hals (Brille, Anhänger).")}
+    ${row("💞","Zu zweit","Gemeinsame Abende, eine Wochenaufgabe zu zweit (+120), Staffelstab (+40), Raid-Boss und Geschenke.")}
+    ${row("📋","Aufgaben","Drei kleine Aufgaben pro Woche (+60). Kein Muss.")}</div>
+    <button class="btn" style="margin-top:14px" onclick="$('#info').close()">Alles klar</button>`;
+  if (!$("#info").open) $("#info").showModal();
+};
 // Letzter Treffer: neu besiegter Boss wird einmal groß gezeigt
 function petLastHit(){
   const P = S.data.pet || {}, seen = store.get("gr_boss_ko", null);
@@ -3102,8 +3133,10 @@ window.petPostcard = async () => {
   const hab = hasImg(`hab_${P.hab||"lichtung"}.webp`) ? await load(`pets/hab_${P.hab||"lichtung"}.webp`) : null;
   x.save(); x.beginPath(); x.roundRect(70,170,940,760,48); x.clip(); if (hab) x.drawImage(hab,70,170,940,760); else { x.fillStyle="#ffffff10"; x.fillRect(70,170,940,760); } x.restore();
   const im = await load(petSrc(p.sp, p.stage)); if (im){ const sz = 620 * petNorm(p); x.drawImage(im, 540 - sz/2, 900 - sz*.97, sz, sz); }
-  if (p.acc && hasImg(`acc_${p.acc}.webp`)){ const a = await load(`pets/acc_${p.acc}.webp`), h = (PET_HEAD[p.sp]||[])[Math.max(0,p.stage-1)]; if (a && h){ const sz = 620 * petNorm(p), w = sz * (ACC_FIT[p.acc]||[30])[0]/100;
-    const ox = 540 - sz/2, oy = 900 - sz*.97; x.drawImage(a, ox + sz*h[0]/100 - w/2, oy + sz*(h[1]+7)/100 - w*.82, w, w); } }
+  for (const ac of [p.acc, p.acc2].filter(a=>a && hasImg(`acc_${a}.webp`))){ const a = await load(`pets/acc_${ac}.webp`), h = (PET_HEAD[p.sp]||[])[Math.max(0,p.stage-1)]; if (a && h){
+    const sz = 620 * petNorm(p), [w0, kind] = ACC_FIT[ac]||[30,"hat"], w = sz * w0/100 * Math.max(.7, Math.min(1.35, (h[3]||40)/40)) * (kind==="eyes"?1.25:1), ox = 540 - sz/2, oy = 900 - sz*.97;
+    const [ty, fy] = {hat:[h[1]+7,.82], head:[h[1]+8,.5], halo:[h[1]-6,.5], eyes:[h[2],.5], neck:[h[2]+12,0]}[kind];
+    x.drawImage(a, ox + sz*h[0]/100 - w/2, oy + sz*ty/100 - w*fy, w, w); } }
   x.fillStyle = "#fff"; x.textAlign = "center"; x.font = "800 34px system-ui, sans-serif"; x.fillText(`GAMING RECAP · ${yr}`, 540, 110);
   x.font = "900 86px system-ui, sans-serif"; x.fillText(p.nick || p.stage_name, 540, 1040);
   x.font = "700 38px system-ui, sans-serif"; x.globalAlpha = .85;
@@ -3172,7 +3205,9 @@ function renderPet(){
   const P = S.data.pet;
   if (!P){ setView(`<div class="empty"><div class="big">🥚</div><h2>Begleiter</h2><p class="help">Wird beim nächsten Abgleich am PC vorbereitet.</p></div>`); return; }
   const head = `<div class="khead reveal"><div><div class="eyebrow">Dein Begleiter</div><div class="h1">${P.pets && P.pets.length ? esc(petName(petActive())) : "Such dir ein Ei aus"}</div>
-    <p>${P.pets && P.pets.length ? "Wächst mit deinem Spielen und kämpft für dich gegen Bosse" : "Es schlüpft nach ein paar Spieltagen und wächst mit dir"}</p></div></div>`;
+    <p>${P.pets && P.pets.length ? "Wächst mit deinem Spielen und kämpft für dich gegen Bosse" : "Es schlüpft nach ein paar Spieltagen und wächst mit dir"}</p>
+    <button class="btn ghost small" style="margin-top:10px" onclick="petHelp()">📖 So funktioniert's</button></div></div>`;
+  if (P.pets && P.pets.length && !store.get("gr_pet_v2", 0)){ store.set("gr_pet_v2", 1); setTimeout(()=>petHelp(true), 900); }
   if (!P.pets || !P.pets.length){
     setView(head + `<div class="eggpick">${(P.starter||["brasu","neruma","moselle"]).map(sp=>{ const I = PET_INFO[sp];
       return `<button class="card eggc reveal" style="--c:${I.c}" onclick="if(confirm('${I.name} auswählen? Das Ei liegt dann in deinem Nest.'))chooseEgg('${sp}')">
@@ -3191,7 +3226,7 @@ function renderPet(){
       ${petStage(p, true, visit ? `<div class="pvisit">${petFig({...pa.pet}, {scale:.5})}<small>${esc(pa.name)}s ${esc(pa.pet.nick || pa.pet.stage_name)} ist zu Besuch</small></div>` : "")}
       ${g.xp ? `<div class="gainf">+${num(g.xp)} Erfahrung</div>` : ""}
       <div class="pinfo"><div><b class="pname">${esc(petName(p))} <button class="ibtn tiny" onclick="renamePet('${p.id}')" title="Umbenennen">✏️</button></b>
-        <span class="help">${esc(I.name)} · ${p.stage ? `${esc(p.stage_name)} · Stufe ${p.stage} von 3` : "Ei"}${p.shiny ? " · ✨ schillernd" : ""}${p.imprint ? ` · 🎮 geprägt von ${esc(p.imprint)}` : ""}</span></div>
+        <span class="help">${esc(I.name)} · ${p.stage ? `${esc(p.stage_name)} · Stufe ${p.stage} von 3` : "Ei"}${p.shiny ? " · ✨ schillernd" : ""}${p.imprint ? ` · 🎮 geprägt von ${esc(p.imprint)}` : ""}${p.stars ? ` · ${"⭐".repeat(p.stars)}` : ""}${p.next_star ? ` · nächster Stern ab Level ${p.next_star}` : ""}</span></div>
         ${p.next_name ? `<div class="pnext" title="Nächste Form"><div class="pnfig">${petFig({...p, stage: Math.min(3, p.stage+1), acc:null}, {sil:true, scale:.95})}</div><small>${p.stage ? `ab Lvl ${p.next_stage}` : "schlüpft bald"}</small></div>` : ""}
         <div class="plv"><small>${p.stage ? "Level" : "Schlüpft in"}</small><b>${p.stage ? p.lvl : `${p.hatch_need - p.hatch} T`}</b></div></div>
       <div class="pxp pbig"><i style="width:0" data-w="${prog}%"></i></div>
@@ -3215,7 +3250,7 @@ function renderPet(){
   h += `<section class="card s12 x6 reveal"><h3>🎒 Sammlung <span class="h3s">${(U.acc||[]).length} / ${Object.keys(PET_ACC).length} Accessoires</span></h3>
     <div class="secttl">Accessoires ${p.stage ? "" : "<span style='text-transform:none;letter-spacing:0'>(nach dem Schlüpfen)</span>"}</div>
     <div class="coll">${Object.entries(PET_ACC).map(([k,[n]])=>{ const has = (U.acc||[]).includes(k);
-      return `<button class="ci ${has?"":"lock"} ${p.acc===k?"on":""}" ${has && p.stage?`onclick="setPetAcc('${p.id}','${k}')"`:""} title="${esc(n)}"><span class="${hasImg(`acc_${k}.webp`)&&has?"img":""}">${has?accIcon(k):"🔒"}</span><small>${esc(n)}</small></button>`; }).join("")}</div>
+      return `<button class="ci ${has?"":"lock"} ${p.acc===k||p.acc2===k?"on":""}" ${has && p.stage?`onclick="setPetAcc('${p.id}','${k}')"`:""} title="${esc(n)}"><span class="${hasImg(`acc_${k}.webp`)&&has?"img":""}">${has?accIcon(k):"🔒"}</span><small>${esc(n)}</small></button>`; }).join("")}</div>
     <div class="secttl">Lebensraum</div>
     <div class="coll">${Object.entries(PET_HAB).map(([k,n])=>{ const has = (U.hab||[]).includes(k);
       return `<button class="ci hab hab-${k} ${has?"":"lock"} ${P.hab===k?"on":""}" ${habStyle(k)} ${has?`onclick="setPetHab('${k}')"`:""}><span>${has?"":"🔒"}</span><small>${esc(n)}</small></button>`; }).join("")}</div>

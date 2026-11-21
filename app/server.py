@@ -1124,10 +1124,11 @@ def clean_kv(key, v):
             if isinstance(a, list) and len(a) in (2, 3) and a[1] in ids and re.fullmatch(r"\d{4}-\d{2}-\d{2}(T[0-9:.]+(Z|[+-]\d{2}:?\d{2})?)?", str(a[0])):
                 act.append([str(a[0])[:32], a[1]] + ([int(a[2])] if len(a) == 3 and isinstance(a[2], (int, float)) else []))
         acc = {k: str(x)[:20] for k, x in (v.get("acc") or {}).items() if k in ids and x}
+        acc2 = {k: str(x)[:20] for k, x in (v.get("acc2") or {}).items() if k in ids and x}
         _pet_cache["v"] = None
         gifts = [{"acc": str(g.get("acc"))[:20], "at": str(g.get("at") or "")[:10]} for g in (v.get("gifts") or [])[-50:]
                  if isinstance(g, dict) and g.get("acc") in PET_ACC]
-        out = {"pets": pets, "act": act, "acc": acc, "hab": re.sub(r"[^a-z]", "", str(v.get("hab") or ""))[:20], "gifts": gifts}
+        out = {"pets": pets, "act": act, "acc": acc, "acc2": acc2, "hab": re.sub(r"[^a-z]", "", str(v.get("hab") or ""))[:20], "gifts": gifts}
         if re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(v.get("epoch") or "")):
             out["epoch"] = v["epoch"]
             out["base"] = {k: int(x) for k, x in (v.get("base") or {}).items() if k in ids and isinstance(x, (int, float))}
@@ -1247,6 +1248,7 @@ def merge_pet(new, now_minutes=None):
         act.append([ts, a[1], nm])
         have.add((ts, a[1]))
     out = {"pets": pets, "act": act[-300:], "acc": {k: x for k, x in (new.get("acc") or {}).items() if k in ids},
+           "acc2": {k: x for k, x in (new.get("acc2") or {}).items() if k in ids},
            "hab": new.get("hab") or old.get("hab") or "lichtung"}
     gk = {(g["acc"], g["at"]) for g in old.get("gifts") or []}
     out["gifts"] = (old.get("gifts") or []) + [g for g in new.get("gifts") or [] if (g["acc"], g["at"]) not in gk]
@@ -1960,6 +1962,7 @@ PET_SPECIES = {
     "herzi": {"name": "Herzi", "stages": ["Herzchen", "Schnurrlieb", "Amorina"], "fav": "Indie & Party", "start": False,
               "match": ("indie", "party", "music", "rhythm", "platform"), "season": (2,)},
 }
+PET_STARS = (30, 40, 50)          # nach der Endform: Sterne als Ziel
 PET_STAGE_LV = (10, 25)          # Stufe 2 ab Level 10, Stufe 3 ab Level 25
 PET_HATCH_DAYS = 3               # Spieltage (mind. 15 Min) bis zum Schlüpfen
 PET_DAY_CAP = 180                # höchstens 3 Std Spielzeit pro Tag zählen
@@ -2410,6 +2413,9 @@ def pet_state(cfg, force=False):
             history.append(rec)
     if completions:
         give("acc", "party", "Erstes durchgespieltes Spiel", completions[0][0][:10])
+    seasonal = {k for k, v in PET_SPECIES.items() if v.get("season")}
+    if seasonal and seasonal <= (set(sp_of.values()) | set(got["egg"])):
+        give("theme", "jahreszeiten", "Alle Saison-Tiere gesammelt", T)
     if boss_mem_new != {k: v for k, v in boss_mem.items() if k in boss_mem_new} or len(boss_mem_new) > len(boss_mem):
         boss_mem.update(boss_mem_new)
         kv_set("boss_mem", dict(sorted(boss_mem.items())[-200:]))
@@ -2528,6 +2534,11 @@ def pet_state(cfg, force=False):
                         imprint[spid] = titles_by_id.get(top) or (gi.get(top) or {}).get("k")
                     memories.append({"d": iso, "i": "🐣", "t": f"{PET_SPECIES[sp_of[spid]]['stages'][0]} ist geschlüpft"
                                      + (f" – geprägt von {imprint[spid]}" if imprint.get(spid) else "")})
+        day_xp = sum(x["xp"] for x in L["split"].values())
+        if day_xp:   # Tiere im Nest wachsen mit 10 % mit (nur geschlüpfte, nicht die gerade aktiven)
+            for spid in hatch_day:
+                if spid not in L["split"] and spid in xp and iso >= pstart[spid] and iso > hatch_day[spid]:
+                    xp[spid] += day_xp // 10
         pid = L["pid"]
         if pid in hatch_day:
             last_hatched = pid
@@ -2551,6 +2562,7 @@ def pet_state(cfg, force=False):
     memories.sort(key=lambda x: x["d"], reverse=True)
     out = []
     accs = raw.get("acc") or {}
+    accs2 = raw.get("acc2") or {}
     hwm = kv_get("pet_hwm", {}) or {}
     hwm_old = dict(hwm)
     for p in pets:
@@ -2570,8 +2582,11 @@ def pet_state(cfg, force=False):
                     "stage_name": "Ei" if stage == 0 else S["stages"][stage - 1], "lvl": lv, "xp": total,
                     "xp_lv": pet_xp_for(lv), "xp_next": pet_xp_for(lv + 1), "hatch": min(pdays.get(p["id"], 0), PET_HATCH_DAYS),
                     "hatch_need": PET_HATCH_DAYS, "fav": S["fav"], "shiny": shiny, "acc": accs.get(p["id"]) if accs.get(p["id"]) in got["acc"] else None,
+                    "acc2": accs2.get(p["id"]) if accs2.get(p["id"]) in got["acc"] else None,
                     "start": p["start"], "next_stage": PET_STAGE_LV[0] if stage <= 1 else PET_STAGE_LV[1] if stage == 2 else None,
                     "next_name": S["stages"][stage] if stage < 3 else None, "imprint": imprint.get(p["id"]),
+                    "stars": sum(1 for x in PET_STARS if lv >= x), "next_star": next((x for x in PET_STARS if lv < x), None) if stage == 3 else None,
+                    "aura": stage == 3,
                     "rare": PET_RARITY.get(p["sp"], 1)})
     if hwm != hwm_old:
         kv_set("pet_hwm", hwm)
@@ -2609,7 +2624,7 @@ def pet_public(cfg):
         st = pet_state(cfg)
         p = next((x for x in st.get("pets") or [] if x["id"] == st.get("active")), None)
         raw = kv_get("pet", {}) or {}
-        out = {k: p[k] for k in ("sp", "stage", "stage_name", "lvl", "nick", "shiny", "acc", "species")} if p else {}
+        out = {k: p.get(k) for k in ("sp", "stage", "stage_name", "lvl", "nick", "shiny", "acc", "acc2", "species", "aura", "stars")} if p else {}
         out["gifts"] = [g for g in raw.get("gifts") or [] if isinstance(g, dict)][-20:]
         return out if (p or out["gifts"]) else None
     except Exception:
