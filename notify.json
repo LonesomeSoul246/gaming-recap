@@ -1,0 +1,13 @@
+{
+ "cats": {
+  "free": true,
+  "sales": true
+ },
+ "quiet": [
+  22,
+  8
+ ],
+ "phone": true,
+ "tz": "Europe/Berlin",
+ "enabled": true
+}

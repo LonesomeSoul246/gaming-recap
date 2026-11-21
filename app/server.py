@@ -1181,6 +1181,8 @@ def alert(kind, title, body, url=None, queue=True):
     if not (prefs.get("cats") or {}).get(kind, True):
         return False
     phone = bool(prefs.get("phone", True))
+    if kind in ("free", "sales") and cloud_notify_active():
+        phone = False      # kommt schon von der GitHub Action aufs Handy
     if phone and in_quiet(prefs) and not queue:
         phone = False
     if phone and in_quiet(prefs):
@@ -3243,6 +3245,20 @@ def health(cfg):
         add("Autostart", False, "Gaming Recap startet nicht mit Windows.", "Einstellungen › Extras › „Mit Windows starten“ anhaken.", "warn")
     if not (cfg.get("push_topic") or "").strip():
         add("Push aufs Handy", False, "nicht eingerichtet", "Einstellungen › Push aufs Handy.", "info")
+    elif cloud_ready(cfg):
+        cn = kv_get("cloud_notify", None) or {}
+        repo = (cfg.get("gh_repo") or "").strip().strip("/").replace("https://github.com/", "")
+        if cloud_state.get("cn_wf_error"):
+            add("Benachrichtigungen ohne PC", False, "Die GitHub Action konnte nicht angelegt werden.",
+                f"Auf github.com › Settings › Developer settings › Fine-grained tokens deinen Token öffnen, bei „Repository permissions“ "
+                f"„Workflows“ auf „Read and write“ stellen und speichern. Danach legt Gaming Recap sie beim nächsten Abgleich selbst an.", "warn")
+        elif cloud_notify_active():
+            add("Benachrichtigungen ohne PC", True, f"aktiv (Epic-Gratisspiele, Wunschlisten-Angebote · zuletzt {cn.get('last_day')})")
+        elif cn.get("status") and any("fehlt" in x for x in cn["status"]) or (cn and not cn.get("last_day")):
+            add("Benachrichtigungen ohne PC", False, "Noch nicht eingerichtet: " + "; ".join(cn.get("status") or []),
+                f"Auf github.com/{repo} › Settings › Secrets and variables › Actions zwei „Repository secrets“ anlegen: "
+                "NTFY_TOPIC = dein Push-Thema (Einstellungen › Push aufs Handy), STEAM_ID = deine Steam-ID (Einstellungen › Quellen). "
+                f"Dann unter github.com/{repo}/actions „Gaming Recap Benachrichtigungen“ › „Run workflow“.", "warn")
     return out
 
 
@@ -3654,6 +3670,59 @@ def restore_backup(b):
     return n
 
 
+def cloud_notify_files(cfg):
+    """Dateien für die Benachrichtigungen ohne PC (GitHub Action): Skript + Einstellungen (keine Geheimnisse)."""
+    if not (cfg.get("push_topic") or "").strip():
+        return {}, None
+    prefs = notify_prefs(cfg)
+    try:
+        script = open(os.path.join(BASE, "cloudjob", "cloudnotify.py"), "rb").read()
+    except OSError:
+        return {}, None
+    nj = {"cats": {k: bool((prefs.get("cats") or {}).get(k, True)) for k in ("free", "sales")}, "quiet": prefs.get("quiet"),
+          "phone": bool(prefs.get("phone", True)), "tz": "Europe/Berlin", "enabled": True}
+    files = {"cloudnotify.py": script, "notify.json": json.dumps(nj, indent=1).encode()}
+    return files, hashlib.sha256(b"".join(files[k] for k in sorted(files))).hexdigest()[:12]
+
+
+def cloud_notify_workflow(gh):
+    """Die GitHub Action selbst anlegen. Braucht beim Token die Berechtigung „Workflows: Read and write“."""
+    try:
+        wf = open(os.path.join(BASE, "cloudjob", "gr-notify.yml"), "rb").read()
+    except OSError:
+        return
+    h = hashlib.sha256(wf).hexdigest()[:12]
+    if cloud_state.get("cn_wf") == h:
+        return
+    try:
+        gh.commit({".github/workflows/gr-notify.yml": wf}, message="Gaming Recap: Benachrichtigungen ohne PC")
+        cloud_state["cn_wf"], cloud_state["cn_wf_error"] = h, None
+    except Exception as e:
+        cloud_state["cn_wf_error"] = err_text(e)
+
+
+def cloud_notify_check(gh):
+    """Läuft die Action? (liest ihren Stand aus dem Repository, höchstens stündlich)"""
+    if time.time() - cloud_state.get("cn_checked", 0) < 3600:
+        return
+    cloud_state["cn_checked"] = time.time()
+    try:
+        st = json.loads(gh.read_file({"path": "notify-state.json"}))
+        kv_set("cloud_notify", {"last_day": st.get("last_day"), "status": st.get("status") or [], "checked": now_iso()})
+    except FileNotFoundError:
+        kv_set("cloud_notify", {"last_day": None, "status": ["noch nicht gelaufen"], "checked": now_iso()})
+    except Exception:
+        pass
+
+
+def cloud_notify_active():
+    """Übernimmt die Action Gratisspiele und Angebote? Dann schickt der PC sie nicht zusätzlich aufs Handy."""
+    c = kv_get("cloud_notify", None) or {}
+    if not c.get("last_day") or any("NTFY_TOPIC" in x for x in c.get("status") or []):
+        return False
+    return (dt.date.today() - dt.date.fromisoformat(c["last_day"])).days <= 1
+
+
 def cloud_sync(force=False):
     cfg = load_config()
     if not cloud_ready(cfg) or not cloud_lock.acquire(blocking=False):
@@ -3684,9 +3753,17 @@ def cloud_sync(force=False):
         today = dt.date.today().isoformat()
         if cloud_state.get("backup_day") != today:
             files["backup.enc"] = cloud.encrypt(build_backup(), cfg["cloud_pass"])
+        try:
+            cloud_notify_workflow(gh)
+            cloud_notify_check(gh)
+        except Exception as e:
+            print("  Benachrichtigungen ohne PC:", err_text(e))
         app, app_hash = app_files()
         if app_hash != cloud_state.get("app_hash"):
             files.update(app)
+        cn, cn_hash = cloud_notify_files(cfg)
+        if cn and cn_hash != cloud_state.get("cn_hash"):
+            files.update(cn)
         pub_release = None
         if cfg.get("publish_updates"):  # Updates für weitergegebene Installationen (nur Programmdateien, keine Daten/Keys)
             pf = updater.program_files(BASE)
@@ -3715,6 +3792,8 @@ def cloud_sync(force=False):
             cloud_state["pub_release"] = pub_release
         if "partner.enc" in files:
             cloud_state["partner_hash"] = cloud_state.pop("partner_hash_new", None)
+        if cn and "notify.json" in files:
+            cloud_state["cn_hash"] = cn_hash
         cloud_state.update(last_push=now_iso(), error=None, data_hash=digest, app_hash=app_hash,
                            url=gh.pages_url(), pending=False, applied=applied)
     except Exception as e:
