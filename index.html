@@ -3094,6 +3094,7 @@ window.petHelp = (fresh) => {
     ${fresh ? `<p class="help" style="margin-top:0">Das Begleiter-Spiel wurde einmal neu gestartet: Dein erstes Tier ist geblieben (Level 5), alles andere beginnt frisch – fairer und langsamer, damit es lange Spaß macht. Deine Spielzeiten und Statistiken sind unverändert.</p>` : ""}
     <div class="hrows">
     ${row("🎮","Erfahrung","Kommt aus deiner echten Spielzeit am PC und auf Konsole. Die erste Stunde am Tag zählt voll, danach weniger (höchstens 3 Std/Tag). Läuft ein Spiel 30 Min ohne Eingabe, zählt das nicht.")}
+    ${row("✨","Extras","Lieblingsgenre deines Tiers +25 % · Ruhetag davor: kleiner Bonus · neues Spiel angefangen +100 · durchgespielt +500 (100 % +800, plus einen Tag Partyhut) · Erfolg +10 · gemeinsamer Abend +200.")}
     ${row("🥚","Eier","Schlüpfen nach 3 Spieltagen (je 15 Min), an denen sie dabei waren. Vorher sammeln sie keine Erfahrung.")}
     ${row("🔁","Wechseln","Wechselst du mitten am Tag, wird die Spielzeit an der Stelle geteilt. Tiere im Nest wachsen mit 10 % mit.")}
     ${row("🌱","Stufen","Ei → Baby (Stufe 1) → Stufe 2 ab Level 10 → Endform (Stufe 3) ab Level 25. Danach gibt es Sterne bei Level 30, 40 und 50 und die Endform glitzert.")}
@@ -3230,7 +3231,7 @@ function renderPet(){
         ${p.next_name ? `<div class="pnext" title="Nächste Form"><div class="pnfig">${petFig({...p, stage: Math.min(3, p.stage+1), acc:null}, {sil:true, scale:.95})}</div><small>${p.stage ? `ab Lvl ${p.next_stage}` : "schlüpft bald"}</small></div>` : ""}
         <div class="plv"><small>${p.stage ? "Level" : "Schlüpft in"}</small><b>${p.stage ? p.lvl : `${p.hatch_need - p.hatch} T`}</b></div></div>
       <div class="pxp pbig"><i style="width:0" data-w="${prog}%"></i></div>
-      <p class="help" style="margin:6px 0 0">${p.stage ? `${num(p.xp - p.xp_lv)} / ${num(p.xp_next - p.xp_lv)} Erfahrung bis Level ${p.lvl+1}${p.next_stage ? ` · ${esc(p.next_name)} ab Level ${p.next_stage}` : " · Endform erreicht 🌟"}` : `${p.hatch} von ${p.hatch_need} Spieltagen (je mind. 15 Min)`} ${qi("pet")}</p>
+      <p class="help" style="margin:6px 0 0">${p.stage ? `${num(p.xp - p.xp_lv)} / ${num(p.xp_next - p.xp_lv)} Erfahrung bis Level ${p.lvl+1}${p.next_stage ? ` · ${esc(p.next_name)} ab Level ${p.next_stage}` : " · Endform erreicht 🌟"}` : `${p.hatch} von ${p.hatch_need} Spieltagen (je mind. 15 Min)`} <button class="qbtn" onclick="petHelp()" title="So funktioniert's">?</button></p>
       ${parts.length || rews.length ? `<div class="tparts"><small>Heute ${num(T.xp||0)} Erfahrung:</small>${parts.map(([k,v])=>`<span>${PART_LABEL[k]||k} +${num(v)}</span>`).join("")}${rews.map(r=>`<span>${REW_LABEL[r.why]||r.why} +${num(r.xp)}</span>`).join("")}</div>`
         : `<p class="help" style="margin:8px 0 0">Heute noch keine Erfahrung – ${T.rested===false && (P.today||{}).min===0 ? "spiel eine Runde, dann wächst er weiter." : "spiel eine Runde!"}</p>`}
     </section>
@@ -3280,15 +3281,6 @@ function renderPet(){
   // Verlauf & Wie
   const hist = [...(P.history||[])].reverse().slice(0,8);
   if (hist.length) h += `<section class="card s12 x6 reveal"><h3>📜 Letzte Kämpfe</h3>${hist.map(b=>`<div class="xrow" style="cursor:default"><div class="bicon sm ${hasImg(`boss_${b.id}.webp`)?"img":""}">${bossIcon(b)}</div><div><b>${esc(b.name)}</b><span>${fdate(new Date(b.to+"T12:00"))} · ${b.won?"besiegt":"entkommen"} · ${num(b.dmg)} / ${num(b.hp)}</span></div><em title="${b.won?"Besiegt":"Entkommen"}">${b.won?"🏆":"💨"}</em></div>`).join("")}</section>`;
-  h += `<section class="card s12 ${hist.length?"x6":""} reveal"><h3>✨ So wächst ${esc(petName(p))}</h3><div class="hows">
-    <div><b>🎮 Spielen</b><span>Die erste Stunde am Tag zählt voll, danach weniger – max. 3 Std pro Tag.</span></div>
-    <div><b>💤 Ausgeruht</b><span>Nach einem Tag Pause zählt der nächste Spieltag doppelt.</span></div>
-    <div><b>❤️ ${esc(p.fav)}</b><span>Sein Lieblingsgenre gibt 50 % extra.</span></div>
-    <div><b>🏁 Durchspielen</b><span>+500 Erfahrung, 100 % sogar +800 – und einen Tag lang Partyhut.</span></div>
-    <div><b>🆕 Neues anfangen</b><span>+100 pro neu angefangenem Spiel.</span></div>
-    <div><b>🏆 Erfolge</b><span>+10 pro Steam-Erfolg.</span></div>
-    ${pa ? `<div><b>💞 Gemeinsame Abende</b><span>+200 – und der Raid gegen den Koop-Kraken.</span></div>` : ""}
-    <div><b>⚔️ Bosse</b><span>Jede Woche und jeden Monat einer, passend zu deinem Spieltempo. Im Februar, April, Juli, Oktober und Dezember gibt es Saison-Bosse.</span></div></div></section>`;
   setView(h + `</div>`);
   clearInterval(S._pti); S._pti = setInterval(()=>{ const b = document.querySelector(".pethero .pbub"); if (!b || cur() !== "begleiter"){ clearInterval(S._pti); return; } S._pl = (S._pl||0) + 1; b.textContent = petBubble(p); b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop"); }, 9000);
   setTimeout(()=>{ const evo = petEvolutionCheck() || petLastHit();
@@ -3638,7 +3630,6 @@ const EXPLAIN = {
   pcvs: ["PC vs. Konsole", "Anteil deiner Spielzeit am PC im Vergleich zu PlayStation und Xbox im gewählten Zeitraum."],
   backlog: ["PC-Backlog", "Alle PC-Spiele, die du besitzt (Stores wählbar in den Einstellungen). „Geschafft“ = durchgespielt oder komplett. Der Status wird automatisch erkannt (z. B. nie gestartet, angefangen) – du kannst ihn im Spiel-Detail ändern. Story-Dauern kommen von IGDB."],
   duo: ["Wir zwei", "Zwei Gaming-Recap-Installationen teilen verschlüsselt Spielliste, Spielzeiten, Genres, Tier-Liste und was gerade läuft (keine Keys, keine Notizen). Aktualisiert sich etwa alle 5–10 Minuten, solange beide PCs laufen."],
-  pet: ["Begleiter", "Dein Begleiter wächst mit deinem echten Spielen (PC und Konsole): Die erste Stunde am Tag zählt voll, danach weniger (höchstens 3 Std pro Tag). Nach einem Ruhetag gibt es einen kleinen Ausgeruht-Bonus. Durchspielen, neue Spiele anfangen, Erfolge und gemeinsame Abende geben extra Erfahrung, sein Lieblingsgenre ein Viertel mehr. Ein Ei schlüpft nach 3 Spieltagen, an denen es dabei war – vorher sammelt es keine Erfahrung. Wechselst du mitten am Tag, wird die Spielzeit des Tages an der Stelle geteilt. Stufe 2 kommt ab Level 10, die Endform ab Level 25 (bei normalem Spielen nach einigen Monaten). Jede Woche und jeden Monat kommt ein Boss, der sich an deiner üblichen Spielzeit orientiert – meist fällt er gegen Ende der Woche. Siege bringen Beute: Accessoires, Lebensräume, Farbwelten und mit etwas Glück ein neues Ei (manche Arten sind selten)."],
   evenings: ["Gemeinsame Abende", "Wenn ihr beide gleichzeitig dasselbe Spiel am PC spielt (mindestens 15 Minuten überlappend), zählt das als gemeinsamer Abend. Grundlage sind die Sessions, die Gaming Recap auf beiden PCs misst. Nach Mitternacht zählt noch zum Vorabend."],
   match: ["Gaming-Match", "Wie ähnlich ihr spielt: zu 60 % eure Genres (Anteil an der Spielzeit) und zu 40 %, wie viele Spiele ihr beide gespielt habt. Die Monatskrone 👑 bekommt, wer im laufenden Monat mehr gespielt hat; das Wochen-Duell zählt die Kalenderwochen (Mo–So)."],
   coop: ["Zusammen spielen", "Spiele, die ihr beide besitzt und die laut Playnite Mehrspieler oder Koop haben – sortiert nach Wertung."],
