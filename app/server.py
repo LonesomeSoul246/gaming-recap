@@ -233,11 +233,34 @@ def _pythonw():
     return "pythonw"
 
 
+def other_autostart():
+    """Selbst angelegter Autostart (Verknüpfung/Skript im Autostart-Ordner, das Gaming Recap startet)? Liefert den Dateinamen."""
+    f = autostart_file()
+    if not f:
+        return None
+    folder = os.path.dirname(f)
+    needles = [x.lower() for x in (BASE, "server.py", "gamingrecap", "gaming recap", "start.bat")]
+    try:
+        for n in os.listdir(folder):
+            p = os.path.join(folder, n)
+            if p == f or not os.path.isfile(p) or os.path.getsize(p) > 200000:
+                continue
+            raw = open(p, "rb").read()
+            txt = (raw.decode("utf-8", "ignore") + raw.decode("utf-16-le", "ignore") + n).lower()
+            if any(x in txt for x in needles):
+                return n
+    except OSError:
+        pass
+    return None
+
+
 def set_autostart(on):
     """Startet mit Windows ganz ohne schwarzes Fenster (kleines VBScript ruft pythonw direkt auf)."""
     f = autostart_file()
     if not f:
         raise RuntimeError("Autostart gibt es nur unter Windows.")
+    if on and other_autostart():   # schon selbst eingerichtet – kein zweiter Start
+        return True
     old = f[:-4] + ".cmd"
     if os.path.exists(old):
         os.remove(old)
@@ -3024,7 +3047,7 @@ def health(cfg):
                 f"Läuft Gaming Recap auf dem PC von {nm}? Dort http://localhost:8765 öffnen – sonst Start.bat starten. "
                 "Läuft es, unter Einstellungen › System › Systemcheck nach einem Fehler bei „Handy-Cloud“ schauen (GitHub-Token abgelaufen?).", "warn")
     af = autostart_file()
-    if af and not os.path.exists(af):
+    if af and not os.path.exists(af) and not other_autostart():
         add("Autostart", False, "Gaming Recap startet nicht mit Windows.", "Einstellungen › Extras › „Mit Windows starten“ anhaken.", "warn")
     if not (cfg.get("push_topic") or "").strip():
         add("Push aufs Handy", False, "nicht eingerichtet", "Einstellungen › Push aufs Handy.", "info")
@@ -3775,7 +3798,7 @@ class Handler(BaseHTTPRequestHandler):
             cfg = public_config(load_config())
             dest = ext_target()
             af = autostart_file()
-            cfg.update(autostart=bool(af and os.path.exists(af)), autostart_supported=bool(af))
+            cfg.update(autostart=bool(af and (os.path.exists(af) or other_autostart())), autostart_supported=bool(af))
             cfg.update(playnite_found=bool(dest), extension_installed=bool(dest and os.path.isdir(dest)),
                        cloud=cloud_state, tracker_supported=os.name == "nt")
             return self._send(200, cfg)
