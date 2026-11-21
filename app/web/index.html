@@ -2933,7 +2933,8 @@ const PET_INFO = {
 const PET_RARE = {crysto:2, nocti:2, frostel:2, bluma:2, koppla:3, sola:3, herzi:3};
 const PET_ACC = {schleife:["Schleife","🎀"], headset:["Gaming-Headset","🎧"], brille:["Sonnenbrille","🕶️"], krone:["Krone","👑"], zauberhut:["Zauberhut","🎩"],
   blumen:["Blumenkranz","🌸"], herz:["Herz-Anhänger","💞"], muetze:["Bommelmütze","🧶"], pirat:["Piratenhut","🏴‍☠️"], weihnacht:["Weihnachtsmütze","🎅"],
-  kuerbis:["Kürbis-Hütchen","🎃"], wikinger:["Wikingerhelm","🪖"], party:["Partyhütchen","🎉"], halo:["Heiligenschein","💫"], diadem:["Kristall-Diadem","💎"], kapitaen:["Kapitänsmütze","⚓"]};
+  kuerbis:["Kürbis-Hütchen","🎃"], wikinger:["Wikingerhelm","🪖"], party:["Partyhütchen","🎉"], halo:["Heiligenschein","💫"], diadem:["Kristall-Diadem","💎"], kapitaen:["Kapitänsmütze","⚓"],
+  herzreif:["Herz-Haarreif","💗"], hasenohren:["Hasenohren","🐰"], sonnenhut:["Sonnenhut","👒"]};
 const PET_HAB = {lichtung:"Lichtung", sterne:"Sternenhimmel", strand:"Strand", zimmer:"Gaming-Zimmer", vulkan:"Vulkan", winter:"Winterwald", kristall:"Kristallhöhle", riff:"Unterwasser-Riff"};
 // Kopf (x, Oberkante, Augen) in Prozent – aus den Bildern ermittelt
 // Kopf je Art/Stufe in % des Bildes: [Mitte x, Oberkante y, Augenhöhe y, Kopfbreite] (aus den Bildern ausgemessen)
@@ -2949,7 +2950,8 @@ const petNorm = p => { const b = p && p.stage && PET_BOX[`${p.sp}_${p.stage}`]; 
 const petSrc = (sp, stage) => `pets/${sp}_${stage ? stage : "ei"}.webp`;
 // Sitz der Accessoire-Bilder: Breite (in % der Figur) und wo sie hingehören
 const ACC_FIT = {krone:[30,"hat"], zauberhut:[36,"hat"], muetze:[32,"hat"], pirat:[40,"hat"], weihnacht:[36,"hat"], kuerbis:[30,"hat"], wikinger:[34,"hat"],
-  party:[22,"hat"], kapitaen:[36,"hat"], diadem:[30,"hat"], blumen:[34,"hat"], headset:[40,"head"], halo:[34,"halo"], schleife:[22,"hat"], brille:[30,"eyes"], herz:[22,"neck"]};
+  party:[22,"hat"], kapitaen:[36,"hat"], diadem:[30,"hat"], blumen:[34,"hat"], headset:[40,"head"], halo:[34,"halo"], schleife:[22,"hat"], brille:[30,"eyes"], herz:[22,"neck"],
+  herzreif:[32,"hat"], hasenohren:[34,"hat"], sonnenhut:[42,"hat"]};
 const hasImg = n => ((S.data||{}).pet_imgs||[]).includes(n);
 const accIcon = id => hasImg(`acc_${id}.webp`) ? `<img src="pets/acc_${id}.webp" alt="">` : (PET_ACC[id]||["",""])[1];
 const bossIcon = b => hasImg(`boss_${b.id}.webp`) ? `<img src="pets/boss_${b.id}.webp" alt="">` : b.icon;

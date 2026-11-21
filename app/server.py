@@ -1943,7 +1943,8 @@ PET_DAY_CAP = 180                # höchstens 3 Std Spielzeit pro Tag zählen
 PET_ACC = {"schleife": "Schleife", "headset": "Gaming-Headset", "brille": "Sonnenbrille", "krone": "Krone", "zauberhut": "Zauberhut",
            "blumen": "Blumenkranz", "herz": "Herz-Anhänger", "muetze": "Bommelmütze", "pirat": "Piratenhut", "weihnacht": "Weihnachtsmütze",
            "kuerbis": "Kürbis-Hütchen", "wikinger": "Wikingerhelm", "party": "Partyhütchen", "halo": "Heiligenschein",
-           "diadem": "Kristall-Diadem", "kapitaen": "Kapitänsmütze"}
+           "diadem": "Kristall-Diadem", "kapitaen": "Kapitänsmütze",
+           "herzreif": "Herz-Haarreif", "hasenohren": "Hasenohren", "sonnenhut": "Sonnenhut"}
 PET_HAB = {"lichtung": "Lichtung", "sterne": "Sternenhimmel", "strand": "Strand", "zimmer": "Gaming-Zimmer", "vulkan": "Vulkan",
            "winter": "Winterwald", "kristall": "Kristallhöhle", "riff": "Unterwasser-Riff"}
 # Beute nach Anzahl Siege (Wochen-, Saison- und Monats-Bosse zusammen)
@@ -2369,6 +2370,12 @@ def pet_state(cfg, force=False):
                     rewards.append((win_day, "boss", 100 + 5 * min(wins, 20)))
                 if b[0] == "kuerbis":
                     give("acc", "kuerbis", "Halloween-Special", win_day)
+                if b[0] == "amor":
+                    give("acc", "herzreif", "Valentins-Special", win_day)
+                if b[0] == "osterhase":
+                    give("acc", "hasenohren", "Oster-Special", win_day)
+                if b[0] == "sonnenwurm":
+                    give("acc", "sonnenhut", "Sommer-Special", win_day)
                 if b[0] == "yeti":
                     give("acc", "weihnacht", "Winter-Special", win_day)
                     give("hab", "winter", "Winter-Special", win_day)
@@ -2929,6 +2936,15 @@ def health(cfg):
     """Systemcheck: was läuft, was nicht – mit Hinweis, wie man es behebt."""
     out = []
     add = lambda k, ok, msg, fix=None, level=None: out.append({"k": k, "ok": ok, "msg": msg, "fix": fix, "level": level or ("ok" if ok else "error")})
+    sc = kv_get("selfcheck", None) or {}
+    data_checks = [c for c in sc.get("checks") or [] if not c["area"].startswith(("Quelle", "Handy-Cloud"))]
+    if data_checks:
+        bad = [c for c in data_checks if not c["ok"]]
+        if bad:
+            for c in bad:
+                add("Daten: " + c["area"], False, c["text"], "Sag Claude Bescheid – das sollte nie passieren.")
+        else:
+            add("Daten-Selbstcheck", True, f"{len(data_checks)} Prüfungen in Ordnung (Verlauf, Tier-Liste, Begleiter)")
     cache = load_cache()
     src = cache.get("sources", {})
     ls = parse_iso(cache.get("last_sync"))
@@ -3008,6 +3024,12 @@ def health(cfg):
 
 def check_health(cfg):
     """Neue Probleme einmal melden (Windows + Handy)."""
+    sc = kv_get("selfcheck", None)
+    if not sc or time.time() - (parse_iso(sc.get("at")) or 0) > 3600:   # Daten-Selbstcheck stündlich
+        try:
+            kv_set("selfcheck", {"at": now_iso(), "checks": self_check(cfg)})
+        except Exception as e:
+            kv_set("selfcheck", {"at": now_iso(), "checks": [{"ok": False, "area": "Selbstcheck", "text": err_text(e)}]})
     errs = {f"{h['k']}: {h['msg']}" for h in health(cfg) if h["level"] == "error"}
     known = set(kv_get("health_notified", []) or [])
     new = errs - known
