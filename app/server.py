@@ -1962,7 +1962,7 @@ PET_SPECIES = {
     "herzi": {"name": "Herzi", "stages": ["Herzchen", "Schnurrlieb", "Amorina"], "fav": "Indie & Party", "start": False,
               "match": ("indie", "party", "music", "rhythm", "platform"), "season": (2,)},
 }
-PET_STARS = (30, 40, 50)          # nach der Endform: Sterne als Ziel
+PET_STARS = (30, 35, 40)          # nach der Endform: Sterne als Ziel
 PET_STAGE_LV = (10, 25)          # Stufe 2 ab Level 10, Stufe 3 ab Level 25
 PET_HATCH_DAYS = 3               # Spieltage (mind. 15 Min) bis zum Schlüpfen
 PET_DAY_CAP = 180                # höchstens 3 Std Spielzeit pro Tag zählen
