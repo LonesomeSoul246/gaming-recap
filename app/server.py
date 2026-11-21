@@ -1070,6 +1070,111 @@ def in_quiet(prefs, now=None):
     return a <= h < b if a < b else (h >= a or h < b)
 
 
+def quiet_end(prefs, now=None):
+    """Zeitpunkt (Unix), an dem die Nachtruhe endet."""
+    q = prefs.get("quiet")
+    if not q:
+        return None
+    now = now or dt.datetime.now()
+    t = now.replace(hour=q[1], minute=0, second=0, microsecond=0)
+    if t <= now:
+        t += dt.timedelta(days=1)
+    return int(t.timestamp()) + 60
+
+
+def plan_ahead(cfg, now=None):
+    """Plant Benachrichtigungen bis 3 Tage im Voraus bei ntfy ein. So kommen sie auch, wenn der PC aus ist.
+    Läuft stündlich und aktualisiert/löscht geplante Nachrichten, wenn sich etwas ändert."""
+    now = now or dt.datetime.now()
+    prefs = notify_prefs(cfg)
+    planned = kv_get("planned", {}) or {}
+    topic = (cfg.get("push_topic") or "").strip()
+    cats = prefs.get("cats") or {}
+    want = {}
+    if topic and prefs.get("phone", True):
+        base = cloud_state.get("url") or f"http://localhost:{PORT}/"
+        def at_(d, h):
+            t = dt.datetime.combine(d, dt.time(h, 0))
+            if in_quiet(prefs, t):
+                t = dt.datetime.fromtimestamp(quiet_end(prefs, t))
+            return t
+        def add(key, kind, t, title, body, url=None, suffix=""):
+            if cats.get(kind, True) and now + dt.timedelta(minutes=2) < t < now + dt.timedelta(hours=70):
+                want["gr-" + key] = [int(t.timestamp()), title, body, url, suffix]
+        stamp = now.strftime("%a %H:%M").replace("Mon", "Mo").replace("Tue", "Di").replace("Wed", "Mi").replace("Thu", "Do").replace("Fri", "Fr").replace("Sat", "Sa").replace("Sun", "So")
+        try:
+            st = pet_state(cfg)
+        except Exception:
+            st = {}
+        today = now.date()
+        sun = today + dt.timedelta(days=(6 - today.weekday()) % 7)
+        wk = (sun - dt.timedelta(days=6)).isoformat()
+        p = next((x for x in st.get("pets") or [] if x["id"] == st.get("active")), None)
+        if p and p["stage"] and kv_get("pet_weekly_sent") != wk:
+            body = pet_weekly_text(st, p)
+            if body:
+                add(f"petweek-{wk}", "pet", at_(sun, 19), f"🐾 Wochenrückblick von {p['nick'] or p['stage_name']}", body, base + "#/begleiter", f" (Stand {stamp})")
+        wb = (st.get("current") or {}).get("week")
+        if wb and not wb.get("won"):
+            left = max(0, wb["hp"] - wb["dmg"])
+            add(f"boss-{wk}", "pet", at_(sun, 12), f"⚔️ {wb['name']} flieht heute um Mitternacht",
+                f"Noch {left} Leben – etwa {max(1, round(left / 60))} Std Spielen reichen.", base + "#/begleiter")
+        open_q = [q for q in st.get("quests") or [] if not q["done"]]
+        if open_q:
+            add(f"quest-{wk}", "pet", at_(sun - dt.timedelta(days=1), 11), f"📋 Noch {len(open_q)} Wochenaufgabe{'n' if len(open_q) > 1 else ''} offen",
+                " · ".join(q["t"] for q in open_q[:3]) + " – bis Sonntag Zeit.", base + "#/begleiter")
+        # Neuerscheinungen von der Wunschliste
+        sx = read_json(STEAMX_PATH, {}) or {}
+        for w in sx.get("wishlist") or []:
+            pr = (sx.get("prices") or {}).get(str(w.get("appid"))) or {}
+            rel = pr.get("release")
+            if rel:
+                d = dt.date.fromtimestamp(rel)
+                if today < d:
+                    add(f"rel-{w.get('appid')}", "release", at_(d, 10), "Heute erschienen",
+                        f"{pr.get('name') or 'Ein Spiel von deiner Wunschliste'} ist ab heute erhältlich.", f"https://store.steampowered.com/app/{w.get('appid')}")
+        # Monats- und Jahres-Wrapped
+        first = (today.replace(day=28) + dt.timedelta(days=4)).replace(day=1)
+        mnames = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"]
+        last = first - dt.timedelta(days=1)
+        add(f"month-{last.strftime('%Y-%m')}", "monthly", at_(first, 10), f"🎬 Dein {mnames[last.month - 1]}-Wrapped ist da",
+            "Tippe für dein Monats-Wrapped.", f"{base}#/wrapped/arch:{last.strftime('%Y-%m')}")
+        if first.month == 12:
+            add(f"year-{first.year}", "yearly", at_(first, 10), f"🎬 Dein Gaming-Jahr {first.year} ist da", "Dein Jahres-Wrapped ist fertig – tippe für deine Story.", f"{base}#/wrapped/year")
+        if first.month == 1:
+            add(f"yearfinal-{first.year - 1}", "yearly", at_(first, 10), f"🏁 {first.year - 1} ist abgeschlossen",
+                f"Dein komplettes Gaming-Jahr {first.year - 1} steht fest. Tippe für das finale Wrapped.", f"{base}#/wrapped/arch:{first.year - 1}")
+    nowts = now.timestamp()
+    changed = False
+    for sid, (when, *_r) in list(planned.items()):
+        if when > nowts and sid not in want:      # nicht mehr nötig (z. B. Boss besiegt) → absagen
+            notify.cancel(sid, topic)
+            planned.pop(sid)
+            changed = True
+        elif when < nowts - 8 * 86400:
+            planned.pop(sid)
+            changed = True
+    for sid, (when, title, body, url, suffix) in want.items():
+        h = hashlib.sha256(f"{when}|{title}|{body}|{url}".encode()).hexdigest()[:10]   # „Stand“-Zeit zählt nicht als Änderung
+        old = planned.get(sid)
+        if old and old[1] == h:
+            continue
+        if old and old[0] > nowts:
+            notify.cancel(sid, topic)
+        if notify.push(title, body + suffix, url, delay=when, sid=sid):
+            planned[sid] = [when, h]
+            changed = True
+    if changed:
+        kv_set("planned", planned)
+    return want
+
+
+def planned_done(sid, now=None):
+    """Wurde diese Nachricht schon vorab bei ntfy eingeplant und ist ihr Zeitpunkt erreicht? Dann nicht doppelt senden."""
+    x = (kv_get("planned", {}) or {}).get(sid)
+    return bool(x) and x[0] <= (now or time.time()) + 3600
+
+
 def alert(kind, title, body, url=None, queue=True):
     """Zentrale Stelle für alle Hinweise: Thema an/aus, Windows und/oder Handy, Nachtruhe fürs Handy."""
     prefs = notify_prefs()
@@ -1079,10 +1184,14 @@ def alert(kind, title, body, url=None, queue=True):
     if phone and in_quiet(prefs) and not queue:
         phone = False
     if phone and in_quiet(prefs):
-        q = kv_get("push_queue", []) or []
-        q.append([title, body, url])
-        kv_set("push_queue", q[-15:])
-        phone = False
+        end = quiet_end(prefs)
+        if end and notify.push(title, body, url, delay=end):   # ntfy stellt es nach der Nachtruhe zu – auch bei ausgeschaltetem PC
+            phone = False
+        else:
+            q = kv_get("push_queue", []) or []
+            q.append([title, body, url])
+            kv_set("push_queue", q[-15:])
+            phone = False
     notify.toast(title, body, url, phone=phone, win=bool(prefs.get("win", True)))
     return True
 
@@ -2704,10 +2813,20 @@ def pet_weekly_push(st, now=None):
     if kv_get("pet_weekly_sent") == wk:
         return None
     p = next((x for x in st.get("pets") or [] if x["id"] == st.get("active")), None)
-    w = st.get("week") or {}
     if not p or not p["stage"]:
         return None
+    if planned_done(f"gr-petweek-{wk}"):    # schon vorab eingeplant und zugestellt
+        kv_set("pet_weekly_sent", wk)
+        return None
     name = p["nick"] or p["stage_name"]
+    body = pet_weekly_text(st, p)
+    kv_set("pet_weekly_sent", wk)
+    alert("pet", f"🐾 Wochenrückblick von {name}", body, "#/begleiter")
+    return body
+
+
+def pet_weekly_text(st, p):
+    w = st.get("week") or {}
     parts = [f"{w.get('min', 0) // 60} Std {w.get('min', 0) % 60} Min zusammen gespielt" if w.get("min") else "eine ruhige Woche"]
     if w.get("xp"):
         parts.append(f"+{w['xp']} Erfahrung (jetzt Level {p['lvl']})")
@@ -2715,10 +2834,7 @@ def pet_weekly_push(st, now=None):
         parts.append(" und ".join(w["won"][:2]) + " besiegt")
     if w.get("quests"):
         parts.append(f"{w['quests']} Aufgabe{'n' if w['quests'] > 1 else ''} geschafft")
-    body = "Diese Woche: " + ", ".join(parts) + ". Bis nächste Woche! 💛"
-    kv_set("pet_weekly_sent", wk)
-    alert("pet", f"🐾 Wochenrückblick von {name}", body, "#/begleiter")
-    return body
+    return "Diese Woche: " + ", ".join(parts) + ". Bis nächste Woche! 💛"
 
 
 def duo_extras(cfg, games, keys):
@@ -3252,7 +3368,7 @@ def check_notifications(cfg):
         for w in sx.get("wishlist") or []:
             p = (sx.get("prices") or {}).get(str(w.get("appid"))) or (sx.get("prices") or {}).get(w.get("appid")) or {}
             rel = p.get("release")
-            if rel and dt.date.fromtimestamp(rel) == today and str(w.get("appid")) not in seen:
+            if rel and dt.date.fromtimestamp(rel) == today and str(w.get("appid")) not in seen and not planned_done(f"gr-rel-{w.get('appid')}"):
                 seen.add(str(w.get("appid")))
                 kv_set("release_seen", sorted(seen)[-300:])
                 alert("release", "Heute erschienen", f"{p.get('name') or 'Ein Spiel von deiner Wunschliste'} ist ab heute erhältlich"
@@ -3261,14 +3377,14 @@ def check_notifications(cfg):
     if cats.get("yearly", True):
         now = dt.datetime.now()
         base = cloud_state.get("url") or f"http://localhost:{PORT}/"
-        if now.month == 12 and now.day <= 7 and now.hour >= 10 and kv_get("season_sent") != f"{now.year}-dec":
+        if now.month == 12 and now.day <= 7 and now.hour >= 10 and kv_get("season_sent") != f"{now.year}-dec" and not planned_done(f"gr-year-{now.year}"):
             kv_set("season_sent", f"{now.year}-dec")
             pm, _ = period_minutes(load_cache().get("games", []), "year")
             h = sum((pm or {}).values()) / 60
             alert("yearly", f"🎬 Dein Gaming-Jahr {now.year} ist da",
                   (f"Bisher {h:,.0f} Stunden. ".replace(",", ".") if h else "") + "Dein Jahres-Wrapped ist fertig – tippe für deine Story.",
                   f"{base}#/wrapped/year")
-        if now.month == 1 and now.day <= 7 and now.hour >= 10 and kv_get("season_sent") != f"{now.year - 1}-final":
+        if now.month == 1 and now.day <= 7 and now.hour >= 10 and kv_get("season_sent") != f"{now.year - 1}-final" and not planned_done(f"gr-yearfinal-{now.year - 1}"):
             kv_set("season_sent", f"{now.year - 1}-final")
             alert("yearly", f"🏁 {now.year - 1} ist abgeschlossen", f"Dein komplettes Gaming-Jahr {now.year - 1} steht fest. Tippe für das finale Wrapped.",
                   f"{base}#/wrapped/arch:{now.year - 1}")
@@ -3290,7 +3406,7 @@ def check_notifications(cfg):
         today = dt.date.today()
         prev = (today.replace(day=1) - dt.timedelta(days=1)).replace(day=1)
         mkey = prev.strftime("%Y-%m")
-        if cats.get("monthly", True) and today.day <= 3 and now.hour >= 9 and kv_get("monthly_sent") != mkey:
+        if cats.get("monthly", True) and today.day <= 3 and now.hour >= 9 and kv_get("monthly_sent") != mkey and not planned_done(f"gr-month-{mkey}"):
             kv_set("monthly_sent", mkey)
             names = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September",
                      "Oktober", "November", "Dezember"]
@@ -3644,6 +3760,9 @@ def scheduler():
         # Cloud: Änderungen sofort (max. alle 5 Min.), sonst alle 15 Min. nach Handy-Änderungen schauen
         try:
             check_notifications(cfg)
+            if time.time() - state.get("planned_t", 0) > 3600 and time.time() - started > 120:
+                state["planned_t"] = time.time()
+                threading.Thread(target=plan_ahead, args=(cfg,), daemon=True).start()
             if time.time() - last_health > 600 and time.time() - started > 300:
                 last_health = time.time()
                 check_health(cfg)
