@@ -3000,7 +3000,26 @@ function petLines(p){
   if (pl){ L.push(`${pl.title}! Ich feuer dich an 🔥`);
     const mins = (Date.now()/1000 - (pl.since||Date.now()/1000))/60; if (mins > 180) L.unshift("Schon über 3 Stunden … kurze Pause? Ich hol uns was zu trinken 🧃"); }
   if (h >= 1 && h < 5) L.push("Gähn … schon so spät. Ab ins Bett? 😴");
-  if (P.today && P.today.rested) L.push("Ausgeruht! Heute zählt deine erste Spielzeit doppelt ✨");
+  if (P.today && P.today.rested) L.push("Ausgeruht! Heute gibt's einen kleinen Bonus ✨");
+  // Lebendiger: Erinnerungen, Jahreszeit, Tageszeit, Nest, Seltenheit
+  if (p.imprint) L.push(`Weißt du noch, ${p.imprint}? Damit hat alles angefangen 🥹`, `Lust auf eine Runde ${p.imprint}? Nur so ein Gedanke … 👀`);
+  const lastWin = [...(P.history||[])].reverse().find(b=>b.won);
+  if (lastWin) L.push(`Gegen ${lastWin.name} waren wir unschlagbar 💪`);
+  const mo = new Date().getMonth() + 1, dow = new Date().getDay();
+  const SEASON = {12:"Bald ist Weihnachten 🎄 Ob der Frost-Yeti auftaucht?", 1:"Neues Jahr, neue Spiele! ❄️", 2:"Liebe liegt in der Luft 💘", 3:"Der Frühling kommt 🌷", 4:"Ich hab ein Ei gefunden … ach nein, ist ein Osterei 🐣",
+    5:"Sonne! Und wir sitzen drinnen und zocken 😎", 6:"Sommer! Zeit für Rennspiele 🏎️", 7:"Puh, heiß hier. Der Sonnenwurm ist bestimmt in der Nähe ☀️", 8:"Noch ein Sommerabend, noch eine Runde 🌅",
+    9:"Herbst – die beste Zeit für lange Spiele 🍂", 10:"Gruselzeit! 🎃 Hast du Lust auf was Schauriges?", 11:"Kuschelwetter. Decke, Tee, Controller ☕"};
+  if (SEASON[mo]) L.push(SEASON[mo]);
+  if (h >= 6 && h < 11) L.push("Guten Morgen ☀️ Heute schon was vor?");
+  else if (h >= 17 && h < 22) L.push(dow === 5 ? "Freitagabend! 🎉 Das Wochenende gehört uns." : "Feierabend! Zeit für eine Runde? 🎮");
+  if (dow === 0) L.push("Sonntag – heute Abend gibt's unseren Wochenrückblick 📬");
+  const recent = (S.groups||[]).filter(g=>g.last && Date.now() - g.last < 2*864e5).sort((a,b)=>b.last-a.last)[0];
+  if (recent) L.push(`${recent.title} neulich – das war spannend! Wie geht's weiter?`);
+  const others = (P.pets||[]).filter(x=>x.id !== p.id && x.stage);
+  if (others.length) L.push(`Grüß ${petName(others[others.length-1])} im Nest von mir! 👋`);
+  if (PET_RARE[p.sp]) L.push(PET_RARE[p.sp] === 3 ? "Wusstest du, dass ich sehr selten bin? 🌟" : "Psst … ich bin ziemlich selten ✨");
+  if (p.next_star) L.push(`Noch ${p.next_star - p.lvl} Level bis zu meinem nächsten Stern ⭐`);
+  if (p.lvl < 10 && p.stage) L.push("Ich bin noch klein – bis Level 10 wachse ich doppelt so schnell! 🌱");
   const wb = (P.current||{}).week;
   if (wb && !wb.won) L.push(`${wb.icon} ${wb.name} hat noch ${num(Math.max(0, wb.hp - wb.dmg))} Leben. ${wb.weak}`);
   if (wb && wb.won) L.push(`Wir haben ${wb.name} besiegt! 🎉`);
@@ -3017,7 +3036,7 @@ function petLines(p){
   L.push("Schön, dass du da bist!", "Streichel mich! 🥰");
   return L;
 }
-function petBubble(p){ const L = petLines(p); return L[(S._pl||0) % L.length]; }
+function petBubble(p){ const L = petLines(p), off = Math.floor(Date.now() / 36e5) % Math.max(1, L.length); return L[((S._pl||0) + (S._pl ? off : 0)) % L.length]; }
 window.petTap = el => {
   const w = el.closest(".pstage"); if (!w) return;
   const f = w.querySelector(".pwrap:not(.pvisit .pwrap)"); if (f){ f.classList.remove("hop"); void f.offsetWidth; f.classList.add("hop"); }
@@ -3095,7 +3114,7 @@ window.petHelp = (fresh) => {
     <div class="hrows">
     ${row("🎮","Erfahrung","Kommt aus deiner echten Spielzeit am PC und auf Konsole. Die erste Stunde am Tag zählt voll, danach weniger (höchstens 3 Std/Tag). Läuft ein Spiel 30 Min ohne Eingabe, zählt das nicht.")}
     ${row("✨","Extras","Lieblingsgenre deines Tiers +25 % · Ruhetag davor: kleiner Bonus · neues Spiel angefangen +100 · durchgespielt +500 (100 % +800, plus einen Tag Partyhut) · Erfolg +10 · gemeinsamer Abend +200.")}
-    ${row("🥚","Eier","Schlüpfen nach 3 Spieltagen (je 15 Min), an denen sie dabei waren. Vorher sammeln sie keine Erfahrung.")}
+    ${row("🥚","Eier","Schlüpfen nach 3 Spieltagen (je 15 Min), an denen sie dabei waren. Vorher sammeln sie keine Erfahrung. Frisch geschlüpft wachsen sie bis Level 10 doppelt so schnell.")}
     ${row("🔁","Wechseln","Wechselst du mitten am Tag, wird die Spielzeit an der Stelle geteilt. Tiere im Nest wachsen mit 10 % mit.")}
     ${row("🌱","Stufen","Ei → Baby (Stufe 1) → Stufe 2 ab Level 10 → Endform (Stufe 3) ab Level 25. Danach gibt es Sterne bei Level 30, 35 und 40 und die Endform glitzert.")}
     ${row("⚔️","Bosse","Jede Woche und jeden Monat einer. Sie richten sich nach deiner üblichen Spielzeit – meist fallen sie gegen Ende der Woche. Ein Sieg bleibt ein Sieg.")}
@@ -3103,7 +3122,8 @@ window.petHelp = (fresh) => {
     ${row("💎","Seltenheit","Selten: Crysto, Nocti, Frostel, Bluma (leuchten blau). Sehr selten: Koppla, Sola, Herzi (leuchten gold). Saison-Tiere gibt es nur in ihrer Jahreszeit; alle vier zusammen schalten eine Farbwelt frei.")}
     ${row("🎀","Accessoires","Zwei Plätze: Kopf (Hut, Krone, Ohren …) und Gesicht/Hals (Brille, Anhänger).")}
     ${row("💞","Zu zweit","Gemeinsame Abende, eine Wochenaufgabe zu zweit (+120), Staffelstab (+40), Raid-Boss und Geschenke.")}
-    ${row("📋","Aufgaben","Drei kleine Aufgaben pro Woche (+60). Kein Muss.")}</div>
+    ${row("📋","Aufgaben","Drei kleine Aufgaben pro Woche (+60), aus rund 20 verschiedenen. Kein Muss.")}
+    ${row("📬","Wochenrückblick","Sonntagabend schickt dir dein Begleiter eine kurze Nachricht, was ihr in der Woche geschafft habt.")}</div>
     <button class="btn" style="margin-top:14px" onclick="$('#info').close()">Alles klar</button>`;
   if (!$("#info").open) $("#info").showModal();
 };
@@ -3242,7 +3262,7 @@ function renderPet(){
   // Aufgaben
   if ((P.quests||[]).length) h += `<section class="card s12 x6 reveal"><h3>📋 Aufgaben der Woche <span class="h3s">je +60 Erfahrung</span></h3>${P.quests.map(q=>`<div class="quest ${q.done?"done":""}">
       <span class="qck">${q.done?"✓":""}</span><div><b>${esc(q.t.replace("Lieblingsgenre", p.fav).replace("Ein gemeinsamer Abend", pa ? `Ein gemeinsamer Abend mit ${pa.name}` : "Ein gemeinsamer Abend"))}</b>
-      <div class="qbar"><i style="width:0" data-w="${q.prog/q.target*100}%"></i></div></div><small>${q.target >= 60 && q.id === "fav120" ? `${hrs(q.prog)} / ${hrs(q.target)}` : `${num(q.prog)} / ${num(q.target)}`}</small></div>`).join("")}
+      <div class="qbar"><i style="width:0" data-w="${q.prog/q.target*100}%"></i></div></div><small>${["fav120","fav300","con60","pc60","same300"].includes(q.id) ? `${hrs(q.prog)} / ${hrs(q.target)}` : `${num(q.prog)} / ${num(q.target)}`}</small></div>`).join("")}
       ${P.duo_quest && pa ? (q=>`<div class="quest duo ${q.done?"done":""}"><span class="qck">${q.done?"✓":"💞"}</span><div><b>Zu zweit: ${esc(q.t)}</b>
         <div class="qbar"><i style="width:0" data-w="${q.prog/q.target*100}%"></i></div></div><small>${q.id==="both8" ? `${hrs(q.prog)} / ${hrs(q.target)}` : `${num(q.prog)} / ${num(q.target)}`}</small></div>`)(P.duo_quest) : ""}
       <p class="help" style="margin:8px 0 0">Neue Aufgaben jeden Montag. Kein Muss – wer sie schafft, bekommt einen Schub.${pa ? ` Die Aufgabe zu zweit gibt euch beiden +120. 🏃 Staffelstab: Legt ${esc(pa.name)} innerhalb von 2 Std los, nachdem du aufgehört hast (oder umgekehrt), gibt's +40.` : ""}</p></section>`;

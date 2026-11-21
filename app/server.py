@@ -2007,7 +2007,12 @@ PET_RAID = [("kraken", "Koop-Kraken", "🐙", "Nur gemeinsame Abende und Spiele,
             ("zwilling", "Zwillingsschatten", "👥", "Nur gemeinsame Abende und Spiele, die ihr beide durchspielt, treffen sie.")]
 PET_QUESTS = [("days4", "Spiel an 4 verschiedenen Tagen", 4), ("new1", "Fang ein neues Spiel an", 1), ("rest1", "Gönn dir einen Ruhetag", 1),
               ("fav120", "Spiel 2 Std im Lieblingsgenre", 120), ("ach10", "Hol dir 10 Erfolge", 10), ("done1", "Spiel ein Spiel durch", 1),
-              ("early3", "Beende 3 Abende vor Mitternacht", 3), ("genre3", "Spiel 3 verschiedene Genres", 3), ("eve1", "Ein gemeinsamer Abend", 1)]
+              ("early3", "Beende 3 Abende vor Mitternacht", 3), ("genre3", "Spiel 3 verschiedene Genres", 3), ("eve1", "Ein gemeinsamer Abend", 1),
+              ("con60", "Spiel 1 Std auf der Konsole", 60), ("pc60", "Spiel 1 Std am PC", 60), ("back1", "Hol ein Spiel zurück, das 30 Tage lag", 1),
+              ("long90", "Eine lange Session: 90 Min am Stück in einem Spiel", 1), ("days5", "Spiel an 5 verschiedenen Tagen", 5),
+              ("var3", "Spiel 3 verschiedene Spiele", 3), ("same300", "Spiel ein Spiel insgesamt 5 Std", 300), ("ach25", "Hol dir 25 Erfolge", 25),
+              ("wkend2", "Spiel am Samstag und am Sonntag", 2), ("fav300", "Spiel 5 Std im Lieblingsgenre", 300), ("rest2", "Gönn dir 2 Ruhetage", 2),
+              ("nolate", "Eine ganze Woche nie nach Mitternacht zocken", 1)]
 PET_DUO_QUESTS = [("eve2", "Zwei gemeinsame Abende", 2), ("both8", "Zusammen 8 Std spielen", 480),
                   ("relay3", "3× den Staffelstab übergeben", 3)]
 PET_COZY = ("simulator", "simulation", "puzzle", "card", "board", "music")
@@ -2029,7 +2034,7 @@ def _pet_game_info():
     info = {}
     for g in load_cache().get("games", []):
         txt = " ".join([str(x).lower() for x in (g.get("genres") or []) + (g.get("features") or []) + (g.get("tags") or [])])
-        info[g["id"]] = {"k": norm_title(g["title"]), "genres": [str(x) for x in g.get("genres") or []], "txt": txt}
+        info[g["id"]] = {"k": norm_title(g["title"]), "genres": [str(x) for x in g.get("genres") or []], "txt": txt, "dev": g.get("device")}
     return info
 
 
@@ -2240,9 +2245,16 @@ def pet_state(cfg, force=False):
         parts = split.get(pid, {}).get("parts", {})
         daylog[iso] = {"xp": sum(x["xp"] for x in split.values()), "parts": parts, "min": D["min"], "rested": rested, "pid": pid,
                        "genres": genres, "started": started, "fav": int(fav_all), "cozy": cozy, "spooky": spooky,
-                       "played": D["min"] >= 15, "split": split, **E}
+                       "played": D["min"] >= 15, "split": split, "per": D["per"], "wd": d.weekday(), **E}
         prev_min = D["min"]
         d += dt.timedelta(days=1)
+    last_play = {}
+    for iso in sorted(daylog):
+        back = [g_ for g_ in daylog[iso]["per"] if g_ in last_play and (dt.date.fromisoformat(iso) - dt.date.fromisoformat(last_play[g_])).days >= 30]
+        if back:
+            daylog[iso]["back"] = back
+        for g_ in daylog[iso]["per"]:
+            last_play[g_] = iso
     # 2) Bosse, Aufgaben, Beute
     rewards = []      # (Tag, Grund, Erfahrung)
     loot, history, memories = [], [], []
@@ -2439,15 +2451,32 @@ def pet_state(cfg, force=False):
         qs = []
         for qid, label, target in pick:
             prog, doneday = 0, None
-            gen = set()
+            gen, games_, per_game = set(), set(), {}
+            week_full = len(dl) == 7 and dl[-1] < T
             for x in dl:
                 L = daylog[x]
+                dev_min = lambda pc: sum(m_ for g_, m_ in L["per"].items() if ((gi.get(g_) or {}).get("dev") == "PC") == pc)
+                for g_, m_ in L["per"].items():
+                    per_game[g_] = per_game.get(g_, 0) + m_
+                games_ |= set(L["per"])
+                extra_q = {"con60": dev_min(False), "pc60": dev_min(True), "back1": len(L.get("back") or []),
+                           "long90": int(any(m_ >= 90 for m_ in L["per"].values())), "days5": int(L["played"]),
+                           "ach25": L.get("ach", 0), "wkend2": int(L["played"] and L["wd"] >= 5), "fav300": L["fav"],
+                           "rest2": int(L["min"] == 0 and x < T)}
                 inc = {"days4": int(L["played"]), "new1": L["started"], "rest1": int(L["min"] == 0 and x < T),
                        "fav120": L["fav"], "ach10": L.get("ach", 0), "done1": L.get("done", 0) + L.get("full", 0),
                        "early3": int(L.get("early", 0) > 0 and not L.get("late", 0)), "eve1": L.get("evening", 0)}.get(qid)
                 if qid == "genre3":
                     gen |= L["genres"]
                     prog = len(gen)
+                elif qid == "var3":
+                    prog = len(games_)
+                elif qid == "same300":
+                    prog = max(per_game.values() or [0])
+                elif qid == "nolate":
+                    prog = int(week_full and x == dl[-1] and not any(daylog[y].get("late", 0) for y in dl))
+                elif qid in extra_q:
+                    prog += extra_q[qid] or 0
                 else:
                     prog += inc or 0
                 if prog >= target and not doneday:
@@ -2522,7 +2551,8 @@ def pet_state(cfg, force=False):
             if spid not in xp or iso < pstart[spid]:
                 continue
             if spid in hatch_day:
-                xp[spid] += x["xp"]          # Erfahrung erst nach dem Schlüpfen
+                # Erfahrung erst nach dem Schlüpfen; bis Level 10 doppelt (Startschub für neue Tiere)
+                xp[spid] += x["xp"] * (2 if pet_level(xp[spid]) < PET_STAGE_LV[0] else 1)
             elif x["min"] >= 15:
                 pdays[spid] += 1             # Ei: zählt nur Spieltage, an denen es dabei war
                 if pdays[spid] >= PET_HATCH_DAYS:
@@ -2612,6 +2642,10 @@ def pet_state(cfg, force=False):
            "eggs_ready": [e for e in got["egg"] if e not in set(sp_of.values())],
            "quests": quests.get((today - dt.timedelta(days=today.weekday())).isoformat(), []),
            "duo_quest": duo_q.get((today - dt.timedelta(days=today.weekday())).isoformat()), "relay_today": T in relay_days,
+           "week": (lambda w0: {"min": sum(daylog[x]["min"] for x in daylog if x >= w0), "xp": sum(daylog[x]["xp"] for x in daylog if x >= w0)
+                                + sum(v for d_, _, v in rewards if d_ >= w0),
+                                "won": list(dict.fromkeys(b["name"] for b in history + list(current.values()) if b.get("won") and (b.get("win_day") or "") >= w0)),
+                                "quests": sum(1 for q in quests.get(w0, []) if q["done"])})((today - dt.timedelta(days=today.weekday())).isoformat()),
            "memories": memories[:60], "party": party, "album": sorted({f"{sp_of[pid]}_{s}" for (pid, s) in stage_day} | {f"{sp_of[pid]}_1" for pid in hatch_day}),
            "gift_ok": not last_gift or (today - dt.date.fromisoformat(last_gift[:10])).days >= 7, "gifts_sent": gifts[-10:]}
     _pet_cache.update(t=time.time(), v=res)
@@ -2658,6 +2692,33 @@ def check_pet(cfg):
         if l["why"].startswith("Geschenk"):
             alert("pet", f"🎁 {l['why']}", f"{PET_ACC.get(l['val'], l['val'])} für deinen Begleiter 💞", "#/begleiter")
     kv_set("pet_seen", now)
+    pet_weekly_push(st)
+
+
+def pet_weekly_push(st, now=None):
+    """Sonntagabend: kurzer Wochenrückblick vom Begleiter (einmal pro Woche)."""
+    now = now or dt.datetime.now()
+    if now.weekday() != 6 or now.hour < 19:
+        return None
+    wk = (now.date() - dt.timedelta(days=6)).isoformat()
+    if kv_get("pet_weekly_sent") == wk:
+        return None
+    p = next((x for x in st.get("pets") or [] if x["id"] == st.get("active")), None)
+    w = st.get("week") or {}
+    if not p or not p["stage"]:
+        return None
+    name = p["nick"] or p["stage_name"]
+    parts = [f"{w.get('min', 0) // 60} Std {w.get('min', 0) % 60} Min zusammen gespielt" if w.get("min") else "eine ruhige Woche"]
+    if w.get("xp"):
+        parts.append(f"+{w['xp']} Erfahrung (jetzt Level {p['lvl']})")
+    if w.get("won"):
+        parts.append(" und ".join(w["won"][:2]) + " besiegt")
+    if w.get("quests"):
+        parts.append(f"{w['quests']} Aufgabe{'n' if w['quests'] > 1 else ''} geschafft")
+    body = "Diese Woche: " + ", ".join(parts) + ". Bis nächste Woche! 💛"
+    kv_set("pet_weekly_sent", wk)
+    alert("pet", f"🐾 Wochenrückblick von {name}", body, "#/begleiter")
+    return body
 
 
 def duo_extras(cfg, games, keys):
