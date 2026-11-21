@@ -3014,6 +3014,15 @@ def health(cfg):
         add("Cover (SteamGridDB)", False, "kein Key eingetragen – einige Cover fehlen", "Einstellungen › Extras › SteamGridDB.", "info")
     if cfg.get("partner_url") and partner_state.get("error"):
         add("Wir zwei", False, partner_state["error"], "Partner-Adresse und Partner-Code in den Einstellungen › Wir zwei prüfen.", "warn")
+    elif cfg.get("partner_url"):
+        pa_ = kv_get("partner", None) or {}
+        age = time.time() - (parse_iso(pa_.get("at")) or time.time())
+        if age > 36 * 3600:
+            nm = pa_.get("name") or "Partner"
+            add("Wir zwei", False, f"Von {nm} kommt seit {int(age // 86400)} Tag{'en' if age >= 2 * 86400 else ''} nichts mehr "
+                f"(zuletzt {dt.datetime.fromtimestamp(parse_iso(pa_.get('at'))).strftime('%d.%m. %H:%M')}).",
+                f"Läuft Gaming Recap auf dem PC von {nm}? Dort http://localhost:8765 öffnen – sonst Start.bat starten. "
+                "Läuft es, unter Einstellungen › System › Systemcheck nach einem Fehler bei „Handy-Cloud“ schauen (GitHub-Token abgelaufen?).", "warn")
     af = autostart_file()
     if af and not os.path.exists(af):
         add("Autostart", False, "Gaming Recap startet nicht mit Windows.", "Einstellungen › Extras › „Mit Windows starten“ anhaken.", "warn")
