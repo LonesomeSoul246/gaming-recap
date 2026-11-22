@@ -1011,7 +1011,10 @@ def save_meta(body):
 
 
 REMOTE_CMDS = ("after_session", "at_time", "cancel", "sleep", "shutdown", "wake_partner")
-KV_KEYS = {"goals", "year_overrides", "wrapped", "notpc", "snotes", "covers", "paid", "notify", "critic", "ui", "pet", "plans", "plan_resp", "remote", "plan_pushed"}
+KV_KEYS = {"goals", "year_overrides", "wrapped", "notpc", "snotes", "covers", "paid", "notify", "critic", "ui", "pet", "plans", "plan_resp", "remote", "plan_pushed",
+           "advent", "wishes", "wish_done", "surprises", "capsule", "pins", "features"}
+FEATURES = ("advent", "moment", "greetpet", "night", "news", "moments", "chronik", "capsule", "wishes", "surprise", "home", "season")
+WISH_CATS = ("spiel", "erleben", "essen", "ausflug", "sonst")
 
 
 def kv_get(key, default=None):
@@ -1269,6 +1272,37 @@ def clean_kv(key, v):
         return out
     if key == "plan_resp":  # Antworten auf Vorschläge des Partners: {id: "yes"|"no"|"maybe"}
         return {str(k)[:16]: x for k, x in (v if isinstance(v, dict) else {}).items() if x in ("yes", "no", "maybe")}
+    if key == "advent":  # geöffnete Türchen: {"o": {"2026-12-05": unix}}
+        o = (v or {}).get("o") if isinstance(v, dict) else None
+        return {"o": {str(k): int(x) for k, x in list((o if isinstance(o, dict) else {}).items())[-60:]
+                      if re.fullmatch(r"\d{4}-12-(0[1-9]|1\d|2[0-4])", str(k)) and isinstance(x, (int, float))}}
+    if key == "wishes":  # Wunschbaum: [{id, t, cat, at, done}]
+        out = []
+        for x in (v if isinstance(v, list) else [])[-100:]:
+            if isinstance(x, dict) and re.fullmatch(r"[a-z0-9]{4,16}", str(x.get("id") or "")) and str(x.get("t") or "").strip():
+                out.append({"id": x["id"], "t": str(x["t"]).strip()[:80], "cat": x.get("cat") if x.get("cat") in WISH_CATS else "sonst",
+                            "at": int(x.get("at") or 0), "done": int(x.get("done") or 0), "note": str(x.get("note") or "")[:140]})
+        return out
+    if key == "wish_done":  # Wünsche des Partners, die ich abgehakt habe: {id: unix}
+        return {str(k)[:16]: int(x) for k, x in list((v if isinstance(v, dict) else {}).items())[-200:]
+                if re.fullmatch(r"[a-z0-9]{4,16}", str(k)) and isinstance(x, (int, float))}
+    if key == "surprises":  # Überraschungs-Umschläge: [{id, title, text, reveal, at}]
+        out = []
+        for x in (v if isinstance(v, list) else [])[-20:]:
+            if isinstance(x, dict) and re.fullmatch(r"[a-z0-9]{4,16}", str(x.get("id") or "")) \
+                    and re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}", str(x.get("reveal") or "")[:16]):
+                out.append({"id": x["id"], "title": str(x.get("title") or "")[:60], "text": str(x.get("text") or "")[:400],
+                            "reveal": str(x["reveal"])[:16], "at": int(x.get("at") or 0)})
+        return out
+    if key == "capsule":  # Zeitkapsel: {text, at, open: YYYY-MM-DD}
+        v = v if isinstance(v, dict) else {}
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(v.get("open") or "")) or not str(v.get("text") or "").strip():
+            return {}
+        return {"text": str(v["text"])[:1500], "at": int(v.get("at") or 0), "open": v["open"]}
+    if key == "pins":  # angepinnte Erinnerungen
+        return [str(x)[:60] for x in (v if isinstance(v, list) else [])[-200:] if isinstance(x, str)]
+    if key == "features":  # einzeln abschaltbare neue Funktionen
+        return {k: bool(x) for k, x in (v if isinstance(v, dict) else {}).items() if k in FEATURES}
     if key == "plan_pushed":  # welche Zockabend-Nachrichten schon direkt per Push raus sind (vom Handy oder PC)
         return {str(k)[:40]: int(x or 0) for k, x in list((v if isinstance(v, dict) else {}).items())[-300:]
                 if re.fullmatch(r"[pcr]:[a-z0-9]{4,16}(:(yes|no|maybe))?", str(k))}
@@ -2137,9 +2171,15 @@ PET_ACC = {"schleife": "Schleife", "headset": "Gaming-Headset", "brille": "Sonne
            "blumen": "Blumenkranz", "herz": "Herz-Anhänger", "muetze": "Bommelmütze", "pirat": "Piratenhut", "weihnacht": "Weihnachtsmütze",
            "kuerbis": "Kürbis-Hütchen", "wikinger": "Wikingerhelm", "party": "Partyhütchen", "halo": "Heiligenschein",
            "diadem": "Kristall-Diadem", "kapitaen": "Kapitänsmütze",
-           "herzreif": "Herz-Haarreif", "hasenohren": "Hasenohren", "sonnenhut": "Sonnenhut"}
+           "herzreif": "Herz-Haarreif", "hasenohren": "Hasenohren", "sonnenhut": "Sonnenhut",
+           "schal": "Ringelschal", "geweih": "Rentier-Geweih", "ohrenschuetzer": "Ohrenschützer", "wichtel": "Wichtelmütze",
+           "lichterkette": "Lichterkette", "sternkrone": "Schneestern-Krone", "zuckerstange": "Zuckerstange", "silvester": "Silvester-Brille"}
 PET_HAB = {"lichtung": "Lichtung", "sterne": "Sternenhimmel", "strand": "Strand", "zimmer": "Gaming-Zimmer", "vulkan": "Vulkan",
-           "winter": "Winterwald", "kristall": "Kristallhöhle", "riff": "Unterwasser-Riff"}
+           "winter": "Winterwald", "kristall": "Kristallhöhle", "riff": "Unterwasser-Riff",
+           "weihnachtsstube": "Weihnachtsstube", "silvester": "Silvester-Dach", "wunschbaum": "Wunschbaum"}
+# Adventskalender: Belohnung pro Türchen (Rest sind Erinnerungen, Quiz, Fun Facts – die baut die App)
+ADVENT_REWARDS = {1: ("acc", "schal"), 4: ("acc", "geweih"), 7: ("acc", "ohrenschuetzer"), 10: ("acc", "wichtel"),
+                  14: ("acc", "lichterkette"), 17: ("acc", "zuckerstange"), 21: ("acc", "sternkrone"), 24: ("hab", "weihnachtsstube")}
 # Beute nach Anzahl Siege (Wochen-, Saison- und Monats-Bosse zusammen)
 PET_LOOT = {1: ("acc", "schleife"), 3: ("hab", "sterne"), 5: ("acc", "headset"), 7: ("theme", "drachenglut"),
             9: ("hab", "strand"), 11: ("acc", "brille"), 13: ("acc", "pirat"), 15: ("hab", "zimmer"), 17: ("acc", "krone"),
@@ -2630,6 +2670,18 @@ def pet_state(cfg, force=False):
     if boss_mem_new != {k: v for k, v in boss_mem.items() if k in boss_mem_new} or len(boss_mem_new) > len(boss_mem):
         boss_mem.update(boss_mem_new)
         kv_set("boss_mem", dict(sorted(boss_mem.items())[-200:]))
+    # Adventskalender, Silvester, Wunschbaum
+    for k in sorted(((kv_get("advent", {}) or {}).get("o") or {})):
+        r = ADVENT_REWARDS.get(int(k[8:10]))
+        if r and k <= T:
+            give(r[0], r[1], f"Adventskalender, {int(k[8:10])}. Türchen", k)
+    for y in range(start.year, today.year + 1):
+        if f"{y}-12-31" <= T and f"{y}-12-31" >= start.isoformat():
+            give("acc", "silvester", f"Silvester {y}", f"{y}-12-31")
+            give("hab", "silvester", f"Silvester {y}", f"{y}-12-31")
+    wd = [w for w in (kv_get("wishes", []) or []) if w.get("done")]
+    if wd:
+        give("hab", "wunschbaum", "Erster erfüllter Wunsch", dt.date.fromtimestamp(min(w["done"] for w in wd)).isoformat())
     # Geschenke vom Partner
     for gft in ((pa or {}).get("pet") or {}).get("gifts") or []:
         if gft.get("acc") in PET_ACC and str(gft.get("at") or T)[:10] >= start.isoformat():
@@ -2927,6 +2979,24 @@ def pet_weekly_text(st, p):
     return "Diese Woche: " + ", ".join(parts) + ". Bis nächste Woche! 💛"
 
 
+def duo_world():
+    """Was der Partner von „unserer Welt“ sieht: Türchen, Momente, Wünsche, Überraschungen (erst ab Termin), Zeitkapsel (erst ab Öffnung)."""
+    now = dt.datetime.now().strftime("%Y-%m-%dT%H:%M")
+    notes = kv_get("snotes", {}) or {}
+    sur = []
+    for x in kv_get("surprises", []) or []:
+        open_ = x["reveal"] <= now
+        sur.append({"id": x["id"], "reveal": x["reveal"], "at": x["at"], "open": open_,
+                    "title": x["title"] if open_ else "", "text": x["text"] if open_ else ""})
+    cap = kv_get("capsule", {}) or {}
+    capo = {"sealed": True, "open": cap["open"], "at": cap["at"],
+            **({"text": cap["text"], "sealed": False} if cap["open"] <= now[:10] else {})} if cap else None
+    return {"advent": sorted(((kv_get("advent", {}) or {}).get("o") or {}))[-30:],
+            "notes": dict(list(((k, x) for k, x in notes.items() if x[0] or x[1]))[-150:]),
+            "wishes": kv_get("wishes", []) or [], "wish_done": kv_get("wish_done", {}) or {},
+            "surprises": sur[-20:], "capsule": capo}
+
+
 def duo_extras(cfg, games, keys):
     """Zusatzdaten für „Wir zwei“: Avatar, Wochen, Genres, Tier-Liste, gerade gespielt."""
     sx = read_json(STEAMX_PATH, {}) or {}
@@ -2945,6 +3015,7 @@ def duo_extras(cfg, games, keys):
             "sess": sess[-1500:], "news": duo_news(games, meta), "topic": (cfg.get("push_topic") or "").strip() or None,
             "pet": pet_public(cfg), "plans": kv_get("plans", []) or [], "plan_resp": kv_get("plan_resp", {}) or {},
             "plan_pushed": list((kv_get("plan_pushed", {}) or {}))[-120:],
+            **duo_world(),
             "wake": pcutil.mac_address() if cfg.get("allow_wake") else None}
 
 
@@ -3100,10 +3171,25 @@ def handle_remote(cfg):
     if fire:
         kv_set("pc_timer", None)
         try:
+            remember_night()
+        except Exception as e:
+            print("  Abend merken:", e)
+        try:
             pcutil.power("shutdown", 120, "Gaming Recap: Gute Nacht! Der PC fährt in 2 Minuten herunter.")
             alert("pause", "🌙 Gute Nacht", "Dein PC fährt in 2 Minuten herunter. Abbrechen: in der App „Timer stoppen“.")
         except Exception as e:
             print("  Herunterfahren:", e)
+
+
+def remember_night():
+    """„Licht aus“: kurzer Rückblick auf den Abend für den Guten-Morgen-Gruß."""
+    mid = dt.datetime.combine(dt.date.today() - dt.timedelta(days=1 if dt.datetime.now().hour < 5 else 0), dt.time(5))
+    per = {}
+    for k, st, sec in tracker.load_sessions(APP_DB, int(mid.timestamp())):
+        per[k] = per.get(k, 0) + int(sec)
+    top = max(per.items(), key=lambda x: x[1])[0] if per else None
+    kv_set("last_night", {"at": now_iso(), "min": sum(per.values()) // 60, "top": top, "games": len(per)})
+    cloud_state["pending"] = cloud_state["urgent"] = True
 
 
 def remote_exec(cfg, cmd, arg=None):
@@ -3122,6 +3208,10 @@ def remote_exec(cfg, cmd, arg=None):
         except Exception:
             pass
     elif cmd == "sleep":
+        try:
+            remember_night()
+        except Exception:
+            pass
         pcutil.power("sleep")
     elif cmd == "shutdown":
         pcutil.power("shutdown", 60)
@@ -3430,6 +3520,74 @@ def update_source(cfg):
     return (q.get("update_url") or "").strip()
 
 
+def backup_dir():
+    return os.path.join(DATA_DIR, "sicherung")
+
+
+def local_backup(tag="manuell", keep=6):
+    """Sicherung auf diesem PC: Datenbanken (sauber über die SQLite-Backup-Funktion), Daten-Dateien
+    (ohne config.json – Keys bleiben, wo sie sind) und die Programmdateien. Die ältesten werden aufgeräumt."""
+    import sqlite3
+    name = dt.datetime.now().strftime("%Y-%m-%d_%H%M") + "_" + re.sub(r"[^A-Za-z0-9_-]", "", tag)[:30]
+    d = os.path.join(backup_dir(), name)
+    os.makedirs(os.path.join(d, "daten"), exist_ok=True)
+    for db in (HISTORY_DB, APP_DB):
+        if os.path.exists(db):
+            src, dst = sqlite3.connect(db), sqlite3.connect(os.path.join(d, "daten", os.path.basename(db)))
+            with dst:
+                src.backup(dst)
+            src.close(); dst.close()
+    for n in os.listdir(DATA_DIR):
+        p = os.path.join(DATA_DIR, n)
+        if os.path.isfile(p) and n.endswith(".json") and n != os.path.basename(CONFIG_PATH):
+            shutil.copy2(p, os.path.join(d, "daten", n))
+    for rel, b in updater.program_files(BASE).items():
+        q = os.path.join(d, "programm", *rel.split("/"))
+        os.makedirs(os.path.dirname(q), exist_ok=True)
+        with open(q, "wb") as f:
+            f.write(b)
+    write_json(os.path.join(d, "sicherung.json"), {"at": now_iso(), "tag": tag, "version": VERSION})
+    olds = sorted(n for n in os.listdir(backup_dir()) if os.path.isdir(os.path.join(backup_dir(), n)))
+    for n in olds[:-keep]:
+        shutil.rmtree(os.path.join(backup_dir(), n), ignore_errors=True)
+    return name
+
+
+def list_backups():
+    out = []
+    if os.path.isdir(backup_dir()):
+        for n in sorted(os.listdir(backup_dir()), reverse=True):
+            p = os.path.join(backup_dir(), n)
+            if os.path.isdir(p):
+                size = sum(os.path.getsize(os.path.join(a, f)) for a, _, fs in os.walk(p) for f in fs)
+                out.append({"name": n, "mb": round(size / 1e6, 1)})
+    return out
+
+
+def restore_local(name="latest"):
+    """Zurückspielen (nur bei beendetem Gaming Recap, über Zuruecksetzen.bat): Programm + Daten aus der Sicherung."""
+    names = [b["name"] for b in list_backups()]
+    if not names:
+        print("Keine Sicherung gefunden.")
+        return False
+    name = names[0] if name in ("latest", "", None) else name
+    d = os.path.join(backup_dir(), name)
+    if not os.path.isdir(d):
+        print("Sicherung nicht gefunden:", name)
+        return False
+    local_backup("vor-zuruecksetzen")   # auch den aktuellen Stand nicht verlieren
+    for root in ("programm", "daten"):
+        base = os.path.join(d, root)
+        for a, _, fs in os.walk(base):
+            for f in fs:
+                rel = os.path.relpath(os.path.join(a, f), base)
+                dst = os.path.join(BASE if root == "programm" else DATA_DIR, rel)
+                os.makedirs(os.path.dirname(dst), exist_ok=True)
+                shutil.copy2(os.path.join(a, f), dst)
+    print("Zurückgesetzt auf", name)
+    return True
+
+
 def just_updated():
     """Wurde in den letzten 20 Minuten ein Update eingespielt?"""
     try:
@@ -3462,6 +3620,10 @@ def update_worker(cfg, force=False, apply_now=None):
         if TRACKER.current and not force:  # nicht mitten im Spiel neu starten
             update_state["deferred"] = True
             return
+        try:
+            local_backup("vor-update")
+        except Exception as e:
+            print("  Sicherung vor Update:", err_text(e))
         updater.apply(url, BASE, DATA_DIR, man, changed)
         print(f"  Update: {len(changed)} Dateien auf Release {man['release']} – starte neu")
         update_state.update(deferred=False, applied=man["release"])
@@ -3906,7 +4068,10 @@ def shared_data(cfg, games):
     except Exception as e:
         pcs = {"error": err_text(e)}
     return {
-        "pc": pcs, "ago": year_ago(), "countdowns": countdowns(), "plans": kv_get("plans", []) or [], "plan_resp": kv_get("plan_resp", {}) or {},
+        "pc": pcs, "ago": year_ago(), "last_night": kv_get("last_night", None),
+        "advent": kv_get("advent", {}) or {}, "wishes": kv_get("wishes", []) or [], "wish_done": kv_get("wish_done", {}) or {},
+        "surprises": kv_get("surprises", []) or [], "capsule": kv_get("capsule", {}) or {}, "pins": kv_get("pins", []) or [],
+        "features": kv_get("features", {}) or {}, "pet_names": {"acc": PET_ACC, "hab": PET_HAB}, "countdowns": countdowns(), "plans": kv_get("plans", []) or [], "plan_resp": kv_get("plan_resp", {}) or {},
         "meta": load_meta(), "hltb": hltb.load(APP_DB),
         "sessions": tracker.load_sessions(APP_DB, int(time.time()) - 800 * 86400),
         "csessions": load_console_sessions(int(time.time()) - 800 * 86400),
@@ -4333,7 +4498,7 @@ class Handler(BaseHTTPRequestHandler):
         if path in ("/", "/index.html"):
             with open(os.path.join(WEB_DIR, "index.html"), "rb") as f:
                 return self._send(200, f.read(), "text/html; charset=utf-8")
-        if re.fullmatch(r"/pets/[a-z]+_[a-z0-9]+\.webp", path):
+        if re.fullmatch(r"/pets/[a-z][a-z0-9_]{1,40}\.webp", path):
             fp = os.path.join(WEB_DIR, "pets", path.rsplit("/", 1)[1])
             if os.path.exists(fp):
                 with open(fp, "rb") as f:
@@ -4392,6 +4557,10 @@ class Handler(BaseHTTPRequestHandler):
             if not self._local():
                 return self._send(403, {"error": "Nur am PC"})
             return self._send(200, {"text": error_report(load_config())})
+        if path == "/api/backup/local":
+            if not self._local():
+                return self._send(403, {"error": "Nur am PC"})
+            return self._send(200, {"list": list_backups()})
         if path == "/api/update":
             if not self._local():
                 return self._send(403, {"error": "Nur am PC"})
@@ -4559,6 +4728,11 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(403, {"error": "Nur am PC"})
             threading.Thread(target=update_worker, args=(load_config(),), kwargs={"force": True, "apply_now": bool(body.get("apply"))}, daemon=True).start()
             return self._send(200, {"ok": True})
+        if path == "/api/backup/local":
+            try:
+                return self._send(200, {"name": local_backup("manuell")})
+            except Exception as e:
+                return self._send(500, {"error": err_text(e)})
         if path in ("/api/restart", "/api/quit"):
             if not self._local():
                 return self._send(403, {"error": "Nur am PC"})
@@ -4706,6 +4880,13 @@ def restart_server(stop=False, guard=False):
 
 
 def main():
+    if "--restore" in sys.argv:
+        i = sys.argv.index("--restore")
+        restore_local(sys.argv[i + 1] if len(sys.argv) > i + 1 else "latest")
+        return
+    if "--backup" in sys.argv:
+        print("Gesichert:", local_backup("manuell"))
+        return
     setup_logging()
     os.makedirs(DATA_DIR, exist_ok=True)
     if not os.path.exists(CONFIG_PATH):

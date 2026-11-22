@@ -77,6 +77,71 @@ code{background:#ffffff12;padding:1px 6px;border-radius:6px;font-size:.92em}
 .wdbar{display:flex;height:10px;border-radius:99px;overflow:hidden;background:#ffffff12}.wdbar i.me{background:var(--acc)}.wdbar i.pa{flex:1;background:var(--violet)}
 .wdst{text-align:center;margin:10px 0 14px;font-size:14px;color:var(--muted)}.wdst b{font-size:16px}
 .cme{color:var(--acc)}.cpa{color:var(--violet)}
+/* ===== Unsere Welt ===== */
+.fx{display:block;width:100%;height:100%;object-fit:contain}
+.wnew{background:linear-gradient(120deg,color-mix(in srgb,var(--acc) 18%,var(--panel)),var(--panel))}.wnew ul{margin:0;padding-left:20px;line-height:1.7}.wnew .dclose{top:14px;right:14px}
+.moment{display:flex;gap:10px;align-items:center;margin:8px 0 0;padding:10px 12px;border-radius:14px;background:var(--glass);color:inherit;text-decoration:none;font-size:15px;line-height:1.4;max-width:560px}
+.moment .mi0{font-size:22px;flex:none;width:30px;height:30px;display:grid;place-items:center}.moment .mi0 .fx{width:30px;height:30px}
+.thpet{position:relative}.pmood{position:absolute;right:-4px;top:-8px;width:46px;height:46px;z-index:3;animation:bob 3s ease-in-out infinite}
+.pethero .pmood{right:16px;top:14px;width:64px;height:64px}
+.pletter{position:absolute;left:-2px;bottom:28px;width:40px;height:40px;z-index:3;animation:bob 2.4s ease-in-out infinite reverse}
+@keyframes bob{50%{transform:translateY(-6px)}}
+.mi{width:26px;height:26px;display:inline-block;vertical-align:middle;margin-right:6px}
+.tmr .fx.mi{width:26px;height:26px;flex:none}
+.card.advent,.card.advt{padding:0;overflow:hidden}
+.advhead{min-height:150px;background:#1a2040 center/cover;display:flex;align-items:flex-end;padding:18px 22px;position:relative}
+.advhead::before{content:"";position:absolute;inset:0;background:linear-gradient(transparent 20%,#000a)}
+.advhead>div{position:relative}.advhead small{display:block;font-size:12px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;color:#ffe9a8}
+.advhead b{display:block;font-size:clamp(26px,5vw,36px);font-weight:900;color:#fff}.advhead span{color:#ffffffcc;font-size:14px}
+.adoors{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;padding:16px}
+@media(max-width:520px){.adoors{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.adoor{position:relative;aspect-ratio:1;min-width:0;padding:0;overflow:hidden;border-radius:14px;border:1px solid var(--line);background:linear-gradient(160deg,#5a3a24,#3b2616);color:#ffe9c8;font:inherit;font-size:20px;font-weight:900;cursor:pointer;display:grid;place-items:center;box-shadow:inset 0 2px 0 #ffffff22;transition:transform .15s}
+.adoor:hover{transform:translateY(-2px)}.adoor.dlock{opacity:.4;cursor:default;filter:grayscale(.5)}.adoor.dlock:hover{transform:none}
+.adoor.today{box-shadow:0 0 0 2px var(--acc),0 0 18px color-mix(in srgb,var(--acc) 50%,transparent);animation:bob 2s ease-in-out infinite}
+.adoor.joint{background:linear-gradient(160deg,#7a2e52,#4a1c34)}
+.adoor.img:not(.open){background:url('pets/adv_tuer.webp') center/88% no-repeat,linear-gradient(160deg,#2c3446,#1c2230);border-color:#ffffff1a}
+.adoor.img:not(.open)>b{background:#1c1208cc;border-radius:999px;padding:2px 9px;font-size:16px;color:#ffe9c8}
+.adoor.img.joint:not(.open){background:url('pets/adv_tuer.webp') center/88% no-repeat,linear-gradient(160deg,#6a2a48,#3a1428)}
+.adoor.open{background:var(--glass);border-style:dashed}.adi{position:absolute;inset:15%;display:grid;place-items:center;font-size:24px}.adi img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.ajt{position:absolute;top:2px;right:4px;font-style:normal;font-size:12px}
+.advgift{width:160px;height:160px;margin:8px auto;display:grid;place-items:center;font-size:90px}.advgift img{width:100%;height:100%;object-fit:contain}.advgift .advhab{border-radius:18px;object-fit:cover}
+.advtxt{font-size:16px;line-height:1.5;text-align:center}.advq{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px 0}
+.advq .chip.ok{background:var(--cyan);color:#062;border-color:var(--cyan)}.advq .chip.no{background:#ff5a6e33;border-color:#ff5a6e}
+.advmem{display:flex;gap:14px;align-items:center;padding:14px;border-radius:16px;background:var(--glass);margin:10px 0}.advmem>span{font-size:32px}
+.advmem small{display:block;color:var(--muted);font-size:12px}.advmem b{display:block;font-size:17px}.advmem em{font-style:normal;color:var(--muted);font-size:13px}
+.momp input{width:100%;margin-top:10px}.momq{display:flex;gap:6px}.momq .chip{font-size:20px;padding:6px 14px}
+.story .fx.big{width:clamp(90px,20vw,150px);height:auto;flex:none}
+.chr{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}.chr:first-of-type{border-top:0}
+.chi{width:34px;text-align:center;font-size:22px;flex:none}.chm{flex:1;min-width:0}.chm small{display:block;color:var(--muted);font-size:12px}.chm b{font-size:15px}
+.chr.k-duo .chi{filter:drop-shadow(0 0 8px var(--violet))}.chr.k-theirs b{color:var(--violet)}
+.dbl{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}.dbl>div{padding:10px;border-radius:12px;background:color-mix(in srgb,var(--acc) 12%,transparent)}
+.dbl>div.pa{background:color-mix(in srgb,var(--violet) 14%,transparent)}.dbl em{display:block;font-style:normal;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.pin{background:none;border:0;font-size:16px;opacity:.25;cursor:pointer;filter:grayscale(1)}.pin.on{opacity:1;filter:none}
+.caprow{display:flex;gap:16px;align-items:center}@media(max-width:600px){.caprow{flex-direction:column;align-items:stretch}.caprow .fx.cap{width:90px;margin:0 auto}}.capq .chip{white-space:normal;text-align:left}.fx.cap{width:clamp(80px,16vw,120px);height:auto;flex:none}.caprow>div{flex:1;min-width:0}
+.capc textarea,.surc textarea{width:100%}.capt{padding:10px 12px;border-radius:12px;background:var(--glass);margin:6px 0}.capt em{font-style:normal;font-weight:800;color:var(--acc)}.capt.pa em{color:var(--violet)}
+.capc.open{background:linear-gradient(120deg,color-mix(in srgb,var(--orange) 16%,var(--panel)),var(--panel))}
+.wishc{background:linear-gradient(#181b21e8,#181b21f5),var(--wb,none) center/cover}
+.wish{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}.wish>span{font-size:22px;width:30px;text-align:center}.wish>div{flex:1;min-width:0}
+.wish small{display:block;color:var(--muted);font-size:12px}.wish .chip{font-size:12px;padding:6px 10px}.wish.done{opacity:.8}.fx.wl{width:30px;height:30px;flex:none}
+.wadd{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.wadd input{flex:1;min-width:160px}.wadd select{width:auto}
+.wdone{margin-top:10px}.wdone summary{cursor:pointer;color:var(--muted);font-weight:700}
+.sur{display:flex;gap:12px;align-items:center;padding:10px;border-radius:14px;background:var(--glass);margin-bottom:8px}.fx.se{width:56px;height:56px;flex:none}
+.sur small{display:block;color:var(--muted);font-size:12px}.sur p{margin:2px 0 0;font-size:14px}.sur.open{background:color-mix(in srgb,var(--violet) 16%,transparent)}
+.home{position:relative;aspect-ratio:1279/709;border-radius:16px;background:#2a2520 center/cover;overflow:hidden}
+.shelf{position:absolute;left:8.6%;top:5.5%;width:27%;height:40%;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:2% 2.4%;gap:2%}
+.tro{display:grid;place-items:end center;font-size:clamp(14px,2.4vw,26px)}.tro img{max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 2px 3px #0006)}
+.hpets{position:absolute;left:0;right:0;bottom:2%;display:flex;justify-content:center;gap:4%;height:58%}.hpets .pwrap{width:30%;height:100%}
+.bondbar{display:grid;gap:4px;margin-top:12px}.bondbar span{font-weight:700;font-size:14px}.bondbar small{color:var(--muted);font-size:12px}.bondbar .qbar i{background:linear-gradient(90deg,var(--acc),var(--violet))}
+.pcfold{margin:18px 0}.pcfold>summary{cursor:pointer;list-style:none;padding:14px 18px;border-radius:var(--r);background:var(--panel);border:1px solid var(--line);font-weight:800}
+.pcfold>summary::-webkit-details-marker{display:none}.pcfold[open]>summary{margin-bottom:14px}
+body[data-season~="winter"] .today{background:radial-gradient(70% 120% at 100% 0%,#9fd4ff30 0,transparent 60%),var(--panel)}
+body[data-season~="herbst"] .today{background:radial-gradient(70% 120% at 100% 0%,#ffb54730 0,transparent 60%),var(--panel)}
+body[data-season~="fruehling"] .today{background:radial-gradient(70% 120% at 100% 0%,#ffb3d930 0,transparent 60%),var(--panel)}
+body[data-season~="sommer"] .today{background:radial-gradient(70% 120% at 100% 0%,#ffe06630 0,transparent 60%),var(--panel)}
+body[data-season~="xmas"] .today::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(2px 2px at 20% 30%,#fff9,transparent),radial-gradient(2px 2px at 70% 20%,#fff8,transparent),radial-gradient(1.5px 1.5px at 40% 70%,#fff7,transparent),radial-gradient(2px 2px at 85% 60%,#fff8,transparent),radial-gradient(1.5px 1.5px at 55% 45%,#fff6,transparent);background-size:220px 220px;animation:snow 12s linear infinite;opacity:.8}
+@keyframes snow{to{background-position:0 220px,0 220px,0 220px,0 220px,0 220px}}
+@media(prefers-reduced-motion:reduce){.pmood,.pletter,.adoor.today,body[data-season~="xmas"] .today::after{animation:none}}
+.wduelh .wdbig b{font-size:clamp(34px,4.5vw,54px)}.wduelh .wchart{height:80px}
 /* Start „Heute“ */
 .today{min-height:0;background:radial-gradient(70% 120% at 100% 0%,color-mix(in srgb,var(--acc) 22%,transparent) 0,transparent 60%),var(--panel)}
 .today .h1{font-size:clamp(30px,7vw,46px)}
@@ -1445,7 +1510,8 @@ async function loadCloud(force){
       const m = meta[norm(e.key)]; return !(m && m.updated && Date.parse(m.updated) >= e.ts) && Date.now()-e.ts < 30*86400e3; }));
   }
   const snap = S.snap, meta = {...(snap.meta||{})};
-  let goals = snap.goals || {}; const kvs = {year_overrides: snap.year_overrides || {}, wrapped: snap.wrapped_archive || {}, notpc: snap.notpc || {}, snotes: snap.snotes || {}, covers: snap.covers || {}, paid: snap.paid || {}, notify: snap.notify || null, critic: snap.critic || {}, plans: snap.plans || [], plan_resp: snap.plan_resp || {}};
+  let goals = snap.goals || {}; const kvs = {year_overrides: snap.year_overrides || {}, wrapped: snap.wrapped_archive || {}, notpc: snap.notpc || {}, snotes: snap.snotes || {}, covers: snap.covers || {}, paid: snap.paid || {}, notify: snap.notify || null, critic: snap.critic || {}, plans: snap.plans || [], plan_resp: snap.plan_resp || {},
+    advent: snap.advent || {}, wishes: snap.wishes || [], wish_done: snap.wish_done || {}, surprises: snap.surprises || [], capsule: snap.capsule || {}, pins: snap.pins || [], features: snap.features || {}};
   for (const e of edits()){
     if (e.kind === "kv"){ if (e.key === "goals") goals = e.value; else kvs[e.key] = e.value; continue; }
     const k = norm(e.key); meta[k] = {...(meta[k]||{}), ...pick(e,["status","rating","note","tier","hide"]), updated:new Date(e.ts).toISOString()};
@@ -1457,7 +1523,8 @@ async function loadCloud(force){
     values: snap.values || {}, values_at: snap.values_at, xcovers: snap.xcovers || {}, partner_url: snap.partner_url || null, partner: snap.partner || null, me_name: snap.me_name || "", me_duo: snap.me_duo || null, greets: snap.greets || [], push_topic: snap.push_topic || null, ui: snap.ui || {}, ghist: snap.ghist || null, pet: snap.pet || null, pet_raw: snap.pet_raw || {}, pet_imgs: snap.pet_imgs || [],
     tracking_since: snap.tracking_since, health: snap.health || [], new_games: snap.new_games || {},
     trophies: snap.trophies || [], free_games: snap.free_games || [],
-    pc: snap.pc || {}, ago: snap.ago || null, countdowns: snap.countdowns || [], plans: kvs.plans, plan_resp: kvs.plan_resp,
+    pc: snap.pc || {}, ago: snap.ago || null, countdowns: snap.countdowns || [], plans: kvs.plans, plan_resp: kvs.plan_resp, last_night: snap.last_night || null,
+    advent: kvs.advent, wishes: kvs.wishes, wish_done: kvs.wish_done, surprises: kvs.surprises, capsule: kvs.capsule, pins: kvs.pins, features: kvs.features,
     playing:[], can_edit:false, period: p ? p.info : {period:"all"}, period_minutes: p ? p.pm : null};
   S.pcache = {}; S.yearPM = undefined; S.yearInfo = undefined; syncTheme();
   applyEstimate(); buildGroups(); header(); route(); flushEdits(); setTimeout(saveYearArchive, 1500);
@@ -1754,6 +1821,7 @@ function quietRoute(){
   const y = scrollY; S.quiet = true; route(); S.quiet = false; scrollTo(0, y);
 }
 function afterRender(){
+  try { applySeason(); } catch(e){}
   document.querySelectorAll("#view .seg").forEach(sg=>{ const b = sg.querySelector("button.on"); if (b && sg.scrollWidth > sg.clientWidth) sg.scrollLeft = b.offsetLeft - (sg.clientWidth - b.offsetWidth) / 2; });
   if (S.quiet){
     document.querySelectorAll(".reveal").forEach(el=>{ el.style.transition = "none"; el.classList.add("in");
@@ -1984,6 +2052,375 @@ function seasonCard(){
     <div class="sstrip">${[...cov,...cov].map(g=>`<div class="poster">${img(g.covers,g.title)}</div>`).join("")}</div>
     <div class="stxt"><small>🎬 Wrapped ${yr}</small><b>Dein Gaming-Jahr ${yr}</b><span>${sub}</span></div><em>▶</em></button>`;
 }
+/* ================= „Unsere Welt“: Moment, Advent, Momente, Chronik, Zeitkapsel, Wunschbaum, Überraschungen, Zuhause ================= */
+const feat = k => ((S.data||{}).features||{})[k] !== false;
+const nowD = () => window.__now ? new Date(window.__now) : new Date();
+const isoDay = d => d.toLocaleDateString("sv-SE");
+const hashN = s => { let h = 2166136261; for (const c of String(s)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
+const rid = () => Math.random().toString(36).slice(2,10);
+const fxImg = (n, cls="") => hasImg(`${n}.webp`) ? `<img class="fx ${cls}" src="pets/${n}.webp" alt="">` : "";
+const MONTHS = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+const titleK = k => titleOf(k) || (S.gmap.get(k)||{}).title || k;
+async function ntfyPartner(title, message, tags=["video_game"]){
+  const p = S.data.partner; if (!p || !p.topic) return false;
+  try { const r = await fetch("https://ntfy.sh/", {method:"POST", body: JSON.stringify({topic:p.topic, title, message, tags,
+    click: S.data.partner_url ? S.data.partner_url.replace(/\/?$/, "/#/uebersicht") : undefined})}); return r.ok; } catch(e){ return false; }
+}
+
+/* ---------- Was ist neu ---------- */
+const CHANGELOG = [{v:"2026-12a", items:[
+  "☀️ Startseite mit „Moment des Tages“ – jeden Tag etwas Neues",
+  "🎄 Adventskalender für euch beide, mit gemeinsamen Türchen",
+  "💌 Grüße kommen jetzt sichtbar beim Begleiter an",
+  "🌙 „Licht aus“ – Gute-Nacht-Gruß und Abend-Rückblick am Morgen",
+  "📖 Eure Geschichte, Momente festhalten, Zeitkapsel, Wunschbaum & Überraschungen"]}];
+function whatsNewCard(){
+  const c = CHANGELOG[0]; if (!feat("news") || store.get("gr_news_seen", "") === c.v) return "";
+  return `<section class="card reveal wnew"><button class="ibtn dclose" onclick="store.set('gr_news_seen','${c.v}');quietRoute()" title="Gelesen">✕</button>
+    <h3>✨ Was ist neu</h3><ul>${c.items.map(i=>`<li>${esc(i)}</li>`).join("")}</ul></section>`;
+}
+
+/* ---------- Grüße beim Begleiter ---------- */
+function freshGreet(hours = 10){
+  const pa = S.data.partner; if (!pa) return null;
+  const g = [...(S.data.greets||[])].sort((a,b)=>b.at-a.at)[0];
+  return g && Date.now()/1000 - g.at < hours * 3600 ? g : null;
+}
+
+/* ---------- Begleiter: Persönlichkeit & Stimmung ---------- */
+const TRAITS = [["verspielt","jagt gern Staubflusen"],["gemütlich","liebt Kuscheldecken"],["neugierig","steckt die Nase überall rein"],
+  ["verschmust","will immer dabei sein"],["abenteuerlustig","träumt von Drachen"],["verträumt","zählt nachts Sterne"]];
+function petTrait(p){
+  if (!p) return TRAITS[0];
+  const recentNew = (S.data.status_log||[]).filter(x=>x[1]==="angefangen" && Date.now() - Date.parse(x[2]) < 30*864e5).length;
+  if (recentNew >= 3) return TRAITS[2];
+  const ev = S.data.partner && duoEvenings(S.data.partner); if (ev && ev.list.filter(e=>Date.now() - Date.parse(e.day) < 30*864e5).length >= 4) return TRAITS[3];
+  return TRAITS[hashN(p.id) % TRAITS.length];
+}
+function petMood(p){
+  if (!p || !p.stage || !feat("moment")) return null;
+  const h = nowD().getHours(), m = nowD().getMonth();
+  if (freshGreet(6) && feat("greetpet")) return "emo_herz";
+  if ((S.data.playing||[]).length) return "emo_spiel";
+  if (h >= 23 || h < 6) return "emo_schlaf";
+  if ((S.data.pet||{}).eggs_ready && (S.data.pet||{}).eggs_ready.length) return "emo_stern";
+  if ((m === 11 || m <= 1) && h >= 17) return "emo_kakao";
+  if (S.data.plans && planAll().some(x=>x.at.slice(0,10) === isoDay(nowD()))) return "emo_idee";
+  return ["emo_musik", null, null, "emo_frage", null][hashN(isoDay(nowD()) + p.id) % 5];
+}
+const moodBubble = p => { const m = petMood(p); return m ? `<span class="pmood">${fxImg(m)}</span>` : ""; };
+
+/* ---------- Moment des Tages ---------- */
+const SEASON_LINES = {0:["Neues Jahr, neue Abenteuer – was steht auf eurer Liste? ✨"],1:["Draußen grau, drinnen gemütlich. Perfektes Zockwetter."],
+  2:["Die ersten Blumen sind da 🌱"],3:["Frühlingsgefühle! Vielleicht mal was Neues anfangen?"],4:["Lange Abende, warme Luft – und ein guter Koop-Titel."],
+  5:["Sommeranfang! Zeit für ein entspanntes Spiel 🌞"],6:["Sommer! Zocken mit offenem Fenster 🍹"],7:["Heiß draußen – Ventilator an, Controller in die Hand."],
+  8:["Die Blätter werden bunt 🍂"],9:["Kürbiszeit! Lust auf etwas Gruseliges? 🎃"],10:["Es wird früh dunkel – Deckenwetter."],11:["Plätzchenduft und Lichterketten 🎄"]};
+const DREAMS = ["hat heute Nacht von einem Drachen geträumt 🐉","hat eine glänzende Murmel gefunden und versteckt 💎","hat dein Lieblingsspiel beobachtet und will mitspielen 🎮",
+  "hat sich ein neues Lied ausgedacht 🎶","hat beschlossen, heute besonders lieb zu sein 💛","hat im Schlaf mit dem Schwanz gewedelt 😴"];
+function momentOfDay(){
+  const C = [], d = nowD(), h = d.getHours(), pa = S.data.partner, P = S.data.pet || {}, p = (P.pets||[]).length ? petActive() : null, pn = p ? petName(p) : "Dein Begleiter";
+  const g = feat("greetpet") && freshGreet(); if (g) C.push([100, "💌", `<b>${esc(pa.name)}</b>: ${esc(g.msg || g.title)}`, "#/freunde"]);
+  if (pa) planAll().filter(x=>x.at.slice(0,10) === isoDay(d)).slice(0,1).forEach(x=>C.push([90, "🎮", `Heute ${x.at.slice(11,16)} Uhr: Zockabend mit ${esc(pa.name)}${x.game ? " · " + esc(x.game) : ""}`, "#/uebersicht"]));
+  const ln = S.data.last_night; if (feat("night") && ln && h < 13 && Date.now() - Date.parse(ln.at) < 16*3600e3)
+    C.push([85, fxImg("fx_sonne","mi") || "☀️", `Guten Morgen! Gestern ${ln.min ? hrs(ln.min) : "kurz"}${ln.top ? `, vor allem <b>${esc(titleK(ln.top))}</b>` : ""}. ${esc(pn)} hat gut geschlafen.`, "#/begleiter"]);
+  const today = isoDay(d).slice(5);
+  chronicle().filter(e=>e.d.slice(5) === today && e.d.slice(0,4) < String(d.getFullYear())).slice(0,1)
+    .forEach(e=>C.push([70, e.icon, `Heute vor ${d.getFullYear() - Number(e.d.slice(0,4))} Jahr${d.getFullYear() - Number(e.d.slice(0,4)) > 1 ? "en" : ""}: ${esc(e.title)}`, "#/statistik?story"]));
+  if (S.data.ago) C.push([55, "🕰️", `Vor einem Jahr hast du ${(S.data.ago.games||[]).slice(0,2).map(x=>`<b>${esc(x[0])}</b>`).join(" und ") || "gezockt"} gespielt.`, ""]);
+  if (hashN(isoDay(d)) % 4 === 0 && p && p.stage) C.push([50, "💭", `${esc(pn)} ${DREAMS[hashN(isoDay(d) + "d") % DREAMS.length]}`, "#/begleiter"]);
+  if (p && p.stage){ const [t, q] = petTrait(p); C.push([30, "🐾", `${esc(pn)} ist heute besonders ${t} – ${q}.`, "#/begleiter"]); }
+  C.push([20, "🍃", (SEASON_LINES[d.getMonth()]||[""])[0], ""]);
+  C.sort((a,b)=>b[0]-a[0]);
+  return C[0];
+}
+
+/* ---------- Adventskalender ---------- */
+// Typ pro Tag: r = Belohnung, q = Quiz, m = Erinnerung, f = Fun Fact, g = Gruß, j = gemeinsames Türchen
+const ADVENT = {1:["r","acc","schal"],2:["q"],3:["m"],4:["r","acc","geweih"],5:["f"],6:["j"],7:["r","acc","ohrenschuetzer"],8:["q"],9:["g"],
+  10:["r","acc","wichtel"],11:["m"],12:["f"],13:["j"],14:["r","acc","lichterkette"],15:["q"],16:["m"],17:["r","acc","zuckerstange"],18:["g"],
+  19:["f"],20:["j"],21:["r","acc","sternkrone"],22:["m"],23:["q"],24:["r","hab","weihnachtsstube"]};
+function adventState(){
+  const d = nowD(), y = d.getFullYear(), opened = (S.data.advent||{}).o || {}, theirs = new Set(((S.data.partner||{}).advent)||[]);
+  return {d, y, opened, theirs, day: d.getMonth() === 11 ? Math.min(d.getDate(), 31) : 0, key: n => `${y}-12-${String(n).padStart(2,"0")}`};
+}
+function adventCard(){
+  if (!feat("advent")) return "";
+  const A = adventState(), m = A.d.getMonth(), dd = A.d.getDate();
+  if (m === 10 && dd >= 23) return `<section class="card reveal advt"><div class="advhead" ${hasImg("adv_kopf.webp")?`style="background-image:url('pets/adv_kopf.webp')"`:""}>
+      <div><small>Adventskalender</small><b>Noch ${31 - dd} ${31 - dd === 1 ? "Tag" : "Tage"}</b><span>Am 1. Dezember geht das erste Türchen auf – für euch beide.</span></div></div></section>`;
+  if (m !== 11 || dd > 26) return "";
+  const pa = S.data.partner;
+  const doors = Array.from({length:24}, (_, i) => { const n = i + 1, k = A.key(n), open = !!A.opened[k], can = n <= A.day, joint = ADVENT[n][0] === "j";
+    return `<button class="adoor ${hasImg("adv_tuer.webp")?"img":""} ${open?"open":""} ${can?"":"dlock"} ${joint?"joint":""} ${n===A.day && !open?"today":""}" ${can?`onclick="openAdvent(${n})"`:""}>
+      ${open ? `<span class="adi">${adventIcon(n)}</span>` : `<b>${n}</b>`}${joint && pa ? `<i class="ajt">${A.theirs.has(k) ? "💞" : "💌"}</i>` : ""}</button>`; }).join("");
+  const missed = Array.from({length:A.day}, (_, i) => i + 1).filter(n => n <= 24 && !A.opened[A.key(n)]).length;
+  return `<section class="card reveal advent"><div class="advhead" ${hasImg("adv_kopf.webp")?`style="background-image:url('pets/adv_kopf.webp')"`:""}>
+      <div><small>Adventskalender ${A.y}</small><b>${A.day <= 24 ? `${A.day}. Dezember` : "Frohe Weihnachten 🎄"}</b><span>${missed ? `${missed} ${missed === 1 ? "Türchen wartet" : "Türchen warten"} auf dich` : "Alles geöffnet – bis morgen!"}${pa ? " · 💞 = gemeinsame Türchen" : ""}</span></div></div>
+    <div class="adoors">${doors}</div></section>`;
+}
+function adventIcon(n){
+  const t = ADVENT[n];
+  if (t[0] === "r") return t[1] === "acc" && hasImg(`acc_${t[2]}.webp`) ? `<img src="pets/acc_${t[2]}.webp" alt="">` : t[1] === "hab" ? "🏡" : "🎁";
+  return {q:"❓", m:"🕰️", f:"💡", g:"💌", j:"💞"}[t[0]];
+}
+function adventQuiz(n){
+  const y = nowD().getFullYear(), seed = hashN("q" + y + n), ym = {};
+  (S.data.sessions||[]).forEach(([k, st, sec])=>{ if (new Date(st*1000).getFullYear() === y) ym[k] = (ym[k]||0) + sec/60; });
+  const pick = (arr, k) => arr.map((x,i)=>[hashN(seed + ":" + i), x]).sort((a,b)=>a[0]-b[0]).slice(0,k).map(x=>x[1]);
+  const kinds = [
+    () => { const yr = Object.entries(ym).sort((a,b)=>b[1]-a[1]).map(x=>titleK(x[0])); if (yr.length < 4) return null;
+      return {q:`Welches Spiel hast du ${y} am PC am meisten gespielt?`, a:yr[0], o:pick(yr.slice(0,8), 4)}; },
+    () => { const pl = S.groups.filter(g=>g.minutes>0).sort((a,b)=>b.minutes-a.minutes); if (pl.length < 4) return null;
+      return {q:"In welchem Spiel steckt insgesamt die meiste Zeit?", a:pl[0].title, o:pick(pl.slice(0,8).map(g=>g.title), 4)}; },
+    () => { const pa = S.data.partner; const th = pa && (pa.games||[]).filter(r=>r[2]>0).sort((a,b)=>b[2]-a[2]); if (!th || th.length < 4) return null;
+      return {q:`Was hat ${pa.name} am meisten gespielt?`, a:th[0][1], o:pick(th.slice(0,8).map(r=>r[1]), 4)}; },
+    () => { const pl = S.groups.filter(g=>g.last).sort((a,b)=>a.last-b.last); if (pl.length < 4) return null;
+      const old = pl.find(g=>g.minutes>60) || pl[0]; return {q:"Welches dieser Spiele hast du am längsten nicht mehr angefasst?", a:old.title, o:pick([old.title, ...pl.slice(-8).map(g=>g.title)], 4)}; }];
+  for (let i = 0; i < kinds.length; i++){ const r = kinds[(seed + i) % kinds.length](); if (r){ if (!r.o.includes(r.a)) r.o[seed % r.o.length] = r.a; return r; } }
+  return null;
+}
+window.openAdvent = async n => {
+  const A = adventState(), k = A.key(n), t = ADVENT[n], pa = S.data.partner, first = !A.opened[k];
+  if (first){ await saveKv("advent", {o:{...A.opened, [k]: Math.floor(Date.now()/1000)}}); if (t[0] === "j" && pa) ntfyPartner("🎄 Gemeinsames Türchen", `${S.data.me_name || "Dein Player 2"} hat das ${n}. Türchen geöffnet – jetzt du!`); }
+  let body = "";
+  if (t[0] === "r"){ const nm = t[1] === "acc" ? (PET_ACC[t[2]]||[t[2]])[0] : PET_HAB[t[2]];
+    body = `<div class="advgift">${t[1]==="acc" && hasImg(`acc_${t[2]}.webp`) ? `<img src="pets/acc_${t[2]}.webp" alt="">` : t[1]==="hab" && hasImg(`hab_${t[2]}.webp`) ? `<img class="advhab" src="pets/hab_${t[2]}.webp" alt="">` : "🎁"}</div>
+      <p class="advtxt">Für deinen Begleiter: <b>${esc(nm)}</b>! ${t[1]==="acc" ? "Du findest es unter Begleiter › Accessoires." : "Ein neuer Lebensraum unter Begleiter."}</p>
+      ${n === 24 ? `<button class="btn limeb" onclick="$('#info').close();W.mode='year';location.hash='#/wrapped';setTimeout(startWrapped,400)">🎬 Euer Jahres-Wrapped ansehen</button>` : ""}`; }
+  else if (t[0] === "q"){ const Q = adventQuiz(n);
+    body = Q ? `<p class="advtxt"><b>${esc(Q.q)}</b></p><div class="advq">${Q.o.map(o=>`<button class="chip" onclick="this.parentNode.querySelectorAll('button').forEach(b=>{b.disabled=true;b.classList.toggle('ok',b.dataset.a==='1')});this.classList.add(this.dataset.a==='1'?'ok':'no');$('#advQr').textContent=this.dataset.a==='1'?'Richtig! 🎉':'Knapp daneben – richtig war: ${esc(Q.a).replace(/'/g,"")}'" data-a="${o===Q.a?1:0}">${esc(o)}</button>`).join("")}</div><p id="advQr" class="advtxt"></p>`
+      : `<p class="advtxt">Heute gibt's eine Überraschung: Spiel einfach eine Runde – dein Begleiter freut sich 💛</p>`; }
+  else if (t[0] === "m"){ const L = chronicle(), e = L.length ? L[hashN("m" + k) % L.length] : null;
+    body = e ? `<div class="advmem"><span>${e.icon}</span><div><small>${fdate(new Date(e.d + "T12:00"))}</small><b>${esc(e.title)}</b>${e.sub?`<em>${esc(e.sub)}</em>`:""}</div></div><p class="advtxt">Weißt du noch? 🥹</p>`
+      : `<p class="advtxt">Eure Geschichte fängt gerade erst an – jeder Abend wird eine Erinnerung ✨</p>`; }
+  else if (t[0] === "f"){ const c = ovCtx(), FL = facts(c.played, c.total, c.plats), f = FL.length ? FL[hashN("f" + k) % FL.length] : null;
+    body = f ? `<div class="advmem"><span>${f.icon||"💡"}</span><div><small>${esc(f.t)}</small><b>${esc(f.v)}</b><em>${esc(f.s)}</em></div></div>` : `<p class="advtxt">Heute: Tee, Decke, Controller ☕</p>`; }
+  else if (t[0] === "g"){ body = pa ? `<p class="advtxt">Heute ist Gruß-Tag! Schick ${esc(pa.name)} etwas Liebes:</p><div class="advq">${["🎄 Frohen Advent, Player 2!","☕ Kakao und Koop heute Abend?","❄️ Mit dir ist jeder Winter gemütlich"].map(m=>`<button class="chip" onclick="sendGreet('${m}', this)">${m}</button>`).join("")}</div>`
+      : `<p class="advtxt">Heute ist Gruß-Tag! Sag jemandem, dass du an ihn denkst 💌</p>`; }
+  else if (t[0] === "j"){ const both = A.theirs.has(k) || !pa;
+    const ev = pa && duoEvenings(pa), best = ev && [...ev.list].sort((a,b)=>b.min-a.min)[0];
+    body = !both ? `<div class="advgift">${fxImg("fx_brief") || "💌"}</div><p class="advtxt">Ein <b>gemeinsames Türchen</b>! Es geht ganz auf, sobald auch ${esc(pa.name)} es geöffnet hat – sie bekommt gerade Bescheid.</p>`
+      : `<div class="advgift">${fxImg("adv_geschenk") || "💞"}</div><p class="advtxt">${ev && ev.n ? `Ihr habt schon <b>${ev.n} Abende</b> zusammen gezockt – ${hrs(ev.min)} gleichzeitig im Spiel.${best ? ` Euer längster: ${fdate(new Date(best.day+"T12:00"))} mit ${hrs(best.min)}.` : ""}` : "Euer erstes gemeinsames Türchen! Plant doch gleich einen Abend zusammen."}</p>
+        <button class="btn limeb" onclick="$('#info').close();planNew()">🎮 Zockabend planen</button>`; }
+  $("#infoBody").innerHTML = `<button class="ibtn dclose" onclick="$('#info').close()">✕</button><div class="eyebrow">Adventskalender · ${n}. Dezember</div>
+    <div class="h1" style="font-size:clamp(26px,6vw,36px);margin:6px 0 10px">${t[0]==="j"?"Gemeinsames Türchen":t[0]==="r"?"Ein Geschenk!":t[0]==="q"?"Mini-Quiz":t[0]==="m"?"Eine Erinnerung":t[0]==="f"?"Schon gewusst?":"Gruß-Tag"}</div>${body}`;
+  if (!$("#info").open) $("#info").showModal();
+  if (first) quietRoute();
+};
+
+/* ---------- Momente festhalten ---------- */
+const MOMOOD = {3:"😍", 2:"🙂", 1:"😐"};
+function momentPrompt(){
+  if (!feat("moments") || !LOCAL && !CLOUD) return "";
+  const skip = store.get("gr_mom_skip", []), notes = S.data.snotes || {}, now = Date.now()/1000;
+  const cand = (S.data.sessions||[]).filter(([k, st, sec])=>sec >= 1800 && now - st < 36*3600 && !notes[`${k}|${st}`] && !skip.includes(`${k}|${st}`)).sort((a,b)=>b[1]-a[1])[0];
+  if (!cand) return "";
+  const [k, st, sec] = cand, id = `${k}|${st}`, pa = S.data.partner, together = pa && (pa.sess||[]).some(x=>x[0]===k && Math.min(x[1]+x[2], st+sec) - Math.max(x[1], st) >= 900);
+  return `<section class="card reveal momp"><h3>📝 Moment festhalten</h3><p style="margin:0 0 10px"><b>${esc(titleK(k))}</b> · ${hrs(sec/60)}${together ? ` · mit ${esc(pa.name)} 💞` : ""} – wie war's?</p>
+    <div class="moods momq" data-m="0">${Object.entries(MOMOOD).reverse().map(([m,e])=>`<button class="chip" onclick="this.parentNode.dataset.m='${m}';this.parentNode.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===this))">${e}</button>`).join("")}</div>
+    <input type="text" id="momTxt" maxlength="280" placeholder="${together ? "Ein Satz für eure Erinnerungen …" : "Ein Satz, z. B. „Endlich den Boss geschafft!“"}">
+    <div class="inl" style="gap:8px;margin-top:10px"><button class="btn limeb small" onclick="saveMoment('${esc(id)}')">Festhalten</button>
+      <button class="btn ghost small" onclick="store.set('gr_mom_skip',[...store.get('gr_mom_skip',[]),'${esc(id)}'].slice(-80));quietRoute()">Heute nicht</button></div></section>`;
+}
+window.saveMoment = async id => {
+  const m = Number(($(".momq")||{}).dataset ? $(".momq").dataset.m : 0) || 0, t = ($("#momTxt")||{}).value ? $("#momTxt").value.trim() : "";
+  if (!m && !t) return toast("Ein Emoji oder ein Satz reicht schon 🙂");
+  await saveKv("snotes", {...(S.data.snotes||{}), [id]: [m, t]}); toast("Festgehalten 📖"); quietRoute();
+};
+
+/* ---------- Chronik: automatische Erinnerungen + eure Momente ---------- */
+function chronicle(){
+  if (S._chron && S._chron[0] === S.data) return S._chron[1];
+  const L = [], pa = S.data.partner, P = S.data.pet || {}, me = S.data.me_name || "Du";
+  const dayOf = ts => isoDay(new Date((ts - 5*3600) * 1000));
+  (P.memories||[]).forEach(m=>L.push({id:"pm:"+m.d+m.t, d:m.d, icon:m.i, title:m.t, kind:"pet"}));
+  // eigene Sessions: Rekordabend, Wiedersehen, 100 Std
+  const ses = [...(S.data.sessions||[])].sort((a,b)=>a[1]-b[1]), perDay = {}, lastBy = {}, sumBy = {};
+  for (const [k, st, sec] of ses){
+    const d = dayOf(st); perDay[d] = (perDay[d]||0) + sec/60;
+    if (lastBy[k] && st - lastBy[k] > 120*86400) L.push({id:"wd:"+k+d, d, icon:"🔁", title:`Wiedersehen mit ${titleK(k)}`, sub:`nach ${Math.round((st-lastBy[k])/86400/30)} Monaten Pause`, kind:"auto"});
+    lastBy[k] = st + sec;
+    const before = sumBy[k]||0; sumBy[k] = before + sec/60;
+    for (const ms of [6000, 30000]) if (before < ms && sumBy[k] >= ms) L.push({id:`ms${ms}:`+k, d, icon:"🏅", title:`${ms/60} Stunden in ${titleK(k)}`, kind:"auto"});
+  }
+  const rec = Object.entries(perDay).sort((a,b)=>b[1]-a[1])[0]; if (rec && rec[1] > 120) L.push({id:"rec:"+rec[0], d:rec[0], icon:"🔥", title:"Dein Rekord-Abend", sub:`${hrs(rec[1])} an einem Tag`, kind:"auto"});
+  // durchgespielt
+  const DONE = new Set(["durchgespielt","komplett"]), seen = new Set();
+  for (const [k, st, at] of S.data.status_log||[]) if (DONE.has(st) && !seen.has(k)){ seen.add(k); L.push({id:"dn:"+k, d:String(at).slice(0,10), icon:"🏁", title:`${titleK(k)} durchgespielt`, kind:"auto"}); }
+  // gemeinsam
+  if (pa){
+    const ev = duoEvenings(pa); if (ev){ const firstBy = {}; [...ev.list].reverse().forEach(e=>Object.keys(e.games).forEach(g=>{ if (!firstBy[g]) firstBy[g] = e.day; }));
+      Object.entries(firstBy).forEach(([g, d])=>L.push({id:"je:"+g, d, icon:"💞", title:`Erster gemeinsamer Abend in ${titleK(g)}`, kind:"duo"}));
+      const best = [...ev.list].sort((a,b)=>b.min-a.min)[0]; if (best && best.min > 90) L.push({id:"jr:"+best.day, d:best.day, icon:"🌟", title:"Euer längster gemeinsamer Abend", sub:hrs(best.min), kind:"duo"});
+      ev.list.forEach(e=>{ if ([10,25,50,100].includes(ev.list.length - ev.list.indexOf(e))) L.push({id:"jn:"+e.day, d:e.day, icon:"🎉", title:`${ev.list.length - ev.list.indexOf(e)}. gemeinsamer Abend`, kind:"duo"}); }); }
+    const theirDone = new Set((pa.news||[]).filter(n=>n[0]==="done"||n[0]==="full").map(n=>n[1]));
+    for (const k of seen) if (theirDone.has(k)) L.push({id:"bd:"+k, d:(L.find(x=>x.id==="dn:"+k)||{}).d || isoDay(new Date()), icon:"🤝", title:`Ihr habt beide ${titleK(k)} durchgespielt`, kind:"duo"});
+    (S.data.wishes||[]).concat(pa.wishes||[]).filter(w=>w.done || (S.data.wish_done||{})[w.id] || (pa.wish_done||{})[w.id]).forEach(w=>{ const t = w.done || (S.data.wish_done||{})[w.id] || (pa.wish_done||{})[w.id];
+      L.push({id:"wi:"+w.id, d:isoDay(new Date(t*1000)), icon:"🌳", title:`Wunsch erfüllt: ${w.t}`, kind:"duo"}); });
+  }
+  // eure Momente (Notizen) – gemeinsame Abende als Doppelseite
+  const theirs = (pa && pa.notes) || {};
+  for (const [id, [m, t]] of Object.entries(S.data.snotes||{})){
+    if (!t && !m) continue; const [k, st] = [id.slice(0, id.lastIndexOf("|")), Number(id.slice(id.lastIndexOf("|")+1))]; if (!st) continue;
+    const d = dayOf(st), twin = Object.entries(theirs).find(([i2])=>i2.startsWith(k + "|") && dayOf(Number(i2.split("|").pop())) === d);
+    L.push({id:"mo:"+id, d, icon:MOMOOD[m] || "📝", title:t || `${titleK(k)}`, sub:titleK(k), kind:"moment", me:[m, t], them: twin ? twin[1] : null});
+  }
+  if (pa) for (const [id, [m, t]] of Object.entries(theirs)){ const k = id.slice(0, id.lastIndexOf("|")), st = Number(id.split("|").pop()); if (!st) continue; const d = dayOf(st);
+    if (!L.some(e=>e.kind==="moment" && e.them && e.d===d && e.sub===titleK(k))) L.push({id:"pm2:"+id, d, icon:MOMOOD[m] || "📝", title:t || titleK(k), sub:`${pa.name} · ${titleK(k)}`, kind:"theirs"}); }
+  const seenId = new Set(), out = L.filter(e=>e.d && !seenId.has(e.id) && seenId.add(e.id)).sort((a,b)=>b.d.localeCompare(a.d));
+  S._chron = [S.data, out]; return out;
+}
+function renderStory(head){
+  const L = chronicle(), pins = new Set(S.data.pins||[]), pa = S.data.partner, me = S.data.me_name || "Du";
+  const pinned = L.filter(e=>pins.has(e.id));
+  const row = e => `<div class="chr k-${e.kind}"><span class="chi">${e.icon}</span><div class="chm"><small>${fdate(new Date(e.d+"T12:00"))}${e.sub && e.kind!=="moment" ? " · " + esc(e.sub) : e.kind==="moment" ? " · " + esc(e.sub) : ""}</small>
+      ${e.kind === "moment" && e.them ? `<div class="dbl"><div><em>${esc(me)}</em><b>${e.me[0]?MOMOOD[e.me[0]]+" ":""}${esc(e.me[1]||"")}</b></div><div class="pa"><em>${esc(pa.name)}</em><b>${e.them[0]?MOMOOD[e.them[0]]+" ":""}${esc(e.them[1]||"")}</b></div></div>` : `<b>${esc(e.title)}</b>`}</div>
+      <button class="pin ${pins.has(e.id)?"on":""}" onclick="togglePin('${esc(e.id).replace(/'/g,"")}')" title="Anpinnen">📌</button></div>`;
+  const byYear = {}; L.forEach(e=>(byYear[e.d.slice(0,4)] = byYear[e.d.slice(0,4)] || []).push(e));
+  const cap = capsuleCard(true);
+  setView(head + `<div class="khead story reveal"><div><div class="eyebrow">Unsere Geschichte</div><div class="h1">${L.length} Erinnerungen</div>
+      <p>Automatisch gesammelt – und alles, was ihr selbst festhaltet.</p>
+      <div class="inl" style="gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn limeb" onclick="travelBack()">🕰️ Reise zurück</button></div></div>${fxImg("mem_album","big")}</div>
+    ${cap}${pinned.length ? `<section class="card reveal"><h3>📌 Das behalten wir</h3>${pinned.map(row).join("")}</section>` : ""}
+    ${Object.keys(byYear).sort().reverse().map(y=>`<section class="card reveal"><h3>${y}</h3>${byYear[y].slice(0, S.storyAll ? 400 : 40).map(row).join("")}</section>`).join("") || `<div class="card"><p class="help" style="margin:0">Noch keine Erinnerungen – die erste entsteht beim nächsten Abend.</p></div>`}
+    ${L.length > 40 && !S.storyAll ? `<button class="btn ghost" onclick="S.storyAll=1;quietRoute()">Alle anzeigen</button>` : ""}`);
+}
+window.togglePin = async id => { const p = new Set(S.data.pins||[]); p.has(id) ? p.delete(id) : p.add(id); await saveKv("pins", [...p]); quietRoute(); };
+window.travelBack = () => {
+  const months = [...new Set((S.data.sessions||[]).map(x=>isoDay(new Date(x[1]*1000)).slice(0,7)).concat(chronicle().map(e=>e.d.slice(0,7))))].filter(m=>m < isoDay(new Date()).slice(0,7)).sort();
+  if (!months.length) return toast("Noch keine Vergangenheit – das kommt mit der Zeit 🙂");
+  const m = months[Math.floor(Math.random() * months.length)], per = {};
+  (S.data.sessions||[]).filter(x=>isoDay(new Date(x[1]*1000)).startsWith(m)).forEach(([k,,sec])=>per[k]=(per[k]||0)+sec/60);
+  const top = Object.entries(per).sort((a,b)=>b[1]-a[1]).slice(0,5), ev = chronicle().filter(e=>e.d.startsWith(m)).slice(0,6), tot = Object.values(per).reduce((s,x)=>s+x,0);
+  $("#infoBody").innerHTML = `<button class="ibtn dclose" onclick="$('#info').close()">✕</button><div class="eyebrow">Reise zurück</div>
+    <div class="h1" style="font-size:clamp(28px,7vw,40px);margin:6px 0 10px">${MONTHS[Number(m.slice(5))-1]} ${m.slice(0,4)}</div>
+    ${tot ? `<p class="advtxt">Da hast du <b>${hrs(tot)}</b> gezockt${top[0] ? `, am liebsten <b>${esc(titleK(top[0][0]))}</b>` : ""}.</p>` : ""}
+    ${top.map(([k,v])=>`<div class="pbar"><span class="nm">${esc(titleK(k))}</span><span class="v" style="margin-left:auto">${hrs(v)}</span></div>`).join("")}
+    ${ev.map(e=>`<div class="advmem"><span>${e.icon}</span><div><small>${fdate(new Date(e.d+"T12:00"))}</small><b>${esc(e.title)}</b></div></div>`).join("")}
+    <button class="btn ghost" style="margin-top:14px" onclick="travelBack()">🎲 Noch eine Reise</button>`;
+  if (!$("#info").open) $("#info").showModal();
+};
+
+/* ---------- Monats-Wrapped-Hinweis ---------- */
+function monthWrapCard(){
+  const d = nowD(); if (d.getDate() > 7 || d.getMonth() === 0 || d.getMonth() === 11) return "";
+  const pm = new Date(d.getFullYear(), d.getMonth() - 1, 1), k = `${pm.getFullYear()}-${String(pm.getMonth()+1).padStart(2,"0")}`;
+  if (!(S.data.wrapped_archive||{})[k] || store.get("gr_mw_seen", "") === k) return "";
+  return `<button class="season reveal" onclick="store.set('gr_mw_seen','${k}');W.mode='arch:${k}';location.hash='#/wrapped';setTimeout(startWrapped,300)">
+    <div class="stxt"><small>🎬 Monats-Wrapped</small><b>Dein ${MONTHS[pm.getMonth()]} ist fertig</b><span>Top-Spiele, Stunden und Highlights – als kleine Story.</span></div><em>▶</em></button>`;
+}
+
+/* ---------- Zeitkapsel ---------- */
+function capsuleCard(inStory){
+  if (!feat("capsule")) return "";
+  const d = nowD(), c = S.data.capsule || {}, pc = (S.data.partner||{}).capsule, pa = S.data.partner;
+  const window_ = (d.getMonth() === 11 && d.getDate() >= 26) || (d.getMonth() === 0 && d.getDate() <= 6);
+  if (c.text){
+    const open = c.open <= isoDay(d), days = Math.ceil((Date.parse(c.open + "T00:00") - d) / 864e5);
+    if (!open) return inStory || window_ ? `<section class="card reveal capc"><div class="caprow">${fxImg("mem_kapsel_zu","cap")}<div><h3>⏳ Zeitkapsel</h3>
+      <p>Versiegelt am ${fdate(new Date(c.at*1000))}. Geht auf am <b>${fdate(new Date(c.open+"T12:00"))}</b> – noch ${days} Tage.${pa ? ` ${pc ? `${esc(pa.name)} hat auch eine versiegelt 💞` : `${esc(pa.name)} hat noch keine.`}` : ""}</p></div></div></section>` : "";
+    return `<section class="card reveal capc open"><div class="caprow">${fxImg("mem_kapsel_auf","cap")}<div><h3>🎉 Eure Zeitkapsel ist offen!</h3>
+      <p class="capt"><em>${esc(S.data.me_name || "Du")} vor einem Jahr:</em> ${esc(c.text)}</p>${pc && pc.text ? `<p class="capt pa"><em>${esc(pa.name)}:</em> ${esc(pc.text)}</p>` : ""}</div></div></section>`;
+  }
+  if (!window_) return "";
+  const y = d.getMonth() === 11 ? d.getFullYear() + 1 : d.getFullYear();
+  return `<section class="card reveal capc"><div class="caprow">${fxImg("mem_kapsel_zu","cap")}<div><h3>⏳ Zeitkapsel für Silvester ${y}</h3>
+    <p class="help" style="margin-top:0">Schreib etwas an euch in einem Jahr – erst am 31.12.${y} kann es jemand lesen, auch ${pa ? esc(pa.name) : "du"} nicht.</p>
+    <div class="chips capq" style="flex-wrap:wrap;margin:0 0 8px">${["Welches Spiel spielen wir in einem Jahr am meisten?","Unser schönster Moment dieses Jahr war …","Nächstes Jahr wollen wir unbedingt …"].map(q=>`<button class="chip" onclick="$('#capTxt').value+=(($('#capTxt').value?'\\n':'')+'${q}')">${q}</button>`).join("")}</div>
+    <textarea id="capTxt" rows="4" maxlength="1500" placeholder="Liebe Zukunft …"></textarea>
+    <button class="btn limeb" style="margin-top:10px" onclick="sealCapsule(${y})">🔒 Versiegeln</button></div></div></section>`;
+}
+window.sealCapsule = async y => {
+  const t = $("#capTxt").value.trim(); if (!t) return;
+  if (!confirm("Versiegeln? Danach kannst du sie erst am 31.12." + y + " wieder lesen.")) return;
+  await saveKv("capsule", {text:t, at:Math.floor(Date.now()/1000), open:`${y}-12-31`}); toast("Versiegelt ⏳"); quietRoute();
+  ntfyPartner("⏳ Zeitkapsel versiegelt", `${S.data.me_name || "Dein Player 2"} hat eine Nachricht für Silvester ${y} versiegelt.`);
+};
+
+/* ---------- Wunschbaum ---------- */
+const WCAT = {spiel:["🎮","Spiel"], erleben:["✨","Erleben"], essen:["🍜","Essen"], ausflug:["🚗","Ausflug"], sonst:["💭","Sonstiges"]};
+function wishCard(){
+  if (!feat("wishes")) return "";
+  const pa = S.data.partner, mine = (S.data.wishes||[]).map(w=>({...w, own:true})), theirs = ((pa||{}).wishes||[]).map(w=>({...w, own:false}));
+  const done = w => !!(w.done || (S.data.wish_done||{})[w.id] || ((pa||{}).wish_done||{})[w.id]);
+  const all = [...mine, ...theirs].sort((a,b)=>done(a)-done(b) || b.at-a.at), open = all.filter(w=>!done(w)), ok = all.filter(done);
+  return `<section class="card reveal wishc" ${hasImg("hab_wunschbaum.webp")?`style="--wb:url('pets/hab_wunschbaum.webp')"`:""}><h3>🌳 Wunschbaum</h3>
+    <p class="help" style="margin-top:0">Was wollt ihr zusammen machen – spielen, erleben, essen gehen? Erfüllte Wünsche werden zu Erinnerungen.</p>
+    ${open.map(w=>`<div class="wish"><span>${WCAT[w.cat][0]}</span><div><b>${esc(w.t)}</b><small>${w.own ? "dein Wunsch" : `von ${esc(pa.name)}`}</small></div>
+      <button class="chip" onclick="wishDone('${w.id}',${w.own})">✓ Erfüllt</button>${w.own?`<button class="chip" title="Löschen" onclick="wishDel('${w.id}')">✕</button>`:""}</div>`).join("") || `<p class="help">Noch keine Wünsche – häng den ersten auf!</p>`}
+    <div class="wadd"><select id="wCat">${Object.entries(WCAT).map(([k,[e,l]])=>`<option value="${k}">${e} ${l}</option>`).join("")}</select>
+      <input type="text" id="wTxt" maxlength="80" placeholder="z. B. It Takes Two durchspielen"><button class="btn limeb small" onclick="wishAdd()">Aufhängen</button></div>
+    ${ok.length ? `<details class="wdone"><summary>${ok.length} erfüllt 🍃</summary>${ok.map(w=>`<div class="wish done">${fxImg("wish_blatt","wl")}<div><b>${esc(w.t)}</b><small>${fdate(new Date((w.done || (S.data.wish_done||{})[w.id] || ((pa||{}).wish_done||{})[w.id])*1000))}</small></div></div>`).join("")}</details>` : ""}</section>`;
+}
+window.wishAdd = async () => { const t = $("#wTxt").value.trim(); if (!t) return;
+  await saveKv("wishes", [...(S.data.wishes||[]), {id:rid(), t, cat:$("#wCat").value, at:Math.floor(Date.now()/1000), done:0}].slice(-100)); quietRoute();
+  ntfyPartner("🌳 Neuer Wunsch am Baum", `${S.data.me_name || "Dein Player 2"} wünscht sich: ${t}`); };
+window.wishDone = async (id, own) => { const ts = Math.floor(Date.now()/1000);
+  if (own) await saveKv("wishes", (S.data.wishes||[]).map(w=>w.id===id ? {...w, done:ts} : w)); else await saveKv("wish_done", {...(S.data.wish_done||{}), [id]: ts});
+  toast("Erfüllt! 🍃"); quietRoute(); };
+window.wishDel = async id => { if (!confirm("Wunsch entfernen?")) return; await saveKv("wishes", (S.data.wishes||[]).filter(w=>w.id!==id)); quietRoute(); };
+
+/* ---------- Überraschungs-Umschlag ---------- */
+function surpriseCard(){
+  if (!feat("surprise") || !S.data.partner) return "";
+  const pa = S.data.partner, now = isoDay(nowD()) + "T" + nowD().toTimeString().slice(0,5);
+  const forMe = (pa.surprises||[]).filter(x=>!x.open || Date.now()/1000 - x.at < 30*86400).slice(-4), mine = (S.data.surprises||[]).filter(x=>x.reveal > now || Date.now()/1000 - x.at < 14*86400).slice(-4);
+  return `<section class="card reveal surc"><h3>💌 Überraschungen</h3>
+    ${forMe.map(x=>x.open ? `<div class="sur open">${fxImg("ue_umschlag_auf","se")}<div><small>von ${esc(pa.name)}</small><b>${esc(x.title)}</b><p>${esc(x.text)}</p></div></div>`
+      : `<div class="sur">${fxImg("ue_umschlag_zu","se")}<div><small>von ${esc(pa.name)}</small><b>Ein versiegelter Umschlag</b><p>Geht auf: ${esc(planWhen(x.reveal))}</p></div></div>`).join("")}
+    ${mine.map(x=>`<div class="sur mine">${fxImg(x.reveal > now ? "ue_umschlag_zu" : "ue_umschlag_auf","se")}<div><small>deine Überraschung</small><b>${esc(x.title)}</b><p>${x.reveal > now ? `${esc(pa.name)} sieht sie ab ${esc(planWhen(x.reveal))}` : "ist offen"}</p></div></div>`).join("")}
+    ${!forMe.length && !mine.length ? `<p class="help" style="margin-top:0">Plan etwas für ${esc(pa.name)} – sie sieht nur einen geheimnisvollen Umschlag, bis es so weit ist.</p>` : ""}
+    <button class="btn ghost small" onclick="surpriseNew()">＋ Überraschung vorbereiten</button></section>`;
+}
+window.surpriseNew = () => {
+  const pa = S.data.partner, d = new Date(Date.now() + 2*864e5); d.setHours(19,0,0,0); const iso = new Date(d - d.getTimezoneOffset()*6e4).toISOString().slice(0,16);
+  $("#infoBody").innerHTML = `<button class="ibtn dclose" onclick="$('#info').close()">✕</button><div class="eyebrow">Überraschung</div>
+    <div class="h1" style="font-size:clamp(26px,6vw,36px);margin:6px 0 12px">Für ${esc(pa.name)}</div>
+    <label>Titel (sieht sie erst beim Öffnen)</label><input type="text" id="suT" maxlength="60" placeholder="z. B. Samstag gehört uns">
+    <label>Nachricht</label><textarea id="suX" rows="4" maxlength="400" placeholder="Was hast du geplant?"></textarea>
+    <label>Geht auf am</label><input type="datetime-local" id="suR" value="${iso}">
+    <button class="btn limeb" style="margin-top:14px" onclick="surpriseSave()">Umschlag versiegeln ✉️</button>`;
+  if (!$("#info").open) $("#info").showModal();
+};
+window.surpriseSave = async () => {
+  const title = $("#suT").value.trim(), text = $("#suX").value.trim(), reveal = $("#suR").value.slice(0,16); if (!title || !reveal) return toast("Titel und Datum fehlen noch");
+  await saveKv("surprises", [...(S.data.surprises||[]), {id:rid(), title, text, reveal, at:Math.floor(Date.now()/1000)}].slice(-20));
+  $("#info").close(); quietRoute(); ntfyPartner("💌 Ein Umschlag für dich", `${S.data.me_name || "Dein Player 2"} hat etwas vorbereitet – geht auf: ${planWhen(reveal)}`); toast("Versiegelt ✉️");
+};
+
+/* ---------- Beziehung der Begleiter & gemeinsames Zuhause ---------- */
+const BOND = [[0,"Bekannte","👋"],[3,"Freunde","🤝"],[10,"Vertraute","💛"],[25,"Unzertrennlich","💞"]];
+function bond(){
+  const pa = S.data.partner; if (!pa) return null;
+  const ev = duoEvenings(pa), pts = (ev ? ev.n : 0) + Math.floor((S.data.greets||[]).length / 5);
+  let i = 0; while (i < BOND.length - 1 && pts >= BOND[i+1][0]) i++;
+  const nx = BOND[i+1]; return {pts, lvl:i, name:BOND[i][1], icon:BOND[i][2], next:nx, pct: nx ? (pts - BOND[i][0]) / (nx[0] - BOND[i][0]) * 100 : 100};
+}
+const SEASON_OF = m => [11,0,1].includes(m) ? "winter" : m <= 4 ? "fruehling" : m <= 7 ? "sommer" : "herbst";
+function homeCard(){
+  if (!feat("home")) return "";
+  const pa = S.data.partner, me = S.data.pet && (S.data.pet.pets||[]).length ? petActive() : null, pp = pa && pa.pet;
+  if (!me || !me.stage) return "";
+  const P = S.data.pet || {}, ev = pa ? duoEvenings(pa) : null, b = bond(), sea = SEASON_OF(nowD().getMonth());
+  const T = [];   // Trophäen: [bild, titel]
+  const raids = (P.history||[]).filter(h=>h.won && h.kind==="raid").slice(-3);
+  raids.forEach(r=>T.push([hasImg(`boss_${r.id}.webp`) ? `pets/boss_${r.id}.webp` : "", `${r.name} besiegt`, r.icon]));
+  const both = pa ? chronicle().filter(e=>e.id.startsWith("bd:")).length : 0;
+  if (both) T.push(["pets/tro_pokal.webp", `${both} Spiel${both>1?"e":""} beide durchgespielt`]);
+  if ((P.wins||0) >= 10) T.push(["pets/tro_medaille.webp", `${P.wins} Bosse besiegt`]);
+  if (ev && ev.n >= 50) T.push(["pets/tro_rahmen.webp", "50 gemeinsame Abende – euer Foto"]);
+  if (b && b.lvl >= 3) T.push(["pets/tro_herzkristall.webp", "Unzertrennlich"]);
+  const bg = hasImg(`hab_zuhause_${sea}.webp`) ? `style="background-image:url('pets/hab_zuhause_${sea}.webp')"` : "";
+  return `<section class="card reveal homec"><h3>🏡 ${pa ? "Euer Zuhause" : "Zuhause"} ${b ? `<span class="h3s">${b.icon} ${esc(b.name)}</span>` : ""}</h3>
+    <div class="home" ${bg}><div class="shelf">${T.slice(0,9).map(([src,t,ic])=>`<span class="tro" title="${esc(t)}">${src ? `<img src="${src}" alt="">` : ic||"🏆"}</span>`).join("")}</div>
+      <div class="hpets">${petFig({...me}, {scale:.62})}${pp && pp.stage ? petFig({...pp}, {scale:.62}) : ""}</div></div>
+    ${b ? `<div class="bondbar"><span>${esc(petName(me))}${pp ? ` & ${esc(pp.nick || pp.stage_name)}` : ""}</span><div class="qbar"><i style="width:${b.pct}%"></i></div><small>${b.next ? `Noch ${b.next[0] - b.pts} gemeinsame Abende bis „${b.next[1]}“ ${b.next[2]}` : "Unzertrennlich – mehr geht nicht 💞"}</small></div>` : ""}
+    ${!T.length ? `<p class="help" style="margin:8px 0 0">Das Regal füllt sich mit euren Erfolgen: Raid-Siege, gemeinsam durchgespielte Spiele, 50 Abende …</p>` : ""}</section>`;
+}
+
+/* ---------- Jahreszeit ---------- */
+function applySeason(){ const m = nowD().getMonth(); document.body.dataset.season = feat("season") ? SEASON_OF(m) + (m === 11 && nowD().getDate() <= 26 ? " xmas" : "") : ""; }
+
 /* ================= Start: „Heute“ ================= */
 const relTime = ms => { const m = Math.round((Date.now() - ms) / 6e4); return m < 1 ? "gerade eben" : m < 60 ? `vor ${m} Min` : m < 1440 ? `vor ${Math.round(m/60)} Std` : m < 2880 ? "gestern" : `vor ${Math.round(m/1440)} Tagen`; };
 const DAYS = ["So","Mo","Di","Mi","Do","Fr","Sa"];
@@ -1992,10 +2429,10 @@ function todayHead(){
   const hi = h < 5 ? "Noch wach" : h < 11 ? "Guten Morgen" : h < 17 ? "Hallo" : h < 22 ? "Guten Abend" : "Na, noch wach";
   const d = new Date().toLocaleDateString("de-DE",{weekday:"long", day:"numeric", month:"long"});
   return `<div class="khead today reveal"><div><div class="eyebrow">${esc(d)}</div><div class="h1">${hi}${me?`, ${esc(me)}`:""}!</div>
-    <p>${p ? esc(petBubble(p)) : "Schön, dass du da bist."}</p>
+    ${(() => { const M = momentOfDay(); return M && feat("moment") ? `<a class="moment" ${M[3] ? `href="${M[3].replace("?story","")}" onclick="${M[3].includes("story") ? "S.stat='story';" : ""}"` : ""}><span class="mi0">${M[1]}</span><span>${M[2]}</span></a>` : `<p>${p ? esc(petBubble(p)) : "Schön, dass du da bist."}</p>`; })()}
     <div class="inl" style="gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn limeb" onclick="openPicker()">🎲 Was spiele ich heute?</button>
       ${S.data.partner ? `<button class="btn ghost" onclick="planNew()">🎮 Zockabend vorschlagen</button>` : ""}</div></div>
-    ${p ? `<button class="thpet" onclick="location.hash='#/begleiter'" title="Zum Begleiter">${petFig(p, {scale:.95})}<small>${esc(petName(p))} · ${p.stage?`Lvl ${p.lvl}`:"Ei"}</small></button>` : ""}</div>`;
+    ${p ? `<button class="thpet" onclick="location.hash='#/begleiter'" title="Zum Begleiter">${moodBubble(p)}${feat("greetpet") && freshGreet() ? `<span class="pletter">${fxImg("fx_brief")}</span>` : ""}${petFig(p, {scale:.95})}<small>${esc(petName(p))} · ${p.stage?`Lvl ${p.lvl}`:"Ei"}</small></button>` : ""}</div>`;
 }
 // Neuigkeiten: was seit gestern passiert ist
 function feedCard(){
@@ -2103,7 +2540,8 @@ function remoteCard(){
   const tmr = t ? (t.mode === "after_session" ? "🌙 Fährt nach dieser Session herunter" : `🌙 Fährt um ${t.when.slice(11,16)} Uhr herunter`) : "";
   return `<section class="card x6 reveal"><h3>🖥️ Dein PC <span class="h3s">${online ? (CLOUD ? `Stand ${relTime(Date.parse(pc.at))}` : "läuft") : "wahrscheinlich aus"}</span></h3>
     ${dls.length ? dls.map(d=>`<div class="dlr"><span>⬇️ ${esc(d.name)}</span><div class="qbar"><i style="width:${d.pct}%"></i></div><small>${d.paused ? "pausiert · " : ""}${d.pct} % von ${num(d.gb,1)} GB</small></div>`).join("") : `<p class="help" style="margin-top:0">${online ? "Keine Downloads." : "Wenn der PC an ist, siehst du hier Downloads und kannst ihn steuern."}</p>`}
-    ${tmr ? `<div class="tmr">${tmr}<button class="chip" onclick="remoteCmd('cancel')">Stoppen</button></div>` : ""}
+    ${tmr ? `<div class="tmr">${fxImg("fx_mond","mi")}${tmr}<button class="chip" onclick="remoteCmd('cancel')">Stoppen</button></div>
+      ${(S.data.partner||{}).topic && feat("night") ? `<button class="chip" style="margin:0 0 8px" onclick="sendGreet('🌙 Gute Nacht! Schlaf schön 💛', this)">🌙 ${esc(S.data.partner.name)} Gute Nacht sagen</button>` : ""}` : ""}
     <div class="inl rbtns"><button class="chip" onclick="remoteCmd('after_session')">🌙 Nach dieser Session aus</button>
       <button class="chip" onclick="remoteAt()">⏰ Um … aus</button><button class="chip" onclick="if(confirm('PC jetzt in den Ruhezustand schicken?'))remoteCmd('sleep')">💤 Ruhezustand</button>
       ${pc.can_wake ? `<button class="chip" onclick="remoteCmd('wake_partner')">☀️ PC von ${esc((S.data.partner||{}).name||"Partner")} wecken</button>` : ""}</div>
@@ -2134,11 +2572,13 @@ function renderOverviewInner(){
   const c = ovCtx();
   let h = todayHead() + playingBanner();
   if (!c.played.length){ setView(h + emptyState()); return; }
-  const tc = [planCard(), feedCard(), remoteCard(), countdownCard(), agoCard(), spaceCard(true)].filter(Boolean);
+  h += whatsNewCard() + adventCard() + monthWrapCard() + capsuleCard(false) + momentPrompt();
+  const tc = [planCard(), feedCard(), countdownCard(), agoCard(), spaceCard(true)].filter(Boolean);
   if (tc.length) h += `<div class="mcols">${tc.join("")}</div>`;   // zwei Spalten, jede Karte nur so hoch wie ihr Inhalt
   h += `<div class="secthead"><div class="h2">Deine Zahlen</div>${periodChips()}</div>` + periodNotice();
   h += seasonCard() + `<div class="bento">` + heroCard(c) + funSpot(c) + saleBanner()
     + recentRail() + topCard(c) + platCard(c) + backlogMini() + `</div>`;
+  const rc = remoteCard(); if (rc) h += `<details class="pcfold" ${store.get("gr_pcfold", 0) || (S.data.pc||{}).timer || ((S.data.pc||{}).downloads||[]).length ? "open" : ""} ontoggle="store.set('gr_pcfold', this.open?1:0)"><summary>🖥️ Dein PC${((S.data.pc||{}).downloads||[]).length ? ` · ⬇️ ${S.data.pc.downloads.length} Download${S.data.pc.downloads.length>1?"s":""}` : ""}${(S.data.pc||{}).timer ? " · 🌙 Timer läuft" : ""}</summary><div class="mcols">${rc.replace('class="card x6', 'class="card')}${LOCAL ? "" : ""}</div></details>`;
   setView(h);
   setTimeout(startSpot, 50);
 }
@@ -2147,7 +2587,7 @@ function renderOverviewInner(){
 S.stat = S.stat || "act";
 function statSeg(){
   const w = cur() === "wrapped";
-  return `<div class="seg">${[["act","Aktivität"],["ach","Erfolge"],["facts","Fun Facts"]].map(([k,l])=>`<button class="${!w && S.stat===k?"on":""}" onclick="S.stat='${k}';${w?"location.hash='#/statistik'":"route()"}">${l}</button>`).join("")}<button class="${w?"on":""}" onclick="location.hash='#/wrapped'">🎬 Wrapped</button></div>`;
+  return `<div class="seg">${[["act","Aktivität"],["ach","Erfolge"],["facts","Fun Facts"],...(feat("chronik") ? [["story","📖 Geschichte"]] : [])].map(([k,l])=>`<button class="${!w && S.stat===k?"on":""}" onclick="S.stat='${k}';${w?"location.hash='#/statistik'":"route()"}">${l}</button>`).join("")}<button class="${w?"on":""}" onclick="location.hash='#/wrapped'">🎬 Wrapped</button></div>`;
 }
 function statHead(){
   const st = sessionStats(0), days = st.days.filter(d=>d>=dayKey(new Date(Date.now()-365*864e5))).length;
@@ -2166,6 +2606,7 @@ function renderStats(){
     return;
   }
   if (S.stat === "facts") return renderFacts(head);
+  if (S.stat === "story") return renderStory(playingBanner() + statSeg());
   renderActivity(head);
 }
 /* Bibliothekswert: IsThereAnyDeal (Normalpreis, heute, Tiefstpreis), sonst Steam-Store */
@@ -3190,8 +3631,11 @@ const PET_RARE = {crysto:2, nocti:2, tavik:2, aeru:2, vexa:2, bluma:2, sola:2, a
 const PET_ACC = {schleife:["Schleife","🎀"], headset:["Gaming-Headset","🎧"], brille:["Sonnenbrille","🕶️"], krone:["Krone","👑"], zauberhut:["Zauberhut","🎩"],
   blumen:["Blumenkranz","🌸"], herz:["Herz-Anhänger","💞"], muetze:["Bommelmütze","🧶"], pirat:["Piratenhut","🏴‍☠️"], weihnacht:["Weihnachtsmütze","🎅"],
   kuerbis:["Kürbis-Hütchen","🎃"], wikinger:["Wikingerhelm","🪖"], party:["Partyhütchen","🎉"], halo:["Heiligenschein","💫"], diadem:["Kristall-Diadem","💎"], kapitaen:["Kapitänsmütze","⚓"],
-  herzreif:["Herz-Haarreif","💗"], hasenohren:["Hasenohren","🐰"], sonnenhut:["Sonnenhut","👒"]};
-const PET_HAB = {lichtung:"Lichtung", sterne:"Sternenhimmel", strand:"Strand", zimmer:"Gaming-Zimmer", vulkan:"Vulkan", winter:"Winterwald", kristall:"Kristallhöhle", riff:"Unterwasser-Riff"};
+  herzreif:["Herz-Haarreif","💗"], hasenohren:["Hasenohren","🐰"], sonnenhut:["Sonnenhut","👒"],
+  schal:["Ringelschal","🧣"], geweih:["Rentier-Geweih","🦌"], ohrenschuetzer:["Ohrenschützer","🎧"], wichtel:["Wichtelmütze","🧝"],
+  lichterkette:["Lichterkette","✨"], sternkrone:["Schneestern-Krone","❄️"], zuckerstange:["Zuckerstange","🍭"], silvester:["Silvester-Brille","🎆"]};
+const PET_HAB = {lichtung:"Lichtung", sterne:"Sternenhimmel", strand:"Strand", zimmer:"Gaming-Zimmer", vulkan:"Vulkan", winter:"Winterwald", kristall:"Kristallhöhle", riff:"Unterwasser-Riff",
+  weihnachtsstube:"Weihnachtsstube", silvester:"Silvester-Dach", wunschbaum:"Wunschbaum"};
 // Kopf (x, Oberkante, Augen) in Prozent – aus den Bildern ermittelt
 // Kopf je Art/Stufe in % des Bildes: [Mitte x, Oberkante y, Augenhöhe y, Kopfbreite] (aus den Bildern ausgemessen)
 const PET_HEAD = {"brasu":[[35,32,57,55],[28,43,60,37],[20,50,68,30]],"neruma":[[37,52,65,40],[33,54,67,35],[47,63,72,22]],
@@ -3212,7 +3656,8 @@ const petSrc = (sp, stage) => `pets/${sp}_${stage ? stage : "ei"}.webp`;
 // Sitz der Accessoire-Bilder: Breite (in % der Figur) und wo sie hingehören
 const ACC_FIT = {krone:[30,"hat"], zauberhut:[36,"hat"], muetze:[32,"hat"], pirat:[40,"hat"], weihnacht:[36,"hat"], kuerbis:[30,"hat"], wikinger:[34,"hat"],
   party:[22,"hat"], kapitaen:[36,"hat"], diadem:[30,"hat"], blumen:[34,"hat"], headset:[40,"head"], halo:[34,"halo"], schleife:[22,"hat"], brille:[30,"eyes"], herz:[22,"neck"],
-  herzreif:[32,"hat"], hasenohren:[34,"hat"], sonnenhut:[42,"hat"]};
+  herzreif:[32,"hat"], hasenohren:[34,"hat"], sonnenhut:[42,"hat"],
+  schal:[40,"neck"], geweih:[38,"hat"], ohrenschuetzer:[40,"head"], wichtel:[36,"hat"], lichterkette:[40,"neck"], sternkrone:[32,"hat"], zuckerstange:[22,"side"], silvester:[30,"eyes"]};
 const hasImg = n => ((S.data||{}).pet_imgs||[]).includes(n);
 const accIcon = id => hasImg(`acc_${id}.webp`) ? `<img src="pets/acc_${id}.webp" alt="">` : (PET_ACC[id]||["",""])[1];
 const bossIcon = b => hasImg(`boss_${b.id}.webp`) ? `<img src="pets/boss_${b.id}.webp" alt="">` : b.icon;
@@ -3232,7 +3677,7 @@ function petFig(p, opts={}){
     if (hasImg(`acc_${a}.webp`)){
       const [w0, kind] = ACC_FIT[a] || [30,"hat"];
       const w = Math.round(w0 * Math.max(.7, Math.min(1.35, (head[3]||40) / 40)) * (kind==="eyes" ? 1.25 : 1));
-      const pos = {hat:[head[1] + 7, "-50%,-82%"], head:[head[1] + 8, "-50%,-50%"], halo:[head[1] - 6, "-50%,-50%"], eyes:[head[2], "-50%,-50%"], neck:[head[2] + 12, "-50%,0"]}[kind];
+      const pos = {hat:[head[1] + 7, "-50%,-82%"], head:[head[1] + 8, "-50%,-50%"], halo:[head[1] - 6, "-50%,-50%"], eyes:[head[2], "-50%,-50%"], neck:[head[2] + 12, "-50%,0"], side:[head[2] + 4, "10%,-20%"]}[kind];
       acc += `<span class="pacc img" style="left:${head[0]}%;top:${pos[0]}%;width:${w}cqw;height:${w}cqw;transform:translate(${pos[1]})"><img src="pets/acc_${a}.webp" alt=""></span>`;
     } else {
       const ay = a === "brille" ? head[2] : ["schleife","blumen","herz","halo"].includes(a) ? head[1] + (a==="halo" ? -6 : 2) : head[1] - 3;
@@ -3254,6 +3699,11 @@ function petLines(p){
   if (pl){ L.push(`${pl.title}! Ich feuer dich an 🔥`);
     const mins = (Date.now()/1000 - (pl.since||Date.now()/1000))/60; if (mins > 180) L.unshift("Schon über 3 Stunden … kurze Pause? Ich hol uns was zu trinken 🧃"); }
   if (h >= 1 && h < 5) L.push("Gähn … schon so spät. Ab ins Bett? 😴");
+  if (pa && pa.pet && pa.pet.stage && feat("home")){ const b = bond(), pn = pa.pet.nick || pa.pet.stage_name; if (b) L.push(...[
+    [`${pn} hat mir heute zugewinkt 👋`, `Ich glaub, ${pn} ist ganz nett.`],
+    [`${pn} und ich haben zusammen Steine gesammelt 🪨`, `Wann besuchen wir ${pn} wieder?`],
+    [`${pn} hat mir ein Geheimnis erzählt 🤫`, `Mit ${pn} ist es am gemütlichsten 💛`],
+    [`Ohne ${pn} ist es nur halb so schön 💞`, `${pn} und ich sind unzertrennlich!`]][b.lvl]); }
   if (P.today && P.today.rested) L.push("Ausgeruht! Heute gibt's einen kleinen Bonus ✨");
   // Lebendiger: Erinnerungen, Jahreszeit, Tageszeit, Nest, Seltenheit
   if (p.imprint) L.push(`Weißt du noch, ${p.imprint}? Damit hat alles angefangen 🥹`, `Lust auf eine Runde ${p.imprint}? Nur so ein Gedanke … 👀`);
@@ -3331,7 +3781,7 @@ window.chooseEgg = sp => { if ((S.data.pet_raw||{pets:[]}).pets.some(p=>p.sp===s
   savePet(r=>{ const id = "p" + Date.now().toString(36).slice(-7); r.pets = [...(r.pets||[]), {id, sp, start: todayIso()}]; r.act = [...(r.act||[]), [nowIso(), id]]; }, "Dein Ei liegt im Nest 🥚"); };
 window.setActivePet = id => { if ((S.data.pet||{}).active === id) return; savePet(r=>{ r.act = [...(r.act||[]), [nowIso(), id]]; }, "Dein Begleiter ist jetzt an deiner Seite"); };
 // Zwei Plätze: Kopf (Hüte, Ohren, Kronen …) und Gesicht/Hals (Brille, Anhänger)
-const accSlot = a => ["eyes","neck"].includes((ACC_FIT[a]||[0,"hat"])[1]) ? "acc2" : "acc";
+const accSlot = a => ["eyes","neck","side"].includes((ACC_FIT[a]||[0,"hat"])[1]) ? "acc2" : "acc";
 window.setPetAcc = (id, acc) => savePet(r=>{ const k = accSlot(acc); r[k] = r[k]||{}; if (r[k][id] === acc) delete r[k][id]; else r[k][id] = acc; });
 window.setPetHab = hab => savePet(r=>{ r.hab = hab; });
 window.renamePet = id => { const p = (S.data.pet.pets||[]).find(x=>x.id===id); const n = prompt("Wie soll dein Begleiter heißen?", petName(p)); if (n === null) return; savePet(r=>{ const x = r.pets.find(y=>y.id===id); if (x) x.nick = n.trim().slice(0,24); }); };
@@ -3410,7 +3860,7 @@ window.petPostcard = async () => {
   const im = await load(petSrc(p.sp, p.stage)); if (im){ const sz = 620 * petNorm(p); x.drawImage(im, 540 - sz/2, 900 - sz*.97, sz, sz); }
   for (const ac of [p.acc, p.acc2].filter(a=>a && hasImg(`acc_${a}.webp`))){ const a = await load(`pets/acc_${ac}.webp`), h = (PET_HEAD[p.sp]||[])[Math.max(0,p.stage-1)]; if (a && h){
     const sz = 620 * petNorm(p), [w0, kind] = ACC_FIT[ac]||[30,"hat"], w = sz * w0/100 * Math.max(.7, Math.min(1.35, (h[3]||40)/40)) * (kind==="eyes"?1.25:1), ox = 540 - sz/2, oy = 900 - sz*.97;
-    const [ty, fy] = {hat:[h[1]+7,.82], head:[h[1]+8,.5], halo:[h[1]-6,.5], eyes:[h[2],.5], neck:[h[2]+12,0]}[kind];
+    const [ty, fy] = {hat:[h[1]+7,.82], head:[h[1]+8,.5], halo:[h[1]-6,.5], eyes:[h[2],.5], neck:[h[2]+12,0], side:[h[2]+4,.2]}[kind];
     x.drawImage(a, ox + sz*h[0]/100 - w/2, oy + sz*ty/100 - w*fy, w, w); } }
   x.fillStyle = "#fff"; x.textAlign = "center"; x.font = "800 34px system-ui, sans-serif"; x.fillText(`GAMING RECAP · ${yr}`, 540, 110);
   x.font = "900 86px system-ui, sans-serif"; x.fillText(p.nick || p.stage_name, 540, 1040);
@@ -3502,10 +3952,10 @@ function renderPet(){
   const oldBoss = b => b ? bseen[b.kind + b.from + b.id] : null;
   let h = head + `<div class="bento">
     <section class="card s12 x8 reveal pethero">
-      ${petStage(p, true, visit ? `<div class="pvisit">${petFig({...pa.pet}, {scale:.5})}<small>${esc(pa.name)}s ${esc(pa.pet.nick || pa.pet.stage_name)} ist zu Besuch</small></div>` : "")}
+      ${moodBubble(p)}${petStage(p, true, visit ? `<div class="pvisit">${petFig({...pa.pet}, {scale:.5})}<small>${esc(pa.name)}s ${esc(pa.pet.nick || pa.pet.stage_name)} ist zu Besuch</small></div>` : "")}
       ${g.xp ? `<div class="gainf">+${num(g.xp)} Erfahrung</div>` : ""}
       <div class="pinfo"><div><b class="pname">${esc(petName(p))} <button class="ibtn tiny" onclick="renamePet('${p.id}')" title="Umbenennen">✏️</button></b>
-        <span class="help">${esc(I.name)} · ${p.stage ? `${esc(p.stage_name)} · Stufe ${p.stage} von 3` : "Ei"}${p.shiny ? " · ✨ schillernd" : ""}${p.imprint ? ` · 🎮 geprägt von ${esc(p.imprint)}` : ""}${p.stars ? ` · ${"⭐".repeat(p.stars)}` : ""}${p.next_star ? ` · nächster Stern ab Level ${p.next_star}` : ""}</span></div>
+        <span class="help">${esc(I.name)} · ${p.stage ? `${esc(p.stage_name)} · Stufe ${p.stage} von 3 · ${esc(petTrait(p)[0])}` : "Ei"}${p.shiny ? " · ✨ schillernd" : ""}${p.imprint ? ` · 🎮 geprägt von ${esc(p.imprint)}` : ""}${p.stars ? ` · ${"⭐".repeat(p.stars)}` : ""}${p.next_star ? ` · nächster Stern ab Level ${p.next_star}` : ""}</span></div>
         ${p.next_name ? `<div class="pnext" title="Nächste Form"><div class="pnfig">${petFig({...p, stage: Math.min(3, p.stage+1), acc:null}, {sil:true, scale:.95})}</div><small>${p.stage ? `ab Lvl ${p.next_stage}` : "schlüpft bald"}</small></div>` : ""}
         <div class="plv"><small>${p.stage ? "Level" : "Schlüpft in"}</small><b>${p.stage ? p.lvl : `${p.hatch_need - p.hatch} T`}</b></div></div>
       <div class="pxp pbig"><i style="width:0" data-w="${prog}%"></i></div>
@@ -3761,7 +4211,7 @@ function renderDuo(head){
       <p class="help duolead">${lead}${crown>=0?` · 👑 Monatskrone: ${esc(crown?p.name:meName)}`:""}</p>
       <button class="btn duostory" onclick="startDuoStory()">${season?"🎁":"✨"} Unser Jahr ${yrStr} ansehen</button>
     </section>
-    <section class="card s12 x4 reveal greets"><h3>💌 Grüße</h3><div id="greetBox"></div></section></div><div class="mcols">` + duoMeet(p);
+    <section class="card s12 x4 reveal greets"><h3>💌 Grüße</h3><div id="greetBox"></div></section></div><div class="mcols">` + (homeCard() || duoMeet(p));
   // Gemeinsame Abende
   const ev = duoEvenings(p);
   if (ev) h += `<section class="card s12 x5 reveal"><h3>🛋️ Gemeinsame Abende ${qi("evenings")}</h3>
@@ -3769,6 +4219,7 @@ function renderDuo(head){
       <div class="tile"><small>Zusammen</small><b>${hrs(ev.min)}</b><span>gleichzeitig im Spiel</span></div></div>
       <p style="margin:12px 0 0">${ev.top ? `Am liebsten zusammen: <b>${esc((mine.get(ev.top[0])||theirs.get(ev.top[0])||{}).t || ev.top[0])}</b>. ` : ""}Zuletzt am ${new Date(ev.list[0].day+"T12:00").toLocaleDateString("de-DE",{weekday:"long", day:"numeric", month:"long"})}${ev.best && ev.best.min >= 60 ? `, euer längster Abend: ${hrs(ev.best.min)}` : ""}.</p>`
     : `<p class="help" style="margin:0">Sobald ihr gleichzeitig dasselbe Spiel spielt, zählt es hier als gemeinsamer Abend – automatisch, ab mindestens 15 Minuten.</p>`}</section>`;
+  h += surpriseCard() + wishCard();
   // Neuigkeiten
   const news = (p.news||[]).filter(n=>NEWS_ICON[n[0]]).slice(0,6);
   if (news.length) h += `<section class="card s12 ${ev?"x7":""} reveal fold ${duoShut("news")?"shut":""}" data-f="news">${foldH("news", `📰 Neues von ${esc(p.name)}`)}
@@ -3776,11 +4227,12 @@ function renderDuo(head){
       return `<div class="nrow2"><span class="nic">${ic}</span><div><b>${tx.replace("%t", `<span>${esc(n[2])}</span>`)}</b><small>${relT(Date.parse(n[3])/1000)}</small></div>
         ${p.topic && ["done","full","tierS"].includes(n[0]) ? `<button class="chip" onclick="sendGreet('👏 Glückwunsch zu ${esc(n[2]).replace(/'/g,"")}!', this)">👏</button>` : ""}</div>`; }).join("")}</div></section>`;
   // Wochen-Duell
+  let duelH = "";
   if (weeks.length){
     const last8 = weeks.slice(-8), mx = Math.max(1, ...last8.flatMap(w=>[w[1],w[2]]));
     const st = streak.who === null ? "" : `<b>${esc(streak.who ? p.name : meName)}</b> ${streak.n > 1 ? `gewinnt die Woche ${streak.n}× in Folge` : "hat letzte Woche gewonnen"}`;
     const [wa, wb] = tot.week, wlead = wa === wb ? -1 : wa > wb ? 0 : 1;
-    h += `<section class="card reveal wduelh"><div class="eyebrow">⚔️ Wochen-Duell · KW ${kw(new Date())}</div>
+    duelH = `<section class="card reveal wduelh"><div class="eyebrow">⚔️ Wochen-Duell · KW ${kw(new Date())}</div>
       <div class="wdbig"><div class="me ${wlead===0?"lead":""}"><small>${esc(meName)}${wlead===0?" 👑":""}</small><b data-count="${wa >= 600 ? Math.round(wa/60) : Math.round(wa/6)/10}" data-dec="${wa >= 600 ? 0 : 1}">0</b><span>Std</span></div>
         <em>VS</em><div class="pa ${wlead===1?"lead":""}"><small>${esc(p.name)}${wlead===1?" 👑":""}</small><b data-count="${wb >= 600 ? Math.round(wb/60) : Math.round(wb/6)/10}" data-dec="${wb >= 600 ? 0 : 1}">0</b><span>Std</span></div></div>
       <div class="wdbar"><i class="me" style="width:${wa+wb ? wa/(wa+wb)*100 : 50}%"></i><i class="pa"></i></div>
@@ -3795,7 +4247,7 @@ function renderDuo(head){
       <p class="help" style="text-align:center;margin:4px 0 0">${both.length} gemeinsam gespielte Spiele${both[0]?` · Liebling: <b>${esc(both[0][0].t)}</b>`:""}</p>
       ${match.gen.length && Object.keys(p.genres||{}).length ? (()=>{ const gm = Math.max(...match.gen.flatMap(g=>[g[1],g[2]]), .01);
         return `<div class="secttl" style="margin-top:16px">🧬 Eure Gamer-DNA</div>${match.gen.slice(0,6).map(([n,x,y])=>`<div class="gmir"><span class="l"><i class="me" style="width:0" data-w="${x/gm*100}%"></i></span><em>${esc(n)}</em><span class="r"><i class="pa" style="width:0" data-w="${y/gm*100}%"></i></span></div>`).join("")}`; })() : ""}</section>`;
-  h += `</div><div class="bento">`;
+  h += duelH + `</div><div class="bento">`;
   // Tier-Listen
   const tm = me.tiers || {}, tp = p.tiers || {}, tk = Object.keys(tm).filter(k=>/^[SABCDF]$/.test(tm[k]) && /^[SABCDF]$/.test(tp[k]||""));
   if (tk.length){
@@ -4953,6 +5405,10 @@ window.openSettings = async () => {
         <button class="btn ghost small" type="button" onclick="$('#settings').close();openWizard(0)">🧭 Einrichtung</button></div>
       <p class="help">Laufende Spiel-Sessions gehen beim Neustart nicht verloren. Nach „Beenden“ startest du es wieder über <b>Start</b> im Ordner GamingRecap (oder es startet beim nächsten Windows-Start von selbst).</p>
     </fieldset>
+    <fieldset data-tab="sys"><legend>💾 Sicherung auf diesem PC</legend>
+      <p class="help" style="margin-top:0">Kopie von Spielverlauf, Begleiter und Programm im Ordner <code>daten\sicherung</code>. Wird vor jedem Update automatisch angelegt. Zurückholen: <b>Zuruecksetzen.bat</b> im Ordner GamingRecap.</p>
+      <div id="bkBox"><p class="help">Lade …</p></div>
+      <button class="btn ghost small" type="button" onclick="makeBackup()">💾 Jetzt sichern</button></fieldset>
     <fieldset data-tab="sys"><legend>🔄 Updates</legend><div id="updBox"><p class="help">Lade …</p></div></fieldset>
     <fieldset data-tab="duo"><legend>💞 Wir zwei</legend>
       <p class="help">„Wir zwei“ verbindet zwei Gaming-Recap-Installationen: gemeinsame Spiele, wer mehr spielt, Koop-Ideen. Beide brauchen die Handy-App (GitHub) und denselben Partner-Code.</p>
@@ -5061,6 +5517,9 @@ window.openSettings = async () => {
         <button class="btn ghost small" type="button" onclick="post('/api/push/test',{topic:$('#push_topic').value}).then(()=>toast('Test gesendet')).catch(e=>alert(e.message))">Test senden</button></div>
     </fieldset>
     <fieldset data-tab="handy"><legend>🔔 Benachrichtigungen</legend><div id="notifyBox">${notifyBlock()}</div></fieldset>
+    <fieldset data-tab="allg"><legend>🌟 Neue Funktionen</legend>
+      <p class="help" style="margin-top:0">Alles Neue lässt sich einzeln ausschalten. Gilt für PC und Handy.</p>
+      ${FEAT_LIST.map(([k,l])=>`<label class="check"><input type="checkbox" ${feat(k)?"checked":""} onchange="setFeat('${k}', this.checked)"> ${l}</label>`).join("")}</fieldset>
     <fieldset data-tab="allg"><legend>✨ Extras</legend>
       ${c.autostart_supported?`<label class="check" style="margin-bottom:10px"><input type="checkbox" id="autostartChk" ${c.autostart?"checked":""} onchange="setAutostart(this)"> Mit Windows starten (minimiert) – damit keine Tage fehlen</label>`:""}
       <label class="check"><input type="checkbox" id="steam_extras" ${c.steam_extras?"checked":""}> Steam-Erfolge, Wunschliste, Preise und Freunde laden</label>
@@ -5096,8 +5555,19 @@ window.openSettings = async () => {
     } catch(e){ alert("Speichern fehlgeschlagen: " + e.message); $("#saveBtn").disabled = false; }
   };
   if (!$("#settings").open) $("#settings").showModal();
-  pollDownloads(); loadUpdBox();
+  pollDownloads(); loadUpdBox(); loadBackups();
 };
+const FEAT_LIST = [["moment","☀️ Moment des Tages & Stimmungen"],["advent","🎄 Adventskalender"],["greetpet","💌 Grüße beim Begleiter"],["night","🌙 Licht aus & Guten Morgen"],
+  ["news","✨ „Was ist neu“-Karte"],["moments","📝 Momente festhalten"],["chronik","📖 Unsere Geschichte"],["capsule","⏳ Zeitkapsel"],["wishes","🌳 Wunschbaum"],
+  ["surprise","💌 Überraschungen"],["home","🏡 Gemeinsames Zuhause"],["season","🍂 Jahreszeiten-Stimmung"]];
+window.setFeat = async (k, on) => { await saveKv("features", {...(S.data.features||{}), [k]: on}); applySeason(); };
+async function loadBackups(){
+  const b = $("#bkBox"); if (!b) return;
+  try { const r = await (await fetch("/api/backup/local", {cache:"no-store"})).json();
+    b.innerHTML = r.list && r.list.length ? `<div class="hlist">${r.list.slice(0,5).map(x=>`<div class="hitem"><span>💾</span><div><b>${esc(x.name)}</b> <span class="help" style="margin:0">${num(x.mb,1)} MB</span></div></div>`).join("")}</div>` : `<p class="help">Noch keine Sicherung.</p>`;
+  } catch(e){ b.innerHTML = `<p class="help">–</p>`; }
+}
+window.makeBackup = async () => { try { const r = await post("/api/backup/local", {}); toast(`Gesichert: ${r.name}`); loadBackups(); } catch(e){ alert(e.message); } };
 // Übersicht aus Kacheln: Status auf einen Blick, Seltenes unter „Erweitert“
 const SET_TABS = [["allg","🎨","Allgemein"],["quellen","🎮","Spiele-Quellen"],["handy","📱","Handy & Push"],["duo","💞","Wir zwei"],["dienste","🔑","Keys & Dienste"],["sys","🖥️","System & Updates"]];
 function setTiles(c){

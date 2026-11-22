@@ -19,7 +19,7 @@ import urllib.request
 
 PROGRAM_FILES = [
     "server.py", "cloud.py", "common.py", "extras.py", "hltb.py", "media.py", "notify.py", "steamx.py",
-    "tracker.py", "updater.py", "guard.py", "Start.bat", "Start mit Fenster.bat", "ANLEITUNG.txt",
+    "tracker.py", "updater.py", "guard.py", "Start.bat", "Start mit Fenster.bat", "ANLEITUNG.txt", "Zuruecksetzen.bat",
     "web/index.html", "web/sw.js", "web/manifest.webmanifest", "web/icon-192.png", "web/icon-512.png",
     "web/apple-touch-icon.png", "cloudjob/cloudnotify.py", "cloudjob/gr-notify.yml",
 ] + [f"web/pets/{n}_{st}.webp" for n in ("brasu", "neruma", "moselle", "crysto", "nocti", "koppla") for st in ("ei", "1", "2", "3")] + [
