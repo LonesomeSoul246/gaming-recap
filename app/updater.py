@@ -9,6 +9,7 @@ alte Fassung sichern, austauschen und über guard.py neu starten. Startet die ne
 spielt guard.py die gesicherte Fassung zurück.
 """
 import hashlib
+import re
 import json
 import os
 import shutil
@@ -27,6 +28,18 @@ PROGRAM_FILES = [
 ]
 
 
+_SAFE_TOP = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 _.-]{0,60}\.(py|bat|txt)$")
+_SAFE_SUB = re.compile(r"^(web|cloudjob|playnite-erweiterung)/[A-Za-z0-9 _./-]{1,160}$")
+
+
+def allowed(rel):
+    """Welche Pfade ein Update anfassen darf: bekannte Programmdateien und neue Programmdateien im Hauptordner
+    (.py/.bat/.txt) oder in web/, cloudjob/, playnite-erweiterung/. Nie Daten, Konfiguration oder Pfade nach außen."""
+    if not isinstance(rel, str) or ".." in rel or "\\" in rel or rel.startswith("/") or ":" in rel:
+        return False
+    return rel in PROGRAM_FILES or bool(_SAFE_TOP.match(rel)) or bool(_SAFE_SUB.match(rel))
+
+
 def sha(b):
     return hashlib.sha256(b).hexdigest()
 
@@ -43,10 +56,27 @@ def program_files(base):
     return out
 
 
+# Diese Pfade kennt jeder bisher ausgelieferte Updater. Alles andere steht in „extra“, das ältere
+# Updater überspringen – sonst lehnen sie die ganze Liste ab („Update-Liste ungültig“). Nach dem ersten
+# Update haben sie diese Fassung und holen „extra“ beim nächsten Prüfen nach.
+LEGACY_TOP = ("server.py", "cloud.py", "common.py", "extras.py", "hltb.py", "media.py", "notify.py", "steamx.py",
+              "tracker.py", "updater.py", "guard.py", "Start.bat", "Start mit Fenster.bat", "ANLEITUNG.txt")
+
+
+def legacy_ok(rel):
+    return rel in LEGACY_TOP or rel.startswith(("web/", "playnite-erweiterung/"))
+
+
 def manifest(files, version):
     hashes = {rel: sha(b) for rel, b in files.items()}
     release = sha("".join(f"{k}:{v}" for k, v in sorted(hashes.items())).encode())[:10]
-    return {"version": version, "release": release, "at": int(time.time()), "files": hashes}
+    return {"version": version, "release": release, "at": int(time.time()),
+            "files": {k: v for k, v in hashes.items() if legacy_ok(k)},
+            "extra": {k: v for k, v in hashes.items() if not legacy_ok(k)}}
+
+
+def all_files(man):
+    return {**(man.get("files") or {}), **(man.get("extra") or {})}
 
 
 def local_release(base, version):
@@ -63,8 +93,8 @@ def check(update_url, base, version):
     """Liefert (manifest, geänderte Dateien) – leere Liste, wenn alles aktuell ist."""
     url = update_url.rstrip("/") + "/version.json?t=" + str(int(time.time()))
     man = json.loads(_get(url).decode("utf-8"))
-    files = man.get("files") or {}
-    if not files or any(rel not in PROGRAM_FILES and not rel.startswith(("web/", "playnite-erweiterung/")) for rel in files):
+    files = all_files(man)
+    if not man.get("files") or any(not allowed(rel) for rel in files):
         raise ValueError("Update-Liste ungültig")
     local = program_files(base)
     changed = [rel for rel, h in files.items() if sha(local.get(rel, b"")) != h]
@@ -77,7 +107,7 @@ def apply(update_url, base, data_dir, man, changed):
     for rel in changed:
         url = update_url.rstrip("/") + "/" + urllib.parse.quote(rel) + "?r=" + man["release"]
         b = _get(url)
-        if sha(b) != man["files"][rel]:
+        if sha(b) != all_files(man)[rel]:
             raise ValueError(f"Prüfsumme passt nicht: {rel}")
         staged[rel] = b
     backup = os.path.join(data_dir, "app_sicherung")
