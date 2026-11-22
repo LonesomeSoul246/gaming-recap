@@ -1360,6 +1360,7 @@ p.story{font-size:16px;line-height:1.6;margin:0 0 12px}p.story.clamp{display:-we
 .phint img{width:44px;height:44px;object-fit:contain}.phint.out{opacity:0;transition:opacity .6s}
 @media(min-width:1000px){.phint{bottom:30px}}
 .emptyin{display:flex;gap:14px;align-items:center;margin:2px 0 10px}.emptyin .ea{width:84px;height:auto;flex:none;border-radius:12px}.emptyin p{margin:0}
+.ysil{filter:brightness(0) drop-shadow(0 0 8px #9fe3ff88);opacity:.85}
 /* Was ist neu */
 .wnew ul{list-style:none;padding:0;margin:0}.wnew li{margin:2px 0}
 .nlink{all:unset;cursor:pointer;display:block;padding:6px 0;line-height:1.35}.nlink:hover{color:var(--acc)}
@@ -2203,7 +2204,7 @@ async function ntfyPartner(title, message, tags=["video_game"]){
 // „Was ist neu“: alles vom 22.11.2026 (Update am Morgen + großer Umbau). Antippen springt an die Stelle.
 const CHANGELOG = [{v:"2026-11-22w4", top:[
     ["Neues Design, aufgeräumte Menüs – und ein heller Modus", "set:allg"],
-    ["Adventskalender: Weihnachtsgeschichte, Fragen an euch beide und der Frost-Yeti", "adv"],
+    ["Ab 1. Dezember: ein Adventskalender für euch beide – mehr wird nicht verraten 🤫", "adv"],
     ["Euer Band: 8 Stufen, Besuche und Geschenke zwischen euren Begleitern", "#/freunde"],
     ["Jahreszeiten- und Fest-Effekte mit kleinen Tönen", "set:allg"],
     ["Eure Geschichte: Chronik, Momente festhalten, Reise zurück", "story"]],
@@ -2213,8 +2214,7 @@ const CHANGELOG = [{v:"2026-11-22w4", top:[
     ["Wir zwei", [["Neue Reiter: Uns · Pläne · Freunde (im Advent zusätzlich „Advent“)", "#/freunde"], ["Euer Zuhause mit Trophäen-Regal und vier Jahreszeiten", "#/freunde"],
       ["Euer Band mit 8 Stufen und eigenen Szenen", "#/freunde"], ["Besuche und Geschenke zwischen euren Begleitern", "#/freunde"],
       ["Wunschbaum, Überraschungs-Umschlag und Zeitkapsel unter „Pläne“", "plans"], ["Grüße erscheinen beim Begleiter", "#/freunde"], ["Wochen-Duell kompakter", "#/freunde"]]],
-    ["Advent", [["Weihnachtsgeschichte in 24 Kapiteln mit Abstimmungen", "adv"], ["Jeden Tag eine Kleinigkeit: Fragen an euch beide, Erinnerungen, Accessoires", "adv"],
-      ["Frost-Yeti als gemeinsamer Advents-Boss", "adv"], ["Gemeinsame Türchen – gehen auf, wenn ihr beide geöffnet habt", "adv"]]],
+    ["Advent", [["Ein Adventskalender für euch beide, jeden Tag ein Türchen – lasst euch überraschen", "adv"]]],
     ["Begleiter", [["Charakter und Stimmungen mit eigenen Sätzen", "#/begleiter"], ["Fest-Outfits zu Weihnachten, Silvester, Valentinstag, Ostern, Halloween und Geburtstagen", "#/begleiter"],
       ["14 Accessoires neu gezeichnet, Hexenhut neu, bessere Passform", "#/begleiter"], ["Vorschau beim Auswählen eines Accessoires", "#/begleiter"],
       ["Winter-Accessoires, Weihnachtsstube und Silvester-Dach", "#/begleiter"], ["Neue Raid-Bosse: Sturmriese und Drachenpaar", "#/begleiter"]]],
@@ -2320,10 +2320,10 @@ const STORY = {
     18:{"s": 7, "t": "Das Eisschloss", "x": "Hinter dem Gipfel stand ein wunderschönes Eisschloss.\n\nSeine Türme ragten hoch in den Himmel, und an den Wänden glitzerten unzählige Eiskristalle. Doch obwohl es von außen märchenhaft aussah, wirkte es im Inneren seltsam verlassen.\n\nKeine Möbel, keine Bilder, keine bunten Lichter.\n\nNur endlose Gänge aus Eis.\n\nIn der großen Halle entdeckten sie schließlich einen Sockel. Darauf lag etwas, das sie sofort erkannten.\n\nDer Weihnachtsstern!\n\nEr leuchtete in einem warmen goldenen Licht und erhellte die gesamte Halle.\n\nDoch vor dem Sockel saß jemand.\n\nEin riesiges, weißes, unglaublich flauschiges Wesen.\n\nEs hatte zwei kleine Hörner aus Schnee, große Pfoten und ein ziemlich zerzaustes Fell.\n\n{A} und {B} waren endlich ihrem geheimnisvollen Besucher begegnet."},
     19:{"s": 7, "t": "Der Frost-Yeti", "x": "Das große Wesen drehte sich langsam um.\n\nEs war ein Yeti!\n\nEr sah zunächst ziemlich grimmig aus und hielt einen großen Schneeball in seiner Pfote.\n\n„Was wollt ihr hier?“, brummte er.\n\n{A} schluckte kurz.\n\n„Wir suchen unseren Weihnachtsstern. Er gehört an den Himmel.“\n\nDer Yeti schaute zum Stern und drückte ihn ein kleines bisschen näher an sich.\n\n„Das ist MEIN Stern!“, murmelte er.\n\nDoch obwohl seine Stimme tief und kräftig klang, bemerkten {A} und {B} etwas Merkwürdiges: Der Yeti wirkte gar nicht böse.\n\nEher traurig.\n\nDie beiden überlegten fieberhaft, wie sie sein Herz erreichen könnten.", "vote": ["Was sollen sie dem Yeti anbieten?", "Eine lustige Schneeballschlacht", "Ein kleines Geschenk aus ihrer Tasche"]},
     20:{"s": 7, "t": "Ein ungewöhnliches Angebot", "alt": ["{A} bückte sich, formte einen kleinen Schneeball und warf ihn ganz vorsichtig in Richtung des Yetis.\n\nPlopp!\n\nEr landete direkt auf dessen Bauch.\n\nDer Yeti schaute überrascht nach unten. Dann blickte er {A} an.\n\nFür einen Moment herrschte absolute Stille.\n\nUnd plötzlich begann der Yeti zu lachen.\n\nEin tiefes, rumpelndes Lachen, das durch das ganze Schloss hallte.\n\nEr formte einen riesigen Schneeball und warf ihn zurück. Natürlich viel zu groß für {A}!\n\nSchon nach wenigen Sekunden tobte eine wilde Schneeballschlacht durch die Halle.\n\nAm Ende lagen alle drei lachend im Schnee. Der Yeti hatte zum ersten Mal seit langer Zeit wieder richtig Spaß gehabt.", "{B} kramte vorsichtig in seiner Tasche und fand einen der letzten Lebkuchen aus dem Dorf.\n\nEr war ein bisschen zerbröselt, aber in seiner Mitte war noch immer das kleine Herz zu erkennen.\n\n„Hier. Der ist für dich.“\n\nDer Yeti starrte den Lebkuchen an.\n\n„Für … mich?“\n\n{B} nickte.\n\nGanz vorsichtig nahm der Yeti das kleine Geschenk zwischen zwei seiner riesigen Finger.\n\n„Das hat mir noch nie jemand geschenkt“, flüsterte er.\n\nDann lächelte er. Zum ersten Mal sah er gar nicht mehr grimmig aus."]},
-    21:{"s": 7, "t": "Warum der Stern verschwunden ist", "x": "Nachdem sie ein wenig miteinander gesprochen hatten, fasste der Yeti schließlich Mut.\n\nEr erzählte ihnen, warum er den Weihnachtsstern mitgenommen hatte.\n\nJedes Jahr beobachtete er von seinem Schloss aus die vielen kleinen Lichter im Tal. In den Häusern saßen Familien zusammen, überall duftete es nach Plätzchen und aus den Fenstern drang fröhliches Lachen.\n\nNur bei ihm war es immer still.\n\n„Ich wollte auch einmal etwas haben, das mein Zuhause hell macht“, sagte der Yeti leise.\n\nEr senkte den Kopf.\n\n„Ich dachte, wenn ich den Stern habe, fühle ich mich vielleicht nicht mehr so allein.“\n\n{A} schaute zu {B}.\n\nJetzt verstanden sie alles.\n\nDer Yeti hatte den Stern nicht gestohlen, weil er böse war. Er hatte ihn mitgenommen, weil er sich nach Wärme und Gesellschaft gesehnt hatte.\n\n„Niemand sollte Weihnachten allein im Dunkeln sitzen“, sagte {A} leise.\n\n{B} nickte und legte dem Yeti vorsichtig eine Pfote auf den Arm. Der Yeti schaute überrascht auf – und zum ersten Mal an diesem Abend wirkte er ein kleines bisschen weniger traurig."},
-    22:{"s": 8, "t": "Ein besserer Plan", "x": "„Weißt du“, sagte {B} sanft, „der Stern gehört an den Himmel. Dort leuchtet er für alle – auch für dich.“\n\nDer Yeti schaute auf den Stern in seinen großen Pfoten. „Aber dann ist es hier wieder dunkel.“\n\n{A} überlegte. Dann begannen seine Augen zu leuchten.\n\n„Und wenn du einfach mit zu uns kommst? Wir haben Kakao. Und ein gemütliches Sofa. Und ganz viel Platz.“\n\n{B} nickte begeistert. „Und Kekse! Na ja … fast. Ein paar sind noch übrig.“\n\nDer Yeti blinzelte. Einmal. Zweimal.\n\n„Ihr … ihr würdet mich wirklich mitnehmen?“\n\n„Natürlich!“, riefen beide gleichzeitig.\n\nDer Yeti schniefte leise und wischte sich mit seiner riesigen Pfote über die Augen. Dieses Mal war es kein trauriges Schniefen."},
-    23:{"s": 8, "t": "Zurück an den Himmel", "x": "Zu dritt trugen sie den Stern hinaus in die kalte Winternacht. Der Yeti hielt ihn ganz vorsichtig, als wäre er aus Glas.\n\nAuf dem höchsten Hügel blieben sie stehen. Unter ihnen lag das ganze Tal: der Winterwald, der See, das Lebkuchendorf und ganz weit hinten ihr kleines Zuhause.\n\n„Bereit?“, fragte {B}.\n\nDer Yeti nickte, holte tief Luft und hob den Stern hoch über seinen Kopf – so hoch, wie er nur konnte.\n\nFür einen Moment passierte gar nichts.\n\nDann begann der Stern zu funkeln. Ganz langsam stieg er auf, immer höher und höher, bis er wieder genau an seinem Platz am Himmel stand.\n\nIm selben Augenblick gingen im ganzen Tal die Lichter an. Fenster leuchteten, Lichterketten funkelten und aus dem Lebkuchendorf drang fröhlicher Jubel herüber.\n\n{A} jubelte so laut, dass ein bisschen Schnee von einem Ast rutschte.\n\nDirekt auf {B}.\n\nUnd diesmal lachten sie alle drei."},
-    24:{"s": 8, "t": "Heiligabend", "x": "Am Heiligabend war es in ihrem kleinen Zuhause so warm und hell wie noch nie.\n\nIm Kamin knisterte das Feuer, der Weihnachtsbaum funkelte, und auf dem Tisch standen drei dampfende Tassen Kakao. Eine davon war ziemlich groß.\n\n{A} und {B} hatten ein Geschenk für ihren neuen Freund: einen roten Schal, den sie heimlich zusammen ausgesucht hatten. Der Yeti wickelte ihn sich sofort um den Hals und strahlte über das ganze Gesicht.\n\nDurch das Fenster leuchtete der Weihnachtsstern, heller als je zuvor.\n\n„Bleibst du?“, fragte {A} leise.\n\nDer Yeti schaute zu {A}, dann zu {B} und schließlich hinaus zum Stern.\n\nDann nickte er und nahm sich noch einen Keks.\n\nNiemand musste mehr allein sein.\n\nFrohe Weihnachten, ihr zwei. 🎄"}
+    21:{"s": 7, "t": "Warum der Stern verschwunden ist", "x": "Nachdem sie ein wenig miteinander gesprochen hatten, fasste der Yeti schließlich Mut.\n\nEr erzählte ihnen, warum er den Weihnachtsstern mitgenommen hatte.\n\nJedes Jahr beobachtete er von seinem Schloss aus die vielen kleinen Lichter im Tal. In den Häusern saßen Familien zusammen, überall duftete es nach Plätzchen und aus den Fenstern drang fröhliches Lachen.\n\nNur bei ihm war es immer still.\n\n„Ich wollte auch einmal etwas haben, das mein Zuhause hell macht“, sagte der Yeti leise.\n\nEr senkte den Kopf.\n\n„Ich dachte, wenn ich den Stern habe, fühle ich mich vielleicht nicht mehr so allein.“\n\n{A} schaute zu {B}.\n\nJetzt verstanden sie alles.\n\nDer Yeti hatte den Stern nicht gestohlen, weil er böse war. Er hatte ihn mitgenommen, weil er sich nach ein bisschen Weihnachtszauber und Gesellschaft sehnte.\n\nUnd das konnten die beiden nur zu gut verstehen."},
+    22:{"s": 8, "t": "Ein viel besserer Plan", "x": "{B} trat einen Schritt näher an den Yeti heran.\n\n„Weißt du, der Stern gehört eigentlich an den Himmel. Dort kann er für alle leuchten. Auch für dich.“\n\nDer Yeti schaute traurig zum Stern.\n\n„Aber dann bin ich wieder allein.“\n\n{A} dachte kurz nach. Dann bekam er plötzlich einen Einfall.\n\n„Warum kommst du nicht einfach mit zu uns?“\n\nDer Yeti hob überrascht den Kopf.\n\n„Zu euch?“\n\n„Na klar!“, rief {A} begeistert. „Wir haben Kakao, eine warme Decke und ein richtig gemütliches Sofa!“\n\n{B} nickte lächelnd.\n\n„Und Platz für einen weiteren Freund haben wir ganz bestimmt.“\n\nDer Yeti konnte es kaum glauben.\n\nNoch nie hatte ihn jemand eingeladen, einfach dazuzugehören.\n\nSeine Augen wurden ein bisschen feucht.\n\n„Das wäre … das schönste Weihnachtsgeschenk überhaupt.“"},
+    23:{"s": 8, "t": "Zurück an den Himmel", "x": "Am nächsten Morgen machten sich die drei gemeinsam auf den Weg zum höchsten Hügel.\n\nDer Yeti trug den Weihnachtsstern ganz vorsichtig in seinen großen Pfoten. {A} und {B} liefen neben ihm her.\n\nOben angekommen, blickten sie ein letztes Mal auf das Tal hinunter.\n\n„Bist du bereit?“, fragte {B}.\n\nDer Yeti nickte.\n\nMit all seiner Kraft hob er den Stern hoch über seinen Kopf.\n\nLangsam begann er zu schweben. Erst ein kleines Stück, dann immer höher, bis er schließlich seinen alten Platz am Himmel wiederfand.\n\nPlötzlich erstrahlte das ganze Tal in goldenem Licht.\n\nDie Fenster leuchteten, die Schneeflocken glitzerten und selbst die dunkelsten Ecken des Winterwaldes wurden hell.\n\n{A} jubelte so laut, dass ein ganzer Haufen Schnee von einem nahegelegenen Baum fiel.\n\nDirekt auf {B}.\n\nDer Yeti lachte. Und diesmal lachte er nicht allein."},
+    24:{"s": 8, "t": "Ein Weihnachten für alle", "x": "Endlich war Heiligabend.\n\nIn der kleinen Weihnachtsstube brannte ein gemütliches Feuer, auf dem Tisch standen dampfende Tassen Kakao und überall duftete es nach frisch gebackenen Plätzchen.\n\n{A} und {B} saßen gemütlich auf dem Sofa.\n\nUnd neben ihnen saß der Yeti.\n\nEr trug einen roten Schal, hatte eine kleine Lichterkette um seinen Arm gewickelt und hielt einen riesigen Teller voller Kekse auf dem Schoß.\n\nDurch das Fenster leuchtete der Weihnachtsstern hell in die Nacht.\n\n„Weißt du was?“, sagte der Yeti leise. „Ich glaube, das ist das schönste Weihnachten, das ich je hatte.“\n\n{A} kuschelte sich an ihn.\n\n„Dann musst du nächstes Jahr unbedingt wiederkommen!“\n\nDer Yeti lächelte und nickte.\n\n„Versprochen.“\n\nUnd so wurde aus einem verschwundenen Weihnachtsstern eine ganz besondere Freundschaft.\n\nDenn manchmal ist das größte Weihnachtswunder gar kein leuchtender Stern am Himmel.\n\nSondern ein Platz neben jemandem, der einen lieb hat.\n\nFrohe Weihnachten, ihr zwei. ❤️🎄"}
   }
 };
 // Charakter-Einschübe für {TA}/{TB}, je nach Charakter des Begleiters
@@ -2380,6 +2380,7 @@ function adventVote(n){
   if (a && b) return a === b ? a : (hashN(k + "v") % 2) + 1;
   return a || b || 1;
 }
+const yetiSecret = () => { const d = nowD(), m = d.getMonth(), dd = d.getDate(); return (m === 10 && dd >= 23) || (m === 11 && dd < 19); };
 function yetiState(){
   const A = adventState(), pa = S.data.partner;
   let dmg = 0;
@@ -2390,8 +2391,8 @@ function yetiState(){
     if (A.ans[k]) dmg += YETI.answer; if (A.theirAns.has(k)) dmg += YETI.answer; }
   const ev = pa && duoEvenings(pa); if (ev) dmg += ev.list.filter(e=>e.day >= `${A.y}-12-01` && e.day <= `${A.y}-12-24`).length * YETI.evening;
   if (!pa) dmg *= 2;
-  const hp = Math.max(0, YETI.hp - dmg), friend = hp === 0 || (A.d.getMonth() === 11 && A.d.getDate() >= 24) || A.d.getMonth() === 0;
-  return {hp, max: YETI.hp, pct: hp / YETI.hp * 100, friend, beaten: hp === 0};
+  const secret = yetiSecret(), hp = Math.max(0, YETI.hp - dmg), friend = !secret && (hp === 0 || (A.d.getMonth() === 11 && A.d.getDate() >= 24) || A.d.getMonth() === 0);
+  return {hp, max: YETI.hp, pct: hp / YETI.hp * 100, friend, beaten: hp === 0 && !secret, secret, name: secret ? "Geheimnisvoller Schatten" : "Frost-Yeti"};
 }
 function adventIcon(n){
   const t = ADVENT[n];
@@ -2408,7 +2409,7 @@ function adventCard(){
   if (!feat("advent")) return "";
   const A = adventState(), m = A.d.getMonth(), dd = A.d.getDate();
   if (m === 10 && dd >= 23) return `<section class="card reveal advt" onclick="openAdventTab()"><div class="advhead" ${hasImg("adv_kopf.webp")?`style="background-image:url('pets/adv_kopf.webp')"`:""}>
-      <div><small>Adventskalender</small><b>Noch ${31 - dd} ${31 - dd === 1 ? "Tag" : "Tage"}</b><span>Am 1. Dezember beginnt eure Weihnachtsgeschichte – mit einem verschwundenen Stern.</span></div></div></section>`;
+      <div><small>Adventskalender</small><b>Noch ${31 - dd} ${31 - dd === 1 ? "Tag" : "Tage"}</b><span>Am 1. Dezember geht das erste Türchen auf – für euch beide. Was dahinter steckt? Abwarten 🤫</span></div></div></section>`;
   if (m !== 11 || dd > 26) return "";
   const missed = Array.from({length:Math.min(24, A.day)}, (_, i) => i + 1).filter(n => !A.opened[A.key(n)]).length, Y = yetiState();
   const last = Math.min(24, A.day), ch = STORY.ch[last];
@@ -2416,7 +2417,7 @@ function adventCard(){
       <div><small>Adventskalender ${A.y}</small><b>${A.day <= 24 ? `${A.day}. Dezember` : "Frohe Weihnachten"}</b><span>${missed ? `${missed} ${missed === 1 ? "Türchen wartet" : "Türchen warten"} auf dich` : "Alle Türchen geöffnet – bis morgen!"}</span></div></div>
     <div class="adoors mini">${adventDoors(A, true)}</div>
     <div class="advrow"><button class="advmini" onclick="openAdventTab('story')">${hasImg(`story_${ch.s}.webp`) ? `<img class="sc" src="pets/story_${ch.s}.webp" alt="">` : ""}<div><b>Kapitel ${last}</b><span>${esc(ch.t)}</span></div></button>
-      <button class="advmini" onclick="openAdventTab('yeti')">${fxImg(Y.friend ? "yeti_freund" : "boss_yeti")}<div><b>Frost-Yeti</b>${Y.friend ? `<span>ist jetzt euer Freund</span>` : `<i class="ybar"><i style="width:${Y.pct}%"></i></i>`}</div></button></div></section>`;
+      <button class="advmini" onclick="openAdventTab('yeti')">${Y.secret ? `<img class="ysil" src="pets/boss_yeti.webp" alt="">` : fxImg(Y.friend ? "yeti_freund" : "boss_yeti")}<div><b>${Y.name}</b>${Y.friend ? `<span>ist jetzt euer Freund</span>` : `<i class="ybar"><i style="width:${Y.pct}%"></i></i>`}</div></button></div></section>`;
 }
 window.openAdventTab = sub => { S.fr = "advent"; if (sub) S.advTab = sub; location.hash = "#/freunde"; if (curRoute() === "freunde") route(); };
 // Szene mit beiden Begleitern
@@ -2479,7 +2480,7 @@ window.openAdvent = async (n, again) => {
 // Advent-Reiter unter „Wir zwei“
 function renderAdventTab(head){
   const A = adventState(), sub = S.advTab || "kal", Y = yetiState();
-  const seg = `<div class="seg sub">${[["kal","Kalender"],["story","Geschichte"],["fragen","Fragen"],["yeti","Yeti"]].map(([k,l])=>`<button class="${sub===k?"on":""}" onclick="S.advTab='${k}';quietRoute()">${l}</button>`).join("")}</div>`;
+  const seg = `<div class="seg sub">${[["kal","Kalender"],["story","Geschichte"],["fragen","Fragen"],["yeti","Boss"]].map(([k,l])=>`<button class="${sub===k?"on":""}" onclick="S.advTab='${k}';quietRoute()">${l}</button>`).join("")}</div>`;
   let h = "";
   if (A.d.getMonth() === 10){ setView(head + adventCard()); return; }
   if (sub === "kal") h = `<section class="card reveal advent big"><div class="advhead" ${hasImg("adv_kopf.webp")?`style="background-image:url('pets/adv_kopf.webp')"`:""}>
@@ -2490,12 +2491,12 @@ function renderAdventTab(head){
   }
   if (sub === "fragen") h = Object.keys(ADVENT_Q).map(Number).filter(n=>n <= Math.max(A.day, A.d.getMonth() === 0 ? 24 : 0)).map(n=>`<section class="card reveal">${questionBox(n).replace('id="advAns"', `id="advAns" data-n="${n}"`).replace(`advAnswer(${n})`, `advAnswerTab(${n})`)}</section>`).join("")
     || emptyArt("leer_post", "Noch keine Fragen", "Die erste Frage wartet am 3. Dezember.");
-  if (sub === "yeti") h = `<section class="card reveal yetic"><div class="yfig"><img src="pets/${Y.friend ? "yeti_freund" : "boss_yeti"}.webp" alt=""></div><div>
-      <div class="eyebrow">Advents-Boss</div><h3 style="font-size:24px;margin:4px 0">${Y.friend ? "Der Frost-Yeti ist euer Freund" : "Frost-Yeti"}</h3>
-      ${Y.friend ? `<p class="help">Er wohnt jetzt bei euch im Zuhause. Seine Trophäe steht im Regal.</p>` : `<div class="ybar big"><i style="width:${Y.pct}%"></i></div><p class="help">${Math.round(Y.hp)} von ${Y.max} Frost-Punkten übrig</p>`}
-      <p class="help">Jedes geöffnete Türchen, jede Antwort, jede Abstimmung und jeder gemeinsame Abend im Dezember taut ihn ein bisschen auf. Spätestens an Heiligabend wird er euer Freund – versprochen.</p></div></section>`;
+  if (sub === "yeti") h = `<section class="card reveal yetic"><div class="yfig"><img ${Y.secret ? 'class="ysil"' : ""} src="pets/${Y.friend ? "yeti_freund" : "boss_yeti"}.webp" alt=""></div><div>
+      <div class="eyebrow">Advents-Boss</div><h3 style="font-size:24px;margin:4px 0">${Y.friend ? "Der Frost-Yeti ist euer Freund" : Y.name}</h3>
+      ${Y.friend ? `<p class="help">Er wohnt jetzt bei euch im Zuhause. Seine Trophäe steht im Regal.</p>` : `<div class="ybar big"><i style="width:${Y.pct}%"></i></div><p class="help">${Math.round(Y.hp)} von ${Y.max} ${Y.secret ? "Punkten" : "Frost-Punkten"} übrig</p>`}
+      <p class="help">${Y.secret ? "Irgendwer hat sich hier versteckt. Jedes geöffnete Türchen, jede Antwort, jede Abstimmung und jeder gemeinsame Abend im Dezember bringt euch ihm ein Stück näher." : "Jedes geöffnete Türchen, jede Antwort, jede Abstimmung und jeder gemeinsame Abend im Dezember taut ihn ein bisschen auf. Spätestens an Heiligabend wird er euer Freund – versprochen."}</p></div></section>`;
   setView(head + seg + h);
-  firstHint("advent", "Jeden Tag ein Kapitel! Öffnet eure Türchen – zusammen taut ihr den Frost-Yeti auf.");
+  firstHint("advent", "Jeden Tag ein neues Türchen – öffnet sie zusammen!");
 }
 window.advAnswerTab = async n => { const el = document.querySelector(`#advAns[data-n="${n}"]`); if (!el || !el.value.trim()) return toast("Schreib ruhig ein paar Worte 🙂");
   const A = adventState(), k = A.key(n), pa = S.data.partner;
@@ -2809,7 +2810,7 @@ window.openPetProfile = () => {
 // Beim ersten Öffnen eines neuen Bereichs: ein Satz vom Begleiter
 function firstHint(k, text){ const seen = store.get("gr_hints", []); if (seen.includes(k)) return; store.set("gr_hints", [...seen, k]);
   const p = S.data.pet && (S.data.pet.pets||[]).length ? petActive() : null; if (!p || !p.stage) return;
-  setTimeout(()=>{ const t = document.createElement("div"); t.className = "phint"; t.innerHTML = `<img src="${petSrc(p.sp, p.stage)}" alt=""><span>${esc(text)}</span>`; t.onclick = () => t.remove();
+  setTimeout(()=>{ document.querySelectorAll(".phint").forEach(e=>e.remove()); const t = document.createElement("div"); t.className = "phint"; t.innerHTML = `<img src="${petSrc(p.sp, p.stage)}" alt=""><span>${esc(text)}</span>`; t.onclick = () => t.remove();
     document.body.appendChild(t); setTimeout(()=>t.classList.add("out"), 6500); setTimeout(()=>t.remove(), 7200); }, 600); }
 window.openBand = () => {
   const b = bond(), pb = pairBond(), pa = S.data.partner, og = ourGame(); if (!b) return;
@@ -2971,7 +2972,7 @@ function fxBlock(){
       <div><label>Euer Jahrestag</label><input type="date" id="anniv" value="${esc(D.anniv||"")}" onchange="setDates()"></div></div>
     <p class="help" style="margin:4px 0 10px">Beim Geburtstag zählt nur Tag und Monat. An diesen Tagen gibt es Luftballons und eine Party-Mütze.</p>
     <div class="secttl" style="margin-top:10px">Benachrichtigungen (höchstens eine pro Tag)</div>
-    ${pw("fest", "Ein Fest beginnt")}${pw("vote", "Abstimmung in der Weihnachtsgeschichte")}${pw("answers", "Antworten auf eine gemeinsame Frage sind da")}${pw("yeti", "Frost-Yeti besiegt")}${pw("visit", "Besuch und Post von Begleitern")}`;
+    ${pw("fest", "Ein Fest beginnt")}${pw("vote", "Abstimmung in der Weihnachtsgeschichte")}${pw("answers", "Antworten auf eine gemeinsame Frage sind da")}${pw("yeti", "Der Advents-Boss ist besiegt")}${pw("visit", "Besuch und Post von Begleitern")}`;
 }
 const partnerWants = k => !((S.data.partner||{}).push_off||[]).includes(k);
 function autoSaves(){
@@ -2979,7 +2980,7 @@ function autoSaves(){
   const D = S.data.dates || {}, d = datesOf(); if (!Object.keys(D).length && d.me) saveKv("dates", d).catch(()=>{});
   const Y = (adventSeason() || nowD().getMonth() === 0) && S.data.partner ? yetiState() : null;
   if (Y && Y.beaten && !store.get("gr_yeti_" + nowD().getFullYear(), 0)){ store.set("gr_yeti_" + nowD().getFullYear(), 1);
-    if (partnerWants("yeti")) ntfyPartner("❄️ Frost-Yeti besiegt!", "Ihr habt ihn zusammen aufgetaut – jetzt ist er euer Freund.", ["snowflake"]); sfx("win"); }
+    if (partnerWants("yeti")) ntfyPartner("❄️ Advents-Boss besiegt!", "Ihr habt es zusammen geschafft – schaut mal in euer Zuhause.", ["snowflake"]); sfx("win"); }
 }
 window.setFx = async (k, v) => { const F = {...FXS(), [k]: v}; await saveKv("fx", F); applyFx(); if (k === "light"){ const b = document.querySelector(".modepick"); if (b) b.outerHTML = modeBlock(); } };
 window.setPush = async (k, v) => { const F = FXS(); await saveKv("fx", {...F, push:{...(F.push||{}), [k]: v}}); };
@@ -4276,7 +4277,7 @@ const ACC_FIT = {krone:[30,"hat"], zauberhut:[36,"hat"], muetze:[32,"hat"], pira
 const ACC_ADJ = {};
 const hasImg = n => ((S.data||{}).pet_imgs||[]).includes(n);
 const accIcon = id => hasImg(`acc_${id}.webp`) ? `<img src="pets/acc_${id}.webp" alt="">` : (PET_ACC[id]||["",""])[1];
-const bossIcon = b => hasImg(`boss_${b.id}.webp`) ? `<img src="pets/boss_${b.id}.webp" alt="">` : b.icon;
+const bossIcon = b => hasImg(`boss_${b.id}.webp`) ? `<img src="pets/boss_${b.id}.webp" alt="" ${b.secret ? 'class="ysil"' : ""}>` : b.icon;
 const habStyle = h => hasImg(`hab_${h}.webp`) ? `style="background:url('pets/hab_${h}.webp') center/cover"` : "";
 function petScale(p){
   if (!p.stage) return .5 + .12 * (p.hatch||0) / (p.hatch_need||3);
@@ -4331,7 +4332,7 @@ function petLines(p){
   const lastWin = [...(P.history||[])].reverse().find(b=>b.won);
   if (lastWin) L.push(`Gegen ${lastWin.name} waren wir unschlagbar 💪`);
   const mo = new Date().getMonth() + 1, dow = new Date().getDay();
-  const SEASON = {12:"Bald ist Weihnachten 🎄 Ob der Frost-Yeti auftaucht?", 1:"Neues Jahr, neue Spiele! ❄️", 2:"Liebe liegt in der Luft 💘", 3:"Der Frühling kommt 🌷", 4:"Ich hab ein Ei gefunden … ach nein, ist ein Osterei 🐣",
+  const SEASON = {12:"Bald ist Weihnachten 🎄 Ich bin schon ganz aufgeregt!", 1:"Neues Jahr, neue Spiele! ❄️", 2:"Liebe liegt in der Luft 💘", 3:"Der Frühling kommt 🌷", 4:"Ich hab ein Ei gefunden … ach nein, ist ein Osterei 🐣",
     5:"Sonne! Und wir sitzen drinnen und zocken 😎", 6:"Sommer! Zeit für Rennspiele 🏎️", 7:"Puh, heiß hier. Der Sonnenwurm ist bestimmt in der Nähe ☀️", 8:"Noch ein Sommerabend, noch eine Runde 🌅",
     9:"Herbst – die beste Zeit für lange Spiele 🍂", 10:"Gruselzeit! 🎃 Hast du Lust auf was Schauriges?", 11:"Kuschelwetter. Decke, Tee, Controller ☕"};
   if (SEASON[mo]) L.push(SEASON[mo]);

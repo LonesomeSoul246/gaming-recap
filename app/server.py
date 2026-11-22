@@ -1087,6 +1087,11 @@ def quiet_end(prefs, now=None):
     return int(t.timestamp()) + 60
 
 
+def yeti_secret(d=None):
+    d = d or dt.date.today()
+    return (d.month == 11 and d.day >= 23) or (d.month == 12 and d.day < 19)
+
+
 def FEATURE_ON(k):
     return (kv_get("features", {}) or {}).get(k, True) is not False
 
@@ -1102,7 +1107,7 @@ def fest_of(d, dates, pname=None):
     if an[5:] == md and an[:4] < str(d.year):
         return ("💞 Heute ist euer Jahrestag", f"{d.year - int(an[:4])} Jahre – in eurer App ist heute alles voller Herzen.")
     if md == "12-01" and FEATURE_ON("advent"):
-        return ("🎄 Der Adventskalender ist offen", "Heute beginnt eure Weihnachtsgeschichte – mit einem verschwundenen Stern.")
+        return ("🎄 Der Adventskalender ist offen", "Heute öffnet sich das erste Türchen für euch beide. Mehr wird nicht verraten 🤫")
     if md == "12-24":
         return ("🎄 Frohe Weihnachten", "Das letzte Kapitel und die Weihnachtsstube warten auf euch.")
     if md == "12-31":
@@ -1179,7 +1184,7 @@ def plan_ahead(cfg, now=None):
                 add(f"fest-{d_.isoformat()}", "duo", at_(d_, 10), fest[0], fest[1], base + "#/uebersicht")
             elif d_.month == 12 and d_.day in (5, 9, 14, 19) and fx_push.get("vote", True) and FEATURE_ON("advent"):
                 add(f"vote-{d_.isoformat()}", "duo", at_(d_, 17), "🗳️ Abstimmung in eurer Weihnachtsgeschichte",
-                    "Wie geht es für eure Begleiter weiter? Heute entscheidet ihr zusammen.", base + "#/freunde")
+                    "Heute entscheidet ihr zusammen, wie es weitergeht.", base + "#/freunde")
         # Neuerscheinungen von der Wunschliste
         sx = read_json(STEAMX_PATH, {}) or {}
         for w in sx.get("wishlist") or []:
@@ -2971,6 +2976,10 @@ def pet_state(cfg, force=False):
                                 "quests": sum(1 for q in quests.get(w0, []) if q["done"])})((today - dt.timedelta(days=today.weekday())).isoformat()),
            "memories": memories[:60], "party": party, "album": sorted({f"{sp_of[pid]}_{s}" for (pid, s) in stage_day} | {f"{sp_of[pid]}_1" for pid in hatch_day}),
            "gift_ok": not last_gift or (today - dt.date.fromisoformat(last_gift[:10])).days >= 7, "gifts_sent": gifts[-10:]}
+    if yeti_secret(today):          # Advent-Überraschung: Der Yeti bleibt bis Kapitel 19 ein geheimnisvoller Schatten
+        for b in list(res.get("current", {}).values()) + list(res.get("history") or []):
+            if isinstance(b, dict) and b.get("id") == "yeti":
+                b.update(name="Geheimnisvoller Schatten", weak="Wer oder was ist das? Gemütliche Spiele und Ruhetage helfen.", secret=True)
     _pet_cache.update(t=time.time(), v=res)
     return res
 
