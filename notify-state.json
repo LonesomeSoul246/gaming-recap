@@ -3,9 +3,9 @@
   "markofthedeep"
  ],
  "init": true,
- "last_day": "2026-11-21",
+ "last_day": "2026-11-22",
  "sale_seen": {},
  "status": [
-  "Steam: HTTP Error 400: Bad Request"
+  "Steam: HTTP Error 429: Too Many Requests"
  ]
 }
