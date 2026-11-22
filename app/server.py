@@ -1011,7 +1011,7 @@ def save_meta(body):
 
 
 REMOTE_CMDS = ("after_session", "at_time", "cancel", "sleep", "shutdown", "wake_partner")
-KV_KEYS = {"goals", "year_overrides", "wrapped", "notpc", "snotes", "covers", "paid", "notify", "critic", "ui", "pet", "plans", "plan_resp", "remote"}
+KV_KEYS = {"goals", "year_overrides", "wrapped", "notpc", "snotes", "covers", "paid", "notify", "critic", "ui", "pet", "plans", "plan_resp", "remote", "plan_pushed"}
 
 
 def kv_get(key, default=None):
@@ -1269,6 +1269,9 @@ def clean_kv(key, v):
         return out
     if key == "plan_resp":  # Antworten auf Vorschläge des Partners: {id: "yes"|"no"|"maybe"}
         return {str(k)[:16]: x for k, x in (v if isinstance(v, dict) else {}).items() if x in ("yes", "no", "maybe")}
+    if key == "plan_pushed":  # welche Zockabend-Nachrichten schon direkt per Push raus sind (vom Handy oder PC)
+        return {str(k)[:40]: int(x or 0) for k, x in list((v if isinstance(v, dict) else {}).items())[-300:]
+                if re.fullmatch(r"[pcr]:[a-z0-9]{4,16}(:(yes|no|maybe))?", str(k))}
     if key == "remote":  # Befehl vom Handy an den eigenen PC
         v = v if isinstance(v, dict) else {}
         if v.get("cmd") not in REMOTE_CMDS:
@@ -1481,6 +1484,9 @@ def apply_remote_edits(payload):
             upd = kv_updated(k)
             if k == "pet":   # Begleiter wird zusammengeführt, nicht überschrieben
                 kv_set(k, merge_pet(e.get("value")))
+                n += 1
+            elif k == "plan_pushed":
+                kv_set(k, {**(kv_get(k, {}) or {}), **clean_kv(k, e.get("value"))})
                 n += 1
             elif k in KV_KEYS and k != "wrapped" and not (upd and (parse_iso(upd) or 0) >= (e.get("ts") or 0) / 1000):
                 kv_set(k, clean_kv(k, e.get("value")))
@@ -2169,8 +2175,35 @@ PET_MONTHLY = [("titan", "Uralter Titan", "🌋", "Durchgespielte Spiele sind se
                ("leviathan", "Leviathan", "🐋", "Abwechslung bei den Genres schwächt ihn."),
                ("phoenix", "Schattenphönix", "🦅", "Neu angefangene Spiele löschen sein Feuer."),
                ("mecha", "Mecha-Wyrm", "🤖", "Erfolge und Trophäen bringen ihn zum Kurzschluss.")]
+# Reihenfolge so, dass der laufende Monat (Nov 2026: Zwillingsschatten) gleich bleibt
 PET_RAID = [("kraken", "Koop-Kraken", "🐙", "Nur gemeinsame Abende und Spiele, die ihr beide durchspielt, treffen ihn."),
+            ("sturmriese", "Sturmriese", "🌩️", "Nur gemeinsame Abende und Spiele, die ihr beide durchspielt, treffen ihn."),
+            ("drachenpaar", "Drachenpaar", "🐲", "Nur gemeinsame Abende und Spiele, die ihr beide durchspielt, treffen sie."),
             ("zwilling", "Zwillingsschatten", "👥", "Nur gemeinsame Abende und Spiele, die ihr beide durchspielt, treffen sie.")]
+
+
+def _easter(y):
+    a, b, c = y % 19, y // 100, y % 100
+    d, e = divmod(b, 4)
+    f = (b + 8) // 25
+    g = (b - f + 1) // 3
+    h = (19 * a + b - d - g + 15) % 30
+    i, k = divmod(c, 4)
+    l_ = (32 + 2 * e + 2 * i - h - k) % 7
+    m = (a + 11 * h + 22 * l_) // 451
+    mo, da = divmod(h + l_ - 7 * m + 114, 31)
+    return dt.date(y, mo, da + 1)
+
+
+def pet_special_boss(week_start):
+    """Sonder-Boss nur in der Woche des Anlasses (nicht den ganzen Monat lang)."""
+    y = week_start.year
+    days = {2: dt.date(y, 2, 14), 4: _easter(y), 7: dt.date(y, 7, 15), 10: dt.date(y, 10, 31), 12: dt.date(y, 12, 24)}
+    for m, d in days.items():
+        for dd in (d, d.replace(year=y + 1) if m != 4 else _easter(y + 1)):
+            if week_start <= dd <= week_start + dt.timedelta(days=6):
+                return PET_SEASON[m]
+    return None
 PET_QUESTS = [("days4", "Spiel an 4 verschiedenen Tagen", 4), ("new1", "Fang ein neues Spiel an", 1), ("rest1", "Gönn dir einen Ruhetag", 1),
               ("fav120", "Spiel 2 Std im Lieblingsgenre", 120), ("ach10", "Hol dir 10 Erfolge", 10), ("done1", "Spiel ein Spiel durch", 1),
               ("early3", "Beende 3 Abende vor Mitternacht", 3), ("genre3", "Spiel 3 verschiedene Genres", 3), ("eve1", "Ein gemeinsamer Abend", 1),
@@ -2512,11 +2545,11 @@ def pet_state(cfg, force=False):
         live = not end < today
         bkey = f"{raw.get('epoch') or ''}|{kind}|{key.isoformat()}"
         if kind == "week":
-            b = PET_SEASON.get(key.month) or PET_WEEKLY[(key.isocalendar()[1] + key.isocalendar()[0]) % len(PET_WEEKLY)]
+            b = pet_special_boss(key) or PET_WEEKLY[(key.toordinal() // 7 + 8) % len(PET_WEEKLY)]   # fortlaufend, auch über den Jahreswechsel
             hp = min(1800, max(200, 0.85 * week_avg(key))) * (1 + 0.02 * min(wins, 20))
             ends = key + dt.timedelta(days=6)
         elif kind == "month":
-            b = PET_MONTHLY[(key.month + key.year) % len(PET_MONTHLY)]
+            b = PET_MONTHLY[(key.year * 12 + key.month + 2) % len(PET_MONTHLY)]   # reihum, keiner zweimal in vier Monaten
             hp = min(6500, max(800, 3.4 * week_avg(key))) * (1 + 0.02 * min(month_wins, 12))
             ends = (key.replace(day=28) + dt.timedelta(days=4)).replace(day=1) - dt.timedelta(days=1)
         else:
@@ -2911,6 +2944,7 @@ def duo_extras(cfg, games, keys):
             "genres": dict(sorted(gen.items(), key=lambda x: -x[1])[:16]), "tiers": tiers, "playing": playing,
             "sess": sess[-1500:], "news": duo_news(games, meta), "topic": (cfg.get("push_topic") or "").strip() or None,
             "pet": pet_public(cfg), "plans": kv_get("plans", []) or [], "plan_resp": kv_get("plan_resp", {}) or {},
+            "plan_pushed": list((kv_get("plan_pushed", {}) or {}))[-120:],
             "wake": pcutil.mac_address() if cfg.get("allow_wake") else None}
 
 
@@ -2990,7 +3024,7 @@ pcstat = {"t": 0, "sizes_t": 0, "v": {}}
 
 def pc_status_worker(cfg, force=False):
     """Downloads (Steam), freier Speicher und große, lange nicht gespielte Spiele – für Handy und Start-Seite."""
-    if not force and time.time() - pcstat["t"] < 110:
+    if not force and time.time() - pcstat["t"] < (25 if (pcstat.get("v") or {}).get("downloads") else 90):
         return pcstat["v"]
     pcstat["t"] = time.time()
     games = load_cache().get("games", [])
@@ -2998,8 +3032,16 @@ def pc_status_worker(cfg, force=False):
         apps = pcutil.steam_apps()
     except Exception:
         apps = []
-    dls = [{"name": a["name"], "pct": int(a["done"] * 100 / a["total"]) // 5 * 5 if a["total"] else 0, "gb": round(a["total"] / 1e9, 1)}
-           for a in apps if a["downloading"]]
+    dls = []
+    for a in apps:
+        if not a["downloading"]:
+            continue
+        done = a["done"]
+        if a["total"] and done < a["total"]:   # Steam schreibt den Stand nur selten – der Download-Ordner wächst laufend
+            st = pcutil.folder_size(os.path.join(a["lib"], "steamapps", "downloading", str(a["appid"])), limit_s=2) or 0
+            done = max(done, min(st, a["total"]))
+        dls.append({"name": a["name"], "pct": int(done * 100 / a["total"]) if a["total"] else 0, "gb": round(a["total"] / 1e9, 1),
+                    "appid": a["appid"], "paused": not a["state"] & 1024})
     # Größen: Steam aus den Manifesten, andere Launcher einmal am Tag über den Ordner
     sizes = read_json(os.path.join(DATA_DIR, "sizes.json"), {}) if os.path.exists(os.path.join(DATA_DIR, "sizes.json")) else {}
     steam_size = {str(a["appid"]): a["size"] for a in apps if a["size"]}
@@ -3142,8 +3184,8 @@ def duo_plan_alert(cfg, pa):
         if p["id"] not in seen and not p.get("cancel") and p["at"] >= dt.datetime.now().strftime("%Y-%m-%dT%H:%M"):
             seen[p["id"]] = "new"
             changed = True
-            if time.time() - (p.get("created") or 0) > 900:      # frische hat das Handy schon direkt gepusht
-                alert("duo", f"🎮 {name} schlägt einen Zockabend vor", plan_text(p))
+            if "p:" + p["id"] not in (pa.get("plan_pushed") or []) and time.time() - (p.get("created") or 0) > 900:
+                alert("duo", f"🎮 {name} schlägt einen Zockabend vor", plan_text(p))   # nur falls kein direkter Push kam
     mine = {p["id"]: p for p in kv_get("plans", []) or []}
     for pid, r in (pa.get("plan_resp") or {}).items():
         k = "r:" + pid
@@ -3152,6 +3194,56 @@ def duo_plan_alert(cfg, pa):
             changed = True
     if changed:
         kv_set("plan_seen", dict(list(seen.items())[-200:]))
+
+
+PLAN_KEYS = ("plans", "plan_resp", "plan_pushed", "remote")
+
+
+def plan_push_out(cfg):
+    """Zockabend: Vorschläge, Absagen und Antworten sofort per Push an den Partner (vom PC aus, zuverlässig).
+    Was das Handy schon selbst geschickt hat, steht in plan_pushed und wird nicht doppelt geschickt."""
+    with plan_lock:
+        pa = kv_get("partner", None) or {}
+        topic = pa.get("topic")
+        pushed = kv_get("plan_pushed", None)
+        mine, resp = kv_get("plans", []) or [], kv_get("plan_resp", {}) or {}
+        now = dt.datetime.now().strftime("%Y-%m-%dT%H:%M")
+        todo = []
+        for p in mine:
+            todo.append(("p:" + p["id"], p, "new"))
+            if p.get("cancel"):
+                todo.append(("c:" + p["id"], p, "cancel"))
+        theirs = {p["id"]: p for p in pa.get("plans") or []}
+        for pid, r in resp.items():
+            todo.append((f"r:{pid}:{r}", theirs.get(pid), r))
+        if pushed is None:   # erster Lauf: Bestehendes gilt als verschickt
+            kv_set("plan_pushed", {k: int(time.time()) for k, _, _ in todo})
+            return 0
+        me = (cfg.get("user_name") or "").strip() or "Dein Player 2"
+        pu = (cfg.get("partner_url") or "").strip()
+        click = (("https://" + pu if not pu.startswith("http") else pu).rstrip("/") + "/#/uebersicht") if pu else None   # öffnet beim Partner dessen App
+        n = 0
+        for key, p, what in todo:
+            if key in pushed:
+                continue
+            pushed[key] = int(time.time())
+            if not topic or not p or p.get("at", "") < now:
+                continue
+            if what == "new" and not p.get("cancel"):
+                notify.push(f"🎮 {me} schlägt einen Zockabend vor", plan_text(p), url=click, topic=topic, tags="gr-plan", sid=f"gr-plan-{p['id']}")
+            elif what == "cancel":
+                notify.push(f"😢 {me} muss absagen", plan_text(p) + " fällt leider aus.", url=click, topic=topic, tags="gr-plan", sid=f"gr-plan-{p['id']}")
+            elif what in ("yes", "maybe", "no"):
+                t = {"yes": f"🎉 {me} ist dabei!", "maybe": f"🤔 {me} weiß noch nicht", "no": f"😢 {me} kann leider nicht"}[what]
+                notify.push(t, plan_text(p), url=click, topic=topic, tags="gr-plan", sid=f"gr-resp-{p['id']}")
+            n += 1
+        kv_set("plan_pushed", dict(list(pushed.items())[-300:]))
+        if n:
+            cloud_state["pending"] = cloud_state["urgent"] = True
+        return n
+
+
+plan_lock = threading.Lock()
 
 
 def plan_text(p):
@@ -3164,10 +3256,15 @@ def plan_text(p):
     return when + (f" · {p['game']}" if p.get("game") else "") + (f" – {p['note']}" if p.get("note") else "")
 
 
+def partner_every():
+    """Wie oft die Partner-Daten geholt werden: normal jede Minute, nach einem Zockabend-Push 3 Min. lang alle 20 Sek."""
+    return 20 if time.time() < partner_state.get("burst", 0) else 60
+
+
 def fetch_partner(cfg):
     """Holt die Daten des Partners (verschlüsselt in dessen GitHub-Pages-Repository)."""
     url, code = (cfg.get("partner_url") or "").strip(), (cfg.get("partner_code") or "").strip()
-    if not url or not code or time.time() - partner_state["last"] < 290:
+    if not url or not code or time.time() - partner_state["last"] < partner_every() - 5:
         return
     partner_state["last"] = time.time()
     try:
@@ -3229,6 +3326,8 @@ def poll_greets(cfg):
         if m.get("event") != "message":
             continue
         last = m.get("id") or last
+        if "gr-plan" in (m.get("tags") or []) and int(m.get("time") or 0) > time.time() - 600:
+            partner_state["burst"], partner_state["last"] = time.time() + 180, 0   # Partner hat geplant: Daten gleich holen
         if "gr-greet" not in (m.get("tags") or []) or m.get("id") in have:
             continue
         g = {"id": m.get("id"), "at": int(m.get("time") or time.time()), "title": str(m.get("title") or "")[:80],
@@ -3331,12 +3430,21 @@ def update_source(cfg):
     return (q.get("update_url") or "").strip()
 
 
+def just_updated():
+    """Wurde in den letzten 20 Minuten ein Update eingespielt?"""
+    try:
+        return time.time() - os.path.getmtime(os.path.join(DATA_DIR, "app_sicherung", "dateien.json")) < 1200
+    except OSError:
+        return False
+
+
 def update_worker(cfg, force=False, apply_now=None):
     """Einmal am Tag nach Updates schauen und (falls eingeschaltet) installieren."""
     url = update_source(cfg)
     if not url or cfg.get("publish_updates") or update_state["checking"]:
         return
-    if not force and time.time() - update_state["last_check"] < 20 * 3600 and not update_state.get("deferred"):
+    gap = 120 if just_updated() else 3 * 3600   # direkt nach einem Update kurz nachfassen (z. B. neu hinzugekommene Dateien)
+    if not force and time.time() - update_state["last_check"] < gap and not update_state.get("deferred"):
         return
     if update_state.get("deferred") and not force and time.time() - update_state["last_check"] < 3600:
         return
@@ -3980,6 +4088,12 @@ def cloud_sync(force=False):
             except ValueError:
                 print("  Cloud: Änderung vom Handy mit falschem Passwort verworfen")
             deletes.append(item["path"])
+        cloud_state["urgent"] = False
+        if applied:
+            try:
+                plan_push_out(cfg)   # Zockabend-Antworten vom Handy gleich weitergeben
+            except Exception as e:
+                print("  Zockabend:", err_text(e))
         if not kv_get("tiers_recovered_v1"):
             try:
                 r = recover_tiers(gh, cfg)
@@ -3993,6 +4107,7 @@ def cloud_sync(force=False):
         if digest != cloud_state.get("data_hash") or force:
             snap["pushed"] = now_iso()
             files["data.enc"] = cloud.encrypt(snap, cfg["cloud_pass"])
+            files["stamp.json"] = json.dumps({"pushed": snap["pushed"]}).encode()   # winzig: das Handy schaut hier, ob es Neues gibt
         today = dt.date.today().isoformat()
         if cloud_state.get("backup_day") != today:
             files["backup.enc"] = cloud.encrypt(build_backup(), cfg["cloud_pass"])
@@ -4098,29 +4213,42 @@ def scheduler():
                 except Exception as e:
                     print("  Begleiter:", err_text(e))
             offline_watchdog(cfg)
-            if time.time() - started > 300:
+            if time.time() - started > (45 if just_updated() else 300):   # nach einem Update gleich nachsehen, ob noch etwas fehlt
                 threading.Thread(target=update_worker, args=(cfg,), daemon=True).start()
             cur_play = tuple(sorted(str(p.get("key")) for p in TRACKER.current or []))
             if cfg.get("partner_code") and cur_play != partner_state.get("play"):
                 partner_state["play"] = cur_play
                 cloud_state["pending"] = True  # „spielt gerade“ zügig an den Partner geben
-            if cfg.get("partner_url") and time.time() - partner_state.get("greet_t", 0) > 55:
+            try:
+                plan_push_out(cfg)
+            except Exception as e:
+                print("  Zockabend:", err_text(e))
+            try:   # Downloads & Speicher: läuft ein Download, alle ~30 Sek. frisch – Änderungen gehen gleich ans Handy
+                pv = pc_status_worker(cfg)
+                sig = tuple((d["name"], d["pct"] // 10) for d in pv.get("downloads") or [])
+                if sig != pcstat.get("sig"):
+                    if "sig" in pcstat:
+                        cloud_state["pending"] = True
+                    pcstat["sig"] = sig
+            except Exception:
+                pass
+            if cfg.get("partner_url") and time.time() - partner_state.get("greet_t", 0) > 25:
                 partner_state["greet_t"] = time.time()
                 threading.Thread(target=poll_greets, args=(cfg,), daemon=True).start()
-            if cfg.get("partner_url") and time.time() - partner_state["last"] > 290:
+            if cfg.get("partner_url") and time.time() - partner_state["last"] > partner_every():
                 threading.Thread(target=fetch_partner, args=(cfg,), daemon=True).start()
         except Exception as e:
             print("  Hinweise:", e)
         if cloud_ready(cfg) and not state["syncing"]:
             gap = time.time() - last_cloud
             has_edits = False
-            if time.time() - last_edits > 60:  # Handy-Änderungen: jede Minute nachsehen (1 kleine Anfrage)
+            if time.time() - last_edits > 30:  # Handy-Änderungen: alle 30 Sek. nachsehen (1 kleine Anfrage)
                 last_edits = time.time()
                 try:
                     has_edits = bool(cloud.GitHub(cfg["gh_repo"], cfg["gh_token"]).list_edits())
                 except Exception:
                     pass
-            if has_edits or (cloud_state.get("pending") and gap > 60) or gap > 900:
+            if has_edits or (cloud_state.get("pending") and (gap > 60 or cloud_state.get("urgent"))) or gap > 900:
                 last_cloud = time.time()
                 cloud_sync()
         time.sleep(20)
@@ -4454,6 +4582,9 @@ class Handler(BaseHTTPRequestHandler):
                         val[k] = a
             kv_set(body["key"], val)
             cloud_state["pending"] = True
+            if body["key"] in PLAN_KEYS:
+                cloud_state["urgent"] = True
+                threading.Thread(target=plan_push_out, args=(load_config(),), daemon=True).start()
             return self._send(200, {"ok": True})
         if not self._local():
             return self._send(403, {"error": "Nur am PC"})

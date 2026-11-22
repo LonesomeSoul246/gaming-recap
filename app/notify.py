@@ -17,7 +17,7 @@ $app = '{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\WindowsPowerShell\v1.0\powershell
 PUSH = {"topic": None}  # vom Server gesetzt (Einstellungen)
 
 
-def push(title, body, url=None, topic=None, delay=None, sid=None):
+def push(title, body, url=None, topic=None, delay=None, sid=None, tags=None):
     """Push aufs Handy über ntfy.sh (App „ntfy“, Thema abonnieren). Kein Konto nötig.
     delay: Unix-Zeit für zeitversetzte Zustellung (max. 3 Tage), sid: Sequenz-ID zum späteren Löschen."""
     import urllib.request
@@ -25,7 +25,7 @@ def push(title, body, url=None, topic=None, delay=None, sid=None):
     if not t:
         return False
     try:
-        headers = {"Title": _hdr(title), "Tags": "video_game"}
+        headers = {"Title": _hdr(title), "Tags": "video_game" + ("," + tags if tags else "")}
         if url:
             headers["Click"] = url
         if delay:
