@@ -1012,7 +1012,7 @@ def save_meta(body):
 
 REMOTE_CMDS = ("after_session", "at_time", "cancel", "sleep", "shutdown", "wake_partner")
 KV_KEYS = {"goals", "year_overrides", "wrapped", "notpc", "snotes", "covers", "paid", "notify", "critic", "ui", "pet", "plans", "plan_resp", "remote", "plan_pushed",
-           "advent", "wishes", "wish_done", "surprises", "capsule", "pins", "features"}
+           "advent", "wishes", "wish_done", "surprises", "capsule", "pins", "features", "dates", "fx", "seen_new", "visits", "pairs"}
 FEATURES = ("advent", "moment", "greetpet", "night", "news", "moments", "chronik", "capsule", "wishes", "surprise", "home", "season")
 WISH_CATS = ("spiel", "erleben", "essen", "ausflug", "sonst")
 
@@ -1087,6 +1087,35 @@ def quiet_end(prefs, now=None):
     return int(t.timestamp()) + 60
 
 
+def FEATURE_ON(k):
+    return (kv_get("features", {}) or {}).get(k, True) is not False
+
+
+def fest_of(d, dates, pname=None):
+    """Fest an diesem Tag → (Titel, Text) für eine Push-Nachricht, sonst None."""
+    md = d.strftime("%m-%d")
+    if dates.get("me") == md:
+        return ("🎂 Alles Gute zum Geburtstag!", "Dein Begleiter hat heute eine Party-Mütze auf – schau mal rein.")
+    if pname and dates.get("pa") == md:
+        return (f"🎂 Heute hat {pname} Geburtstag", "Vergiss den Gruß nicht – in der App steigen heute Luftballons.")
+    an = str(dates.get("anniv") or "")
+    if an[5:] == md and an[:4] < str(d.year):
+        return ("💞 Heute ist euer Jahrestag", f"{d.year - int(an[:4])} Jahre – in eurer App ist heute alles voller Herzen.")
+    if md == "12-01" and FEATURE_ON("advent"):
+        return ("🎄 Der Adventskalender ist offen", "Heute beginnt eure Weihnachtsgeschichte – mit einem verschwundenen Stern.")
+    if md == "12-24":
+        return ("🎄 Frohe Weihnachten", "Das letzte Kapitel und die Weihnachtsstube warten auf euch.")
+    if md == "12-31":
+        return ("🎆 Silvester", "Um Mitternacht gibt es Feuerwerk in der App – und die Silvester-Brille für deinen Begleiter.")
+    if md == "02-14":
+        return ("💘 Happy Valentinstag", "Heute schweben Herzen durch eure App.")
+    if d == _easter(d.year):
+        return ("🐣 Frohe Ostern", "In der App sind heute Eier versteckt – findest du sie?")
+    if md == "10-31":
+        return ("🎃 Halloween", "Fledermäuse in der App und ein Hexenhut für deinen Begleiter.")
+    return None
+
+
 def plan_ahead(cfg, now=None):
     """Plant Benachrichtigungen bis 3 Tage im Voraus bei ntfy ein. So kommen sie auch, wenn der PC aus ist.
     Läuft stündlich und aktualisiert/löscht geplante Nachrichten, wenn sich etwas ändert."""
@@ -1142,6 +1171,15 @@ def plan_ahead(cfg, now=None):
                 continue
             add(f"plan-{p_['id']}", "duo", t, f"🎮 In einer Stunde: Zockabend mit {pname}",
                 (p_.get("game") or "Spiel steht noch nicht fest") + (f" – {p_['note']}" if p_.get("note") else ""), base + "#/freunde")
+        # Feste & Advent (höchstens eine pro Tag, einzeln abschaltbar unter „Feste & Effekte“)
+        fx_push = ((kv_get("fx", {}) or {}).get("push")) or {}
+        for d_ in (today + dt.timedelta(days=i) for i in range(3)):
+            fest = fest_of(d_, kv_get("dates", {}) or {}, pname if pa_ else None)
+            if fest and fx_push.get("fest", True):
+                add(f"fest-{d_.isoformat()}", "duo", at_(d_, 10), fest[0], fest[1], base + "#/uebersicht")
+            elif d_.month == 12 and d_.day in (5, 9, 14, 19) and fx_push.get("vote", True) and FEATURE_ON("advent"):
+                add(f"vote-{d_.isoformat()}", "duo", at_(d_, 17), "🗳️ Abstimmung in eurer Weihnachtsgeschichte",
+                    "Wie geht es für eure Begleiter weiter? Heute entscheidet ihr zusammen.", base + "#/freunde")
         # Neuerscheinungen von der Wunschliste
         sx = read_json(STEAMX_PATH, {}) or {}
         for w in sx.get("wishlist") or []:
@@ -1272,10 +1310,36 @@ def clean_kv(key, v):
         return out
     if key == "plan_resp":  # Antworten auf Vorschläge des Partners: {id: "yes"|"no"|"maybe"}
         return {str(k)[:16]: x for k, x in (v if isinstance(v, dict) else {}).items() if x in ("yes", "no", "maybe")}
+    if key == "dates":  # Geburtstage + Jahrestag: {"me": "06-24", "pa": "03-13", "anniv": "2023-05-01"}
+        v = v if isinstance(v, dict) else {}
+        out = {k: str(v[k]) for k in ("me", "pa") if re.fullmatch(r"\d\d-\d\d", str(v.get(k) or ""))}
+        if re.fullmatch(r"\d{4}-\d\d-\d\d", str(v.get("anniv") or "")): out["anniv"] = str(v["anniv"])
+        return out
+    if key == "fx":  # Effekte, Töne, Modus, Benachrichtigungen
+        v = v if isinstance(v, dict) else {}
+        out = {k: bool(v.get(k)) for k in ("noeffects", "nosound", "light") if k in v}
+        out["push"] = {k: bool(x) for k, x in (v.get("push") or {}).items() if k in ("fest", "vote", "answers", "yeti", "visit")} if isinstance(v.get("push"), dict) else {}
+        return out
+    if key == "pairs":  # Begleiter-Paare: {"pid|sp|name": "2026-11-22"} (seit wann sie sich kennen)
+        return {str(k)[:60]: str(x)[:10] for k, x in list((v if isinstance(v, dict) else {}).items())[-40:] if re.fullmatch(r"\d{4}-\d\d-\d\d", str(x))}
+    if key == "seen_new":  # „Was ist neu“ weggeklickt: Versionskennung
+        return str(v or "")[:40]
+    if key == "visits":  # Besuche/Geschenke der Begleiter: [{id, at, kind, item, auto}]
+        out = []
+        for x in (v if isinstance(v, list) else [])[-60:]:
+            if isinstance(x, dict) and re.fullmatch(r"[a-z0-9]{4,16}", str(x.get("id") or "")):
+                out.append({"id": x["id"], "at": int(x.get("at") or 0), "kind": x.get("kind") if x.get("kind") in ("visit", "gift", "card") else "visit",
+                            "item": re.sub(r"[^a-z_]", "", str(x.get("item") or ""))[:24], "auto": bool(x.get("auto"))})
+        return out
     if key == "advent":  # geöffnete Türchen: {"o": {"2026-12-05": unix}}
         o = (v or {}).get("o") if isinstance(v, dict) else None
+        day = lambda k: re.fullmatch(r"\d{4}-12-(0[1-9]|1\d|2[0-4])", str(k))
+        a = v.get("a") if isinstance(v, dict) and isinstance(v.get("a"), dict) else {}
+        vo = v.get("v") if isinstance(v, dict) and isinstance(v.get("v"), dict) else {}
         return {"o": {str(k): int(x) for k, x in list((o if isinstance(o, dict) else {}).items())[-60:]
-                      if re.fullmatch(r"\d{4}-12-(0[1-9]|1\d|2[0-4])", str(k)) and isinstance(x, (int, float))}}
+                      if day(k) and isinstance(x, (int, float))},
+                "a": {str(k): str(x).strip()[:400] for k, x in list(a.items())[-40:] if day(k) and str(x).strip()},
+                "v": {str(k): int(x) for k, x in list(vo.items())[-20:] if day(k) and x in (1, 2)}}
     if key == "wishes":  # Wunschbaum: [{id, t, cat, at, done}]
         out = []
         for x in (v if isinstance(v, list) else [])[-100:]:
@@ -2171,15 +2235,15 @@ PET_ACC = {"schleife": "Schleife", "headset": "Gaming-Headset", "brille": "Sonne
            "blumen": "Blumenkranz", "herz": "Herz-Anhänger", "muetze": "Bommelmütze", "pirat": "Piratenhut", "weihnacht": "Weihnachtsmütze",
            "kuerbis": "Kürbis-Hütchen", "wikinger": "Wikingerhelm", "party": "Partyhütchen", "halo": "Heiligenschein",
            "diadem": "Kristall-Diadem", "kapitaen": "Kapitänsmütze",
-           "herzreif": "Herz-Haarreif", "hasenohren": "Hasenohren", "sonnenhut": "Sonnenhut",
+           "herzreif": "Herz-Haarreif", "hasenohren": "Hasenohren", "sonnenhut": "Sonnenhut", "hexenhut": "Hexenhut",
            "schal": "Ringelschal", "geweih": "Rentier-Geweih", "ohrenschuetzer": "Ohrenschützer", "wichtel": "Wichtelmütze",
            "lichterkette": "Lichterkette", "sternkrone": "Schneestern-Krone", "zuckerstange": "Zuckerstange", "silvester": "Silvester-Brille"}
 PET_HAB = {"lichtung": "Lichtung", "sterne": "Sternenhimmel", "strand": "Strand", "zimmer": "Gaming-Zimmer", "vulkan": "Vulkan",
            "winter": "Winterwald", "kristall": "Kristallhöhle", "riff": "Unterwasser-Riff",
            "weihnachtsstube": "Weihnachtsstube", "silvester": "Silvester-Dach", "wunschbaum": "Wunschbaum"}
-# Adventskalender: Belohnung pro Türchen (Rest sind Erinnerungen, Quiz, Fun Facts – die baut die App)
-ADVENT_REWARDS = {1: ("acc", "schal"), 4: ("acc", "geweih"), 7: ("acc", "ohrenschuetzer"), 10: ("acc", "wichtel"),
-                  14: ("acc", "lichterkette"), 17: ("acc", "zuckerstange"), 21: ("acc", "sternkrone"), 24: ("hab", "weihnachtsstube")}
+# Adventskalender: Belohnung pro Türchen (Rest: Geschichte, Fragen, Erinnerungen – die baut die App)
+ADVENT_REWARDS = {1: ("acc", "schal"), 4: ("acc", "geweih"), 7: ("acc", "ohrenschuetzer"), 11: ("acc", "wichtel"),
+                  15: ("acc", "lichterkette"), 18: ("acc", "zuckerstange"), 21: ("acc", "sternkrone"), 24: ("hab", "weihnachtsstube")}
 # Beute nach Anzahl Siege (Wochen-, Saison- und Monats-Bosse zusammen)
 PET_LOOT = {1: ("acc", "schleife"), 3: ("hab", "sterne"), 5: ("acc", "headset"), 7: ("theme", "drachenglut"),
             9: ("hab", "strand"), 11: ("acc", "brille"), 13: ("acc", "pirat"), 15: ("hab", "zimmer"), 17: ("acc", "krone"),
@@ -2195,6 +2259,7 @@ PET_RARITY = {"brasu": 1, "neruma": 1, "moselle": 1, "kairo": 1, "grumbo": 1,
 PET_SEASONS = {"Frühling": (3, 4, 5), "Sommer": (6, 7, 8), "Herbst": (9, 10, 11), "Winter": (12, 1, 2)}
 PET_RARITY_W = {1: 10, 2: 4, 3: 1.2}
 PET_EGG_CHANCE = {"week": 0.12, "month": 0.35, "raid": 0.35}
+DUO_ATTACK, DUO_ATTACK_FROM = 45, 15   # Bindung: Duo-Angriff ab 15 gemeinsamen Abenden (Stufe „Freunde“)
 PET_EGG_PITY = 8                 # spätestens nach 8 Siegen ohne Ei kommt eins
 PET_WEEKLY = [("golem", "Backlog-Golem", "🗿", "Durchgespielte Spiele treffen ihn dreifach."),
               ("hydra", "Genre-Hydra", "🐍", "Jedes verschiedene Genre der Woche schlägt einen Kopf ab."),
@@ -2544,7 +2609,9 @@ def pet_state(cfg, force=False):
                  "phantom": S_("fav") // 3, "wolke": 30 * played, "amor": 150 * S_("evening"),
                  "osterhase": 80 * S_("started"), "sonnenwurm": 80 * rested, "kuerbis": S_("spooky") // 2,
                  "yeti": S_("cozy") // 2 + 60 * rested}.get(kind, 0)
-        return max(0, int(tot + max(-0.2 * hp, min(extra, 0.35 * hp))))
+        duo = DUO_ATTACK * S_("evening") if duo_total >= DUO_ATTACK_FROM else 0      # Duo-Angriff: ab „Freunde“ machen gemeinsame Abende extra Schaden
+        return max(0, int(tot + duo + max(-0.2 * hp, min(extra, 0.35 * hp))))
+    duo_total = sum(v.get("evening", 0) for v in daylog.values())
     events = []
     monday = start - dt.timedelta(days=start.weekday())
     w = monday
@@ -2679,6 +2746,11 @@ def pet_state(cfg, force=False):
         if f"{y}-12-31" <= T and f"{y}-12-31" >= start.isoformat():
             give("acc", "silvester", f"Silvester {y}", f"{y}-12-31")
             give("hab", "silvester", f"Silvester {y}", f"{y}-12-31")
+        if f"{y}-10-31" <= T and f"{y}-10-31" >= start.isoformat():
+            give("acc", "hexenhut", f"Halloween {y}", f"{y}-10-31")
+        bd = str((kv_get("dates", {}) or {}).get("me") or "")
+        if re.fullmatch(r"\d\d-\d\d", bd) and f"{y}-{bd}" <= T and f"{y}-{bd}" >= start.isoformat():
+            give("acc", "party", f"Geburtstag {y}", f"{y}-{bd}")
     wd = [w for w in (kv_get("wishes", []) or []) if w.get("done")]
     if wd:
         give("hab", "wunschbaum", "Erster erfüllter Wunsch", dt.date.fromtimestamp(min(w["done"] for w in wd)).isoformat())
@@ -2991,7 +3063,15 @@ def duo_world():
     cap = kv_get("capsule", {}) or {}
     capo = {"sealed": True, "open": cap["open"], "at": cap["at"],
             **({"text": cap["text"], "sealed": False} if cap["open"] <= now[:10] else {})} if cap else None
-    return {"advent": sorted(((kv_get("advent", {}) or {}).get("o") or {}))[-30:],
+    adv = kv_get("advent", {}) or {}
+    pa_ad = set(((kv_get("partner", None) or {}).get("advent_ad")) or [])
+    ans = adv.get("a") or {}
+    return {"advent": sorted(adv.get("o") or {})[-30:],
+            "advent_ad": sorted(ans)[-30:],                                   # an welchen Tagen ich geantwortet habe
+            "advent_a": {k: x for k, x in ans.items() if k in pa_ad},         # Antworten erst, wenn beide geantwortet haben
+            "advent_v": adv.get("v") or {},
+            "visits": (kv_get("visits", []) or [])[-30:], "dates": kv_get("dates", {}) or {},
+            "push_off": [k for k, x in (((kv_get("fx", {}) or {}).get("push")) or {}).items() if x is False],
             "notes": dict(list(((k, x) for k, x in notes.items() if x[0] or x[1]))[-150:]),
             "wishes": kv_get("wishes", []) or [], "wish_done": kv_get("wish_done", {}) or {},
             "surprises": sur[-20:], "capsule": capo}
@@ -4071,7 +4151,8 @@ def shared_data(cfg, games):
         "pc": pcs, "ago": year_ago(), "last_night": kv_get("last_night", None),
         "advent": kv_get("advent", {}) or {}, "wishes": kv_get("wishes", []) or [], "wish_done": kv_get("wish_done", {}) or {},
         "surprises": kv_get("surprises", []) or [], "capsule": kv_get("capsule", {}) or {}, "pins": kv_get("pins", []) or [],
-        "features": kv_get("features", {}) or {}, "pet_names": {"acc": PET_ACC, "hab": PET_HAB}, "countdowns": countdowns(), "plans": kv_get("plans", []) or [], "plan_resp": kv_get("plan_resp", {}) or {},
+        "features": kv_get("features", {}) or {}, "dates": kv_get("dates", {}) or {}, "fx": kv_get("fx", {}) or {},
+        "seen_new": kv_get("seen_new", "") or "", "visits": kv_get("visits", []) or [], "pairs": kv_get("pairs", {}) or {}, "pet_names": {"acc": PET_ACC, "hab": PET_HAB}, "countdowns": countdowns(), "plans": kv_get("plans", []) or [], "plan_resp": kv_get("plan_resp", {}) or {},
         "meta": load_meta(), "hltb": hltb.load(APP_DB),
         "sessions": tracker.load_sessions(APP_DB, int(time.time()) - 800 * 86400),
         "csessions": load_console_sessions(int(time.time()) - 800 * 86400),
