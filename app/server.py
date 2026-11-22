@@ -1594,6 +1594,8 @@ def apply_remote_edits(payload):
                 n += 1
             elif k in KV_KEYS and k != "wrapped" and not (upd and (parse_iso(upd) or 0) >= (e.get("ts") or 0) / 1000):
                 kv_set(k, clean_kv(k, e.get("value")))
+                if k in FAST_KEYS:
+                    cloud_state["pending"] = cloud_state["urgent"] = True
                 n += 1
             continue
         cur = meta.get(norm_title(e["key"]))
@@ -3377,6 +3379,7 @@ def duo_plan_alert(cfg, pa):
 
 
 PLAN_KEYS = ("plans", "plan_resp", "plan_pushed", "remote")
+FAST_KEYS = ("visits", "advent", "surprises", "wishes", "wish_done")   # soll schnell beim Partner ankommen
 
 
 def plan_push_out(cfg):
@@ -4847,6 +4850,8 @@ class Handler(BaseHTTPRequestHandler):
                         val[k] = a
             kv_set(body["key"], val)
             cloud_state["pending"] = True
+            if body["key"] in FAST_KEYS:
+                cloud_state["urgent"] = True
             if body["key"] in PLAN_KEYS:
                 cloud_state["urgent"] = True
                 threading.Thread(target=plan_push_out, args=(load_config(),), daemon=True).start()
