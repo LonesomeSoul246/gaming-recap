@@ -1329,12 +1329,13 @@ def clean_kv(key, v):
         return {str(k)[:60]: str(x)[:10] for k, x in list((v if isinstance(v, dict) else {}).items())[-40:] if re.fullmatch(r"\d{4}-\d\d-\d\d", str(x))}
     if key == "seen_new":  # „Was ist neu“ weggeklickt: Versionskennung
         return str(v or "")[:40]
-    if key == "visits":  # Besuche/Geschenke der Begleiter: [{id, at, kind, item, auto}]
+    if key == "visits":  # Ausflüge + Mitbringsel der Begleiter: [{id, at, kind: trip|gift, item, note}]
         out = []
         for x in (v if isinstance(v, list) else [])[-60:]:
             if isinstance(x, dict) and re.fullmatch(r"[a-z0-9]{4,16}", str(x.get("id") or "")):
-                out.append({"id": x["id"], "at": int(x.get("at") or 0), "kind": x.get("kind") if x.get("kind") in ("visit", "gift", "card") else "visit",
-                            "item": re.sub(r"[^a-z_]", "", str(x.get("item") or ""))[:24], "auto": bool(x.get("auto"))})
+                out.append({"id": x["id"], "at": int(x.get("at") or 0), "kind": x.get("kind") if x.get("kind") in ("trip", "gift", "visit", "card") else "gift",
+                            "item": re.sub(r"[^a-z0-9_]", "", str(x.get("item") or ""))[:24], "auto": bool(x.get("auto")),
+                            "note": str(x.get("note") or "").strip()[:80]})
         return out
     if key == "advent":  # geöffnete Türchen: {"o": {"2026-12-05": unix}}
         o = (v or {}).get("o") if isinstance(v, dict) else None

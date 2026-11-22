@@ -1,9 +1,9 @@
 {
  "version": "1.0",
- "release": "120852eb0e",
- "at": 1795352801,
+ "release": "182bc9b91d",
+ "at": 1795353187,
  "files": {
-  "server.py": "1c43e51f24de9ed5860658e657354bdfd1d81632c59a2b32ddd7dc8909e80151",
+  "server.py": "d0675d3b01a912b46e81b2d556631d8cb14ba350cee2ab8613fa0326eb78940b",
   "cloud.py": "27a101f8e896e770a420da31e2fe6a3bc569d1b3ef50f155cc69322fda96990d",
   "common.py": "971bfd8e5948915ec3608b1d05430fe49d62f4960bae8c8f0c2c1066a6633a9a",
   "extras.py": "19e1bc344644d36fb848562aa75c85570fbbc59fba7a5ab0cce42b8405b45034",
@@ -17,7 +17,7 @@
   "Start.bat": "c84a577cd800126a086370d02d516343c5cc9eda2e08e67abfa736860143362b",
   "Start mit Fenster.bat": "c81fc23d9ed171f29d65af910e05abee25257b89cd76c29f14d4aaa6fb5c8e42",
   "ANLEITUNG.txt": "4b3ad30ac7360bd14472efb82149c818816f4b2000fae2a929ab1ac349b134ad",
-  "web/index.html": "c95710928774799b40d25de825065e2325a45310831c12143f7ceca790e4b2f5",
+  "web/index.html": "2d979a4d34ce08babff91eedc733974391e84d1cd5df57b5ffe8e34dbfe60399",
   "web/sw.js": "bb592e5ee3839a4937e6e3ac0a589878d0e7afc1e7b302b825c946e2374415b9",
   "web/manifest.webmanifest": "93efa98539ecb97f826275d0c4dacf3a141b4d819d391845e3b594a5e40d8554",
   "web/icon-192.png": "184c59cc5b50b08f224664619358e7ca5ae9eb7ae427d300a2a6044faa28c5dd",
