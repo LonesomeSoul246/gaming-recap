@@ -152,6 +152,19 @@ class GitHub:
         if not files and not delete:
             return None
         br = self.branch
+        # Nur hochladen, was sich wirklich geändert hat: Git-Prüfsumme lokal ausrechnen und mit dem Stand im Repository vergleichen.
+        # (Sonst wandern bei jeder neuen Programmversion alle Bilder erneut hoch und der Abgleich hängt minutenlang.)
+        try:
+            head0 = self.call("GET", f"/repos/{self.repo}/git/ref/heads/{br}")["object"]["sha"]
+            tree0 = self.call("GET", f"/repos/{self.repo}/git/commits/{head0}")["tree"]["sha"]
+            have = {x["path"]: x.get("sha") for x in self.call("GET", f"/repos/{self.repo}/git/trees/{tree0}?recursive=1").get("tree", [])}
+            def git_sha(b):
+                return hashlib.sha1(b"blob " + str(len(b)).encode() + b"\0" + b).hexdigest()
+            files = {p: c for p, c in files.items() if have.get(p) != git_sha(c)}
+            if not files and not delete:
+                return None
+        except Exception:
+            pass
         blobs = []
         for path, content in files.items():
             blob = self.call("POST", f"/repos/{self.repo}/git/blobs",
