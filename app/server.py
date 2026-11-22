@@ -4054,7 +4054,7 @@ def cloud_notify_workflow(gh):
 
 def cloud_notify_check(gh):
     """Läuft die Action? (liest ihren Stand aus dem Repository, höchstens stündlich)"""
-    if time.time() - cloud_state.get("cn_checked", 0) < 3600:
+    if time.time() - cloud_state.get("cn_checked", 0) < (3600 if cloud_notify_active() else 600):   # noch nicht aktiv: alle 10 Min. nachsehen
         return
     cloud_state["cn_checked"] = time.time()
     try:
