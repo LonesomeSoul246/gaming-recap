@@ -49,7 +49,24 @@ def epic_now():
     return list({k: (k, t, u) for k, t, u in out}.values())
 
 
+def resolve_steamid(v):
+    """Steam-ID (Zahl), Profil-Link oder eigener Profilname → SteamID64 (über das öffentliche Profil, ohne Schlüssel)."""
+    import re
+    v = v.strip().rstrip("/")
+    m = re.search(r"(7656119\d{10})", v)
+    if m:
+        return m.group(1)
+    name = v.split("/id/")[-1].split("/")[0]
+    with urllib.request.urlopen(urllib.request.Request(f"https://steamcommunity.com/id/{urllib.parse.quote(name)}/?xml=1", headers=UA), timeout=30) as r:
+        xml = r.read().decode("utf-8", "ignore")
+    m = re.search(r"<steamID64>(\d+)</steamID64>", xml)
+    if not m:
+        raise RuntimeError(f"Steam-Profil „{name}“ nicht gefunden (Profil öffentlich?)")
+    return m.group(1)
+
+
 def wishlist_sales(steamid):
+    steamid = resolve_steamid(steamid)
     wl = get("https://api.steampowered.com/IWishlistService/GetWishlist/v1/?" + urllib.parse.urlencode({"steamid": steamid}))
     ids = [str(x["appid"]) for x in ((wl.get("response") or {}).get("items") or [])]
     out = {}

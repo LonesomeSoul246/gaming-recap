@@ -37,6 +37,7 @@ import notify  # noqa: E402
 import steamx  # noqa: E402
 import tracker  # noqa: E402
 import updater  # noqa: E402
+import common as pcutil  # noqa: E402  (PC-Helfer stecken in common.py)
 from common import UA, http_json, is_non_game, norm_title, now_iso, parse_iso, read_json, write_json  # noqa: E402
 
 try:
@@ -90,7 +91,7 @@ DEFAULT_CONFIG = {
     "backlog_stores": ["Steam", "Ubisoft", "EA", "GOG", "Epic Games"],
     "push_topic": "", "notify_free": True, "notify_release": True, "itad_key": "", "sgdb_key": "", "rawg_key": "", "psn_set_at": 0,
     "publish_updates": False, "update_url": "", "auto_update": True, "user_name": "", "prices_steam_only": True,
-    "partner_url": "", "partner_code": "",
+    "partner_url": "", "partner_code": "", "allow_wake": False,
 }
 SECRET_FIELDS = ("steam_api_key", "psn_npsso", "xbox_api_key", "gh_token", "cloud_pass", "igdb_client_secret", "itad_key", "sgdb_key", "rawg_key", "partner_code")
 TIERS = {"S", "A", "B", "C", "D", "F"}
@@ -761,8 +762,8 @@ def reconcile_history(games, last_sync, today=None, src_ok=None):
                 absorb[gid] = gain        # Nachmeldung: nicht gespielt
                 continue
             start, base = max(t_ref, fp or 0), p[1]   # nie vor dem ersten Spielen
-        if dev == "PC" and _local(start).date() >= today:
-            continue                     # PC-Spiele: wie bisher, alles heute
+        if dev == "PC" and (_local(start).date() >= today or not lp):
+            continue                     # PC-Spiele ohne „zuletzt gespielt“: alles heute (der PC war ja an)
         end = min(now, max(lp or now, start))
         share = _spread(start, end, gain, used=used)
         if not share:
@@ -1009,7 +1010,8 @@ def save_meta(body):
     return {"key": key, "status": status, "rating": rating, "note": note, "updated": updated, "tier": tier, "hide": bool(hide)}
 
 
-KV_KEYS = {"goals", "year_overrides", "wrapped", "notpc", "snotes", "covers", "paid", "notify", "critic", "ui", "pet"}
+REMOTE_CMDS = ("after_session", "at_time", "cancel", "sleep", "shutdown", "wake_partner")
+KV_KEYS = {"goals", "year_overrides", "wrapped", "notpc", "snotes", "covers", "paid", "notify", "critic", "ui", "pet", "plans", "plan_resp", "remote"}
 
 
 def kv_get(key, default=None):
@@ -1123,6 +1125,20 @@ def plan_ahead(cfg, now=None):
         if open_q:
             add(f"quest-{wk}", "pet", at_(sun - dt.timedelta(days=1), 11), f"📋 Noch {len(open_q)} Wochenaufgabe{'n' if len(open_q) > 1 else ''} offen",
                 " · ".join(q["t"] for q in open_q[:3]) + " – bis Sonntag Zeit.", base + "#/begleiter")
+        # Zockabende: 1 Std vorher erinnern (eigene mit Zusage des Partners und zugesagte des Partners)
+        pa_ = kv_get("partner", None) or {}
+        pname = pa_.get("name") or "deinem Partner"
+        mine_resp, their_resp = kv_get("plan_resp", {}) or {}, pa_.get("plan_resp") or {}
+        cand = [(p_, their_resp.get(p_["id"])) for p_ in kv_get("plans", []) or []] + [(p_, mine_resp.get(p_["id"])) for p_ in pa_.get("plans") or []]
+        for p_, r_ in cand:
+            if p_.get("cancel") or r_ != "yes":
+                continue
+            try:
+                t = dt.datetime.fromisoformat(p_["at"]) - dt.timedelta(hours=1)
+            except ValueError:
+                continue
+            add(f"plan-{p_['id']}", "duo", t, f"🎮 In einer Stunde: Zockabend mit {pname}",
+                (p_.get("game") or "Spiel steht noch nicht fest") + (f" – {p_['note']}" if p_.get("note") else ""), base + "#/freunde")
         # Neuerscheinungen von der Wunschliste
         sx = read_json(STEAMX_PATH, {}) or {}
         for w in sx.get("wishlist") or []:
@@ -1244,6 +1260,20 @@ def clean_kv(key, v):
             out["epoch"] = v["epoch"]
             out["base"] = {k: int(x) for k, x in (v.get("base") or {}).items() if k in ids and isinstance(x, (int, float))}
         return out
+    if key == "plans":  # Zockabend-Vorschläge: [{id, at, game, note, created}]
+        out = []
+        for x in (v if isinstance(v, list) else [])[-40:]:
+            if isinstance(x, dict) and re.fullmatch(r"[a-z0-9]{4,16}", str(x.get("id") or "")) and re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}", str(x.get("at") or "")[:16]):
+                out.append({"id": x["id"], "at": str(x["at"])[:16], "game": str(x.get("game") or "")[:80], "note": str(x.get("note") or "")[:140],
+                            "created": int(x.get("created") or 0), "cancel": bool(x.get("cancel"))})
+        return out
+    if key == "plan_resp":  # Antworten auf Vorschläge des Partners: {id: "yes"|"no"|"maybe"}
+        return {str(k)[:16]: x for k, x in (v if isinstance(v, dict) else {}).items() if x in ("yes", "no", "maybe")}
+    if key == "remote":  # Befehl vom Handy an den eigenen PC
+        v = v if isinstance(v, dict) else {}
+        if v.get("cmd") not in REMOTE_CMDS:
+            return {}
+        return {"id": re.sub(r"[^a-z0-9]", "", str(v.get("id") or ""))[:16], "cmd": v["cmd"], "arg": str(v.get("arg") or "")[:8], "ts": int(v.get("ts") or 0)}
     if key == "ui":  # Design (Farbwelt), gilt für PC und Handy
         v = v if isinstance(v, dict) else {}
         return {"theme": re.sub(r"[^a-z0-9-]", "", str(v.get("theme") or ""))[:20]}
@@ -2064,14 +2094,34 @@ PET_SPECIES = {
     "koppla": {"name": "Koppla", "stages": ["Piko & Pika", "Echo & Edda", "Harmonia"], "fav": "Koop & Mehrspieler", "start": False,
                "match": ("co-op", "coop", "co-operative", "multiplayer", "koop")},
     # Saison-Arten: Eier gibt es nur in ihrer Jahreszeit
-    "frostel": {"name": "Frostel", "stages": ["Flocki", "Frostel", "Glaziara"], "fav": "Abenteuer & Erkundung", "start": False,
-                "match": ("adventure", "open world", "exploration", "survival"), "season": (12, 1, 2)},
-    "bluma": {"name": "Bluma", "stages": ["Knospi", "Blumhopp", "Florabella"], "fav": "Gemütlich & Kreativ", "start": False,
+    "frostel": {"name": "Frostel", "stages": ["Flocki", "Frostel", "Glaziara"], "fav": "Survival & Erkundung", "start": False,
+                "match": ("survival", "exploration"), "season": (12, 1, 2)},
+    "bluma": {"name": "Bluma", "stages": ["Blümchen", "Blumhopp", "Florabella"], "fav": "Gemütlich & Kreativ", "start": False,
               "match": ("sandbox", "building", "casual", "family", "farming", "simulator"), "season": (3, 4, 5)},
     "sola": {"name": "Sola", "stages": ["Funkfeder", "Solaris", "Sonnara"], "fav": "Rennen & Sport", "start": False,
              "match": ("racing", "sport", "driving", "fighting"), "season": (6, 7, 8)},
     "herzi": {"name": "Herzi", "stages": ["Herzchen", "Schnurrlieb", "Amorina"], "fav": "Indie & Party", "start": False,
               "match": ("indie", "party", "music", "rhythm", "platform"), "season": (2,)},
+    "tavik": {"name": "Tavik", "stages": ["Klick", "Takt", "Chronox"], "fav": "Technik & Aufbau", "start": False,
+              "match": ("automation", "building", "crafting", "management", "factory", "city builder")},
+    "kairo": {"name": "Kairo", "stages": ["Dune", "Siro", "Zephar"], "fav": "Abenteuer & Open World", "start": False,
+              "match": ("adventure", "open world")},
+    "vexa": {"name": "Vexa", "stages": ["Klecks", "Schmier", "Inkyra"], "fav": "Puzzle & Knobeln", "start": False,
+             "match": ("puzzle", "logic", "point-and-click")},
+    "aeru": {"name": "Aeru", "stages": ["Wölkchen", "Böe", "Tempestral"], "fav": "Tempo & Plattformer", "start": False,
+             "match": ("platform", "racing", "flight", "arcade")},
+    "moru": {"name": "Moru", "stages": ["Schlummer", "Somnia", "Oneira"], "fav": "Story & Atmosphäre", "start": False,
+             "match": ("story", "narrative", "visual novel", "walking simulator", "atmospheric")},
+    "grumbo": {"name": "Grumbo", "stages": ["Krümel", "Brocken", "Monolith"], "fav": "Survival & Crafting", "start": False,
+               "match": ("survival", "crafting", "sandbox")},
+    "blossom": {"name": "Blossom", "stages": ["Knospi", "Blütenlauf", "Floralis"], "fav": "Gemütlich & Natur", "start": False,
+                "match": ("farming", "life sim", "cozy", "simulation"), "season": (3, 4, 5)},
+    "solero": {"name": "Solero", "stages": ["Krabbi", "Korallo", "Solmara"], "fav": "Party & Sport", "start": False,
+               "match": ("party", "sport", "racing", "casual"), "season": (6, 7, 8)},
+    "autumo": {"name": "Autumo", "stages": ["Stups", "Laubbert", "Aurorix"], "fav": "Abenteuer & Rätsel", "start": False,
+               "match": ("adventure", "mystery", "puzzle"), "season": (9, 10, 11)},
+    "frostius": {"name": "Frostius", "stages": ["Flocke", "Kristall", "Borealis"], "fav": "Strategie & Taktik", "start": False,
+                 "match": ("strategy", "tactical"), "season": (12, 1, 2)},
 }
 PET_STARS = (30, 35, 40)          # nach der Endform: Sterne als Ziel
 PET_STAGE_LV = (10, 25)          # Stufe 2 ab Level 10, Stufe 3 ab Level 25
@@ -2091,7 +2141,12 @@ PET_LOOT = {1: ("acc", "schleife"), 3: ("hab", "sterne"), 5: ("acc", "headset"),
             28: ("acc", "wikinger"), 31: ("hab", "vulkan"), 34: ("shiny", ""), 37: ("acc", "halo"), 40: ("hab", "riff"),
             44: ("acc", "blumen"), 48: ("acc", "kapitaen"), 52: ("acc", "diadem"), 60: ("shiny", ""), 75: ("shiny", "")}
 # Eier gibt es zufällig nach Boss-Siegen. Seltenheit: 1 = gewöhnlich, 2 = selten, 3 = sehr selten
-PET_RARITY = {"brasu": 1, "neruma": 1, "moselle": 1, "crysto": 2, "nocti": 2, "koppla": 3, "frostel": 2, "bluma": 2, "sola": 3, "herzi": 3}
+# 1 gewöhnlich · 2 selten · 3 sehr selten. Saison-Tiere: pro Jahreszeit ein seltenes und ein sehr seltenes
+PET_RARITY = {"brasu": 1, "neruma": 1, "moselle": 1, "kairo": 1, "grumbo": 1,
+              "crysto": 2, "nocti": 2, "tavik": 2, "aeru": 2, "vexa": 2,
+              "moru": 3, "koppla": 3,
+              "bluma": 2, "blossom": 3, "sola": 2, "solero": 3, "autumo": 2, "frostel": 2, "frostius": 3, "herzi": 3}
+PET_SEASONS = {"Frühling": (3, 4, 5), "Sommer": (6, 7, 8), "Herbst": (9, 10, 11), "Winter": (12, 1, 2)}
 PET_RARITY_W = {1: 10, 2: 4, 3: 1.2}
 PET_EGG_CHANCE = {"week": 0.12, "month": 0.35, "raid": 0.35}
 PET_EGG_PITY = 8                 # spätestens nach 8 Siegen ohne Ei kommt eins
@@ -2536,9 +2591,9 @@ def pet_state(cfg, force=False):
             history.append(rec)
     if completions:
         give("acc", "party", "Erstes durchgespieltes Spiel", completions[0][0][:10])
-    seasonal = {k for k, v in PET_SPECIES.items() if v.get("season")}
-    if seasonal and seasonal <= (set(sp_of.values()) | set(got["egg"])):
-        give("theme", "jahreszeiten", "Alle Saison-Tiere gesammelt", T)
+    have_sp = set(sp_of.values()) | set(got["egg"])
+    if all(any(set(PET_SPECIES[k].get("season") or ()) & set(months) for k in have_sp) for months in PET_SEASONS.values()):
+        give("theme", "jahreszeiten", "Ein Tier aus jeder Jahreszeit", T)
     if boss_mem_new != {k: v for k, v in boss_mem.items() if k in boss_mem_new} or len(boss_mem_new) > len(boss_mem):
         boss_mem.update(boss_mem_new)
         kv_set("boss_mem", dict(sorted(boss_mem.items())[-200:]))
@@ -2855,7 +2910,8 @@ def duo_extras(cfg, games, keys):
     return {"avatar": (sx.get("me") or {}).get("avatar"), "weeks": weekly_minutes(), "months": monthly_minutes(),
             "genres": dict(sorted(gen.items(), key=lambda x: -x[1])[:16]), "tiers": tiers, "playing": playing,
             "sess": sess[-1500:], "news": duo_news(games, meta), "topic": (cfg.get("push_topic") or "").strip() or None,
-            "pet": pet_public(cfg)}
+            "pet": pet_public(cfg), "plans": kv_get("plans", []) or [], "plan_resp": kv_get("plan_resp", {}) or {},
+            "wake": pcutil.mac_address() if cfg.get("allow_wake") else None}
 
 
 def duo_news(games, meta):
@@ -2927,6 +2983,187 @@ def partner_summary(cfg, stable=False):
     return out
 
 
+# ================================================================ PC-Fernbedienung, Downloads, Speicherplatz
+
+pcstat = {"t": 0, "sizes_t": 0, "v": {}}
+
+
+def pc_status_worker(cfg, force=False):
+    """Downloads (Steam), freier Speicher und große, lange nicht gespielte Spiele – für Handy und Start-Seite."""
+    if not force and time.time() - pcstat["t"] < 110:
+        return pcstat["v"]
+    pcstat["t"] = time.time()
+    games = load_cache().get("games", [])
+    try:
+        apps = pcutil.steam_apps()
+    except Exception:
+        apps = []
+    dls = [{"name": a["name"], "pct": int(a["done"] * 100 / a["total"]) // 5 * 5 if a["total"] else 0, "gb": round(a["total"] / 1e9, 1)}
+           for a in apps if a["downloading"]]
+    # Größen: Steam aus den Manifesten, andere Launcher einmal am Tag über den Ordner
+    sizes = read_json(os.path.join(DATA_DIR, "sizes.json"), {}) if os.path.exists(os.path.join(DATA_DIR, "sizes.json")) else {}
+    steam_size = {str(a["appid"]): a["size"] for a in apps if a["size"]}
+    if time.time() - pcstat["sizes_t"] > 86400 or not sizes:
+        pcstat["sizes_t"] = time.time()
+        for g in games:
+            d = g.get("install_dir")
+            if g.get("installed") and d and not g.get("steam_appid") and os.path.isdir(d) and (time.time() - (sizes.get(d) or [0, 0])[1] > 7 * 86400):
+                sz = pcutil.folder_size(d, limit_s=8)
+                if sz:
+                    sizes[d] = [sz, time.time()]
+        write_json(os.path.join(DATA_DIR, "sizes.json"), sizes)
+    meta = load_meta()
+    cands = []
+    for g in games:
+        if g.get("device") != "PC" or not g.get("installed"):
+            continue
+        b = steam_size.get(str(g.get("steam_appid") or "")) or (sizes.get(g.get("install_dir") or "") or [0])[0]
+        if not b or b < 3e9:
+            continue
+        lp = parse_iso(g.get("last_played"))
+        idle = int((time.time() - lp) / 86400) if lp else None
+        st = (meta.get(norm_title(g["title"])) or {}).get("status")
+        done = st in ("durchgespielt", "komplett", "abgebrochen")
+        if done or idle is None or idle >= 90:
+            cands.append({"t": g["title"], "gb": round(b / 1e9, 1), "idle": idle, "done": done, "appid": g.get("steam_appid"),
+                          "drive": os.path.splitdrive(g.get("install_dir") or "")[0]})
+    cands.sort(key=lambda c: -(c["gb"] * (2 if c["done"] else 1) * (1 + (c["idle"] or 0) / 180)))
+    paths = [g.get("install_dir") for g in games if g.get("installed") and g.get("install_dir")] + [a["lib"] for a in apps]
+    disks = [{"d": d.rstrip("\\/") or d, "free": round(f / 1e9), "total": round(t / 1e9)} for d, (f, t) in pcutil.drives(paths).items()]
+    pcstat["v"] = {"at": now_iso(), "downloads": dls, "space": cands[:12], "disks": disks,
+                   "timer": kv_get("pc_timer", None), "can_wake": bool((kv_get("partner", None) or {}).get("wake"))}
+    return pcstat["v"]
+
+
+def handle_remote(cfg):
+    """Befehle vom Handy ausführen (Gute-Nacht-Timer, Ruhezustand, Partner-PC aufwecken) und Timer überwachen."""
+    r = kv_get("remote", None) or {}
+    if r.get("id") and r["id"] != kv_get("remote_done"):
+        kv_set("remote_done", r["id"])
+        if time.time() - (r.get("ts") or 0) / 1000 < 3600:     # alte Befehle nicht nachträglich ausführen
+            remote_exec(cfg, r["cmd"], r.get("arg"))
+    t = kv_get("pc_timer", None)
+    if not t:
+        return
+    now = dt.datetime.now()
+    fire = False
+    if t.get("mode") == "after_session":
+        if TRACKER.current:
+            t["seen_play"] = True
+            kv_set("pc_timer", t)
+        elif t.get("seen_play") or time.time() - t.get("set", 0) > 1800:
+            fire = True    # Session vorbei (oder 30 Min nichts gestartet)
+    elif t.get("mode") == "at_time":
+        fire = now.strftime("%Y-%m-%dT%H:%M") >= t.get("when", "9999")
+    if fire:
+        kv_set("pc_timer", None)
+        try:
+            pcutil.power("shutdown", 120, "Gaming Recap: Gute Nacht! Der PC fährt in 2 Minuten herunter.")
+            alert("pause", "🌙 Gute Nacht", "Dein PC fährt in 2 Minuten herunter. Abbrechen: in der App „Timer stoppen“.")
+        except Exception as e:
+            print("  Herunterfahren:", e)
+
+
+def remote_exec(cfg, cmd, arg=None):
+    now = dt.datetime.now()
+    if cmd == "after_session":
+        kv_set("pc_timer", {"mode": "after_session", "set": time.time(), "seen_play": bool(TRACKER.current)})
+    elif cmd == "at_time" and re.fullmatch(r"\d{2}:\d{2}", arg or ""):
+        t = now.replace(hour=int(arg[:2]), minute=int(arg[3:]), second=0, microsecond=0)
+        if t <= now:
+            t += dt.timedelta(days=1)
+        kv_set("pc_timer", {"mode": "at_time", "when": t.strftime("%Y-%m-%dT%H:%M"), "set": time.time()})
+    elif cmd == "cancel":
+        kv_set("pc_timer", None)
+        try:
+            pcutil.power("abort")
+        except Exception:
+            pass
+    elif cmd == "sleep":
+        pcutil.power("sleep")
+    elif cmd == "shutdown":
+        pcutil.power("shutdown", 60)
+    elif cmd == "wake_partner":
+        mac = (kv_get("partner", None) or {}).get("wake")
+        if mac:
+            pcutil.wake(mac)
+    pcstat["t"] = 0
+    cloud_state["pending"] = True
+    return True
+
+
+def year_ago():
+    """„Heute vor einem Jahr“: was du an diesem Tag gespielt und geschafft hast."""
+    d = dt.date.today()
+    try:
+        y = d.replace(year=d.year - 1)
+    except ValueError:
+        y = d - dt.timedelta(days=365)
+    titles = {g["id"]: g["title"] for g in load_cache().get("games", [])}
+    con = history_con()
+    a = dict(con.execute("SELECT id, minutes FROM snapshots WHERE day = (SELECT MAX(day) FROM snapshots WHERE day < ?)", (y.isoformat(),)).fetchall())
+    b = dict(con.execute("SELECT id, minutes FROM snapshots WHERE day = ?", (y.isoformat(),)).fetchall())
+    con.close()
+    games = sorted(((titles.get(k, k), m - a.get(k, m)) for k, m in b.items() if k in a and m - a[k] >= 15), key=lambda x: -x[1])[:3]
+    tn = {norm_title(t): t for t in titles.values()}
+    done = [tn.get(k, k) for k, st, at in load_status_log(800) if str(at)[:10] == y.isoformat() and st in ("durchgespielt", "komplett")]
+    ss = [s_ for s_ in tracker.load_sessions(APP_DB, int(dt.datetime.combine(y, dt.time()).timestamp()))
+          if dt.date.fromtimestamp(s_[1]) == y]
+    if not ss:
+        pass
+    for k, st, sec in ss:
+        t = tn.get(k, k)
+        if t not in [g[0] for g in games] and sec >= 900:
+            games.append((t, sec // 60))
+    if not games and not done:
+        return None
+    return {"date": y.isoformat(), "games": [[t, int(m)] for t, m in games[:3]], "done": done[:3]}
+
+
+def countdowns():
+    """Erscheinungstermine von der Wunschliste (die nächsten 6)."""
+    sx = read_json(STEAMX_PATH, {}) or {}
+    now = time.time()
+    out = []
+    for w in sx.get("wishlist") or []:
+        p = (sx.get("prices") or {}).get(str(w.get("appid"))) or {}
+        rel = p.get("release")
+        if rel and now < rel < now + 400 * 86400:
+            out.append({"name": p.get("name") or "?", "at": int(rel), "appid": w.get("appid")})
+    return sorted(out, key=lambda x: x["at"])[:6]
+
+
+def duo_plan_alert(cfg, pa):
+    """Neue Zockabend-Vorschläge oder Zusagen des Partners einmal melden (falls das Handy sie nicht schon direkt geschickt hat)."""
+    seen = kv_get("plan_seen", {}) or {}
+    name = pa.get("name") or "Dein Partner"
+    changed = False
+    for p in pa.get("plans") or []:
+        if p["id"] not in seen and not p.get("cancel") and p["at"] >= dt.datetime.now().strftime("%Y-%m-%dT%H:%M"):
+            seen[p["id"]] = "new"
+            changed = True
+            if time.time() - (p.get("created") or 0) > 900:      # frische hat das Handy schon direkt gepusht
+                alert("duo", f"🎮 {name} schlägt einen Zockabend vor", plan_text(p))
+    mine = {p["id"]: p for p in kv_get("plans", []) or []}
+    for pid, r in (pa.get("plan_resp") or {}).items():
+        k = "r:" + pid
+        if pid in mine and seen.get(k) != r:
+            seen[k] = r
+            changed = True
+    if changed:
+        kv_set("plan_seen", dict(list(seen.items())[-200:]))
+
+
+def plan_text(p):
+    try:
+        t = dt.datetime.fromisoformat(p["at"])
+        days = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
+        when = f"{days[t.weekday()]} {t.strftime('%d.%m.')} um {t.strftime('%H:%M')} Uhr"
+    except ValueError:
+        when = p["at"]
+    return when + (f" · {p['game']}" if p.get("game") else "") + (f" – {p['note']}" if p.get("note") else "")
+
+
 def fetch_partner(cfg):
     """Holt die Daten des Partners (verschlüsselt in dessen GitHub-Pages-Repository)."""
     url, code = (cfg.get("partner_url") or "").strip(), (cfg.get("partner_code") or "").strip()
@@ -2946,6 +3183,7 @@ def fetch_partner(cfg):
         partner_state.update(error=None, at=data.get("at"))
         duo_live_alert(cfg, data)
         duo_news_alert(data)
+        duo_plan_alert(cfg, data)
     except urllib.error.HTTPError as e:
         partner_state["error"] = "Beim Partner liegt noch nichts (sein PC muss einmal hochgeladen haben)." if e.code == 404 else err_text(e)
     except ValueError:
@@ -3555,7 +3793,12 @@ def build_snapshot(cfg, gh):
 
 def shared_data(cfg, games):
     """Daten, die PC-Ansicht und Handy-App gleichermaßen bekommen."""
+    try:
+        pcs = pc_status_worker(cfg)
+    except Exception as e:
+        pcs = {"error": err_text(e)}
     return {
+        "pc": pcs, "ago": year_ago(), "countdowns": countdowns(), "plans": kv_get("plans", []) or [], "plan_resp": kv_get("plan_resp", {}) or {},
         "meta": load_meta(), "hltb": hltb.load(APP_DB),
         "sessions": tracker.load_sessions(APP_DB, int(time.time()) - 800 * 86400),
         "csessions": load_console_sessions(int(time.time()) - 800 * 86400),
@@ -3839,6 +4082,10 @@ def scheduler():
         # Cloud: Änderungen sofort (max. alle 5 Min.), sonst alle 15 Min. nach Handy-Änderungen schauen
         try:
             check_notifications(cfg)
+            try:
+                handle_remote(cfg)
+            except Exception as e:
+                print("  Fernbedienung:", e)
             if time.time() - state.get("planned_t", 0) > 3600 and time.time() - started > 120:
                 state["planned_t"] = time.time()
                 threading.Thread(target=plan_ahead, args=(cfg,), daemon=True).start()
@@ -4119,6 +4366,16 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(400, {"error": "Backup passt nicht zum Cloud-Passwort."})
             except Exception as e:
                 return self._send(500, {"error": err_text(e)})
+        if path == "/api/remote":
+            if not self._local():
+                return self._send(403, {"error": "Nur am PC"})
+            if body.get("cmd") not in REMOTE_CMDS:
+                return self._send(400, {"error": "Unbekannter Befehl"})
+            try:
+                remote_exec(load_config(), body["cmd"], body.get("arg"))
+                return self._send(200, {"ok": True, "pc": pc_status_worker(load_config(), force=True)})
+            except Exception as e:
+                return self._send(500, {"error": err_text(e)})
         if path == "/api/selfcheck":
             if not self._local():
                 return self._send(403, {"error": "Nur am PC"})
@@ -4239,7 +4496,7 @@ class Handler(BaseHTTPRequestHandler):
                 t = re.sub(r"[^A-Za-z0-9_-]", "", body["push_topic"])[:64]
                 cfg["push_topic"] = t
             for k in ("lan", "hltb", "tracker", "cloud_enabled", "steam_extras", "notify_sales", "notify_weekly",
-                      "notify_free", "notify_release", "publish_updates", "auto_update", "prices_steam_only"):
+                      "notify_free", "notify_release", "publish_updates", "auto_update", "prices_steam_only", "allow_wake"):
                 if isinstance(body.get(k), bool):
                     cfg[k] = body[k]
             for k, lo, hi in (("pause_hours", 0, 24), ("watts", 50, 2000), ("kwh_price", 0, 5)):

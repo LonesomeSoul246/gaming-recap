@@ -51,9 +51,62 @@ code{background:#ffffff12;padding:1px 6px;border-radius:6px;font-size:.92em}
   background:#1A1D24e8;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--line);border-radius:24px;padding:5px}
 .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 0;border-radius:18px;
   color:var(--muted);text-decoration:none;font-size:10.5px;font-weight:700}
-.tabbar a svg{width:22px;height:22px}
+.tabbar a svg{width:24px;height:24px}
 .tabbar a.on{color:var(--bg);background:var(--ink)}
 @media(min-width:1000px){.tabbar{display:none}.deskNav{display:flex}}
+/* Start „Heute“ */
+.today{min-height:0;background:radial-gradient(70% 120% at 100% 0%,color-mix(in srgb,var(--acc) 22%,transparent) 0,transparent 60%),var(--panel)}
+.today .h1{font-size:clamp(30px,7vw,46px)}
+.thpet{background:none;border:0;padding:0;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);cursor:pointer;flex:none;width:clamp(110px,26vw,170px)}
+.thpet .pwrap{width:100%}.thpet small{font-weight:800;font-size:12px}
+.secthead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:26px 0 10px}
+.secthead .h2{font-size:22px;font-weight:900;letter-spacing:-.4px}.secthead .chips{margin:0}
+.feed{display:flex;flex-direction:column;gap:2px}
+.fi{display:flex;gap:12px;align-items:flex-start;padding:9px 8px;border-radius:12px;color:inherit;text-decoration:none;font-size:14px;line-height:1.35}
+.fi:hover{background:var(--glass)}.fi>span{font-size:18px;width:24px;text-align:center;flex:none}
+.fi small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.cdl{display:grid;gap:8px}
+.cdi{display:grid;grid-template-columns:54px 1fr auto;grid-template-rows:auto auto;column-gap:12px;align-items:center;padding:10px 12px;border-radius:14px;background:var(--glass);color:inherit;text-decoration:none}
+.cdi b{grid-row:1;font-size:26px;font-weight:900;text-align:center;color:var(--acc);line-height:1}.cdi small{grid-row:2;grid-column:1;text-align:center;color:var(--muted);font-size:11px;font-weight:700}
+.cdi span{grid-row:1/3;grid-column:2;font-weight:700}.cdi em{grid-row:1/3;grid-column:3;font-style:normal;color:var(--muted);font-size:13px}
+.agoc p{margin:0;font-size:15px;line-height:1.5}
+.plans{display:grid;gap:8px}
+.plan{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px;border-radius:14px;background:var(--glass);border:1px solid transparent}
+.plan.ok{border-color:var(--cyan)}.pwhen{flex:1;min-width:150px}.pwhen b{display:block}.pwhen small{color:var(--muted);font-size:12.5px}
+.pst{font-size:13px;color:var(--muted)}.pbtns{display:flex;gap:6px}.pbtns .chip{padding:7px 12px;font-size:16px}
+.chip.on{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
+.dlr{display:grid;gap:2px;margin-bottom:10px}.dlr small{color:var(--muted);font-size:12px}
+.tmr{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--violet) 18%,transparent);margin:6px 0 10px;font-weight:700;font-size:14px}
+.rbtns{flex-wrap:wrap;gap:6px;margin-top:8px}.rbtns .chip{font-size:13px;padding:8px 12px}
+.disks{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:6px}
+.disk b{font-size:14px}.disk small{color:var(--muted);font-size:12px}.qbar.warn i{background:var(--pink)}
+.spr{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.spr>div{flex:1;min-width:0}.spr b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.spr small{color:var(--muted);font-size:12px}.spr em{font-style:normal;font-weight:800}
+/* Navigation v5: fünf Bereiche, Begleiter in der Mitte */
+.tabbar{padding:6px;gap:2px}
+.tabbar a{position:relative;font-size:11.5px;padding:8px 0 7px;gap:3px;min-width:0}
+.tabbar a span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.tabbar a.tmid{flex:1.1}
+.tpet{width:38px;height:38px;margin:-16px 0 -2px;border-radius:50%;background:var(--panel2,#20242F);border:2px solid var(--acc);display:grid;place-items:center;box-shadow:0 6px 16px #0008}
+.tpet img{width:34px;height:34px;object-fit:contain}
+.tabbar a.on .tpet{background:var(--acc)}
+.tdot{position:absolute;top:4px;right:calc(50% - 22px);width:10px;height:10px;border-radius:50%;background:var(--pink);box-shadow:0 0 0 2px var(--panel)}
+.deskNav a{display:flex;align-items:center;gap:10px;position:relative}.deskNav a svg{width:20px;height:20px;flex:none}
+.dpet{width:24px;height:24px;display:grid;place-items:center;flex:none}.dpet img{width:26px;height:26px;object-fit:contain}
+.deskNav .tdot{top:50%;right:10px;transform:translateY(-50%)}
+.stiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.stiles.small{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.stile{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:12px;row-gap:2px;align-items:center;text-align:left;padding:16px;border-radius:16px;background:var(--glass);border:1px solid var(--line);color:inherit;cursor:pointer;font:inherit;transition:transform .15s,border-color .15s}
+.stile:hover{transform:translateY(-2px);border-color:var(--acc)}
+.sti{grid-row:1/3;font-size:26px}.stile b{font-size:16px}.stiles.small .stile{padding:12px 14px}.stiles.small .sti{font-size:20px}.stiles.small .stile b{font-size:14px}
+.sts{font-size:12.5px;color:var(--muted)!important;display:flex;align-items:center;gap:6px}
+.sts::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.sts.ok::before{background:var(--cyan)}.sts.warn::before{background:var(--orange)}.sts.err::before{background:#ff5a6e}.sts.off::before{background:#ffffff30}
+.stback{display:flex;align-items:center;gap:12px;margin:0 0 6px}.stback b{font-size:18px}
+.stile.dis{opacity:.45;cursor:default}.stile.dis:hover{transform:none;border-color:var(--line)}
+.subnav{display:flex;gap:4px;background:var(--glass);border:1px solid var(--line);border-radius:999px;padding:4px;margin:0 0 16px;width:max-content;max-width:100%}
+.subnav a{padding:8px 18px;border-radius:999px;color:var(--muted);text-decoration:none;font-weight:700;font-size:14px}
+.subnav a.on{background:var(--acc);color:var(--acc-ink,#0A1C2A)}
 .playing{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:18px;background:#33C3FF18;border:1px solid #33C3FF44;margin-bottom:14px;font-weight:700}
 .playing i{width:10px;height:10px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 0 #33C3FFaa;animation:pulse 1.6s infinite}
 @keyframes pulse{70%{box-shadow:0 0 0 10px #33C3FF00}100%{box-shadow:0 0 0 0 #33C3FF00}}
@@ -952,7 +1005,7 @@ body::after{content:"";position:fixed;right:-15vw;bottom:-25vh;width:60vw;height
 .wemo{font-size:clamp(44px,13cqw,72px);line-height:1;margin-bottom:6px}
 .stabs{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 16px;width:auto;position:sticky;top:-2px;z-index:5;background:var(--panel);box-shadow:0 8px 16px -8px #0009}
 .stabs button{flex:1 1 auto;white-space:nowrap}
-#settingsBody fieldset[hidden]{display:none}
+#settingsBody [hidden]{display:none!important}
 .savebar{position:sticky;bottom:-2px;display:flex;gap:10px;justify-content:flex-end;padding:12px 0 2px;margin-top:6px;background:linear-gradient(transparent,var(--panel) 30%)}
 .thgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .thm{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:4px;padding:10px;border-radius:16px;border:2px solid #ffffff12;transition:transform .2s,border-color .2s}
@@ -1302,7 +1355,7 @@ const THEMES = [
   ["kirsch","Kirschblüte","Zartes Rosa und Flieder", {acc:"#FF8FB8", violet:"#B794F6", cyan:"#7FDBCA", pink:"#F6A6C9", ink2:"#2B0A18", bg:"#151015", panel:"#1F171E", panel2:"#281E27", glow:"#3A2436", deep:"#191118", deep2:"#1c151b"}],
   ["mono","Mono","Schlicht in Weiß und Grau", {acc:"#E8ECF2", violet:"#8E99AB", cyan:"#C9D3E0", pink:"#AEB8C6", ink2:"#0B0C0E", bg:"#0E0F11", panel:"#17181B", panel2:"#1E2024", glow:"#26282D", deep:"#121315", deep2:"#141518"}],
   ["drachenglut","Drachenglut","Boss-Beute: Glut und Gold", {acc:"#FFB020", violet:"#FF5A36", cyan:"#FFE08A", pink:"#FF7A59", ink2:"#2A1A00", bg:"#120C08", panel:"#1E1510", panel2:"#2A1D15", glow:"#4A2A14", deep:"#170f0a", deep2:"#1a120d"}, true],
-  ["jahreszeiten","Vier Jahreszeiten","Alle Saison-Tiere gesammelt: Eis, Blüte, Sonne, Herz", {acc:"#7FC8FF", violet:"#FF7AB6", cyan:"#FFD166", pink:"#FF9EC4", ink2:"#0D1B2A", bg:"#0F1117", panel:"#181B24", panel2:"#20242F", glow:"#2B3044", deep:"#121520", deep2:"#151826"}, true],
+  ["jahreszeiten","Vier Jahreszeiten","Ein Begleiter aus jeder Jahreszeit gesammelt", {acc:"#7FC8FF", violet:"#FF7AB6", cyan:"#FFD166", pink:"#FF9EC4", ink2:"#0D1B2A", bg:"#0F1117", panel:"#181B24", panel2:"#20242F", glow:"#2B3044", deep:"#121520", deep2:"#151826"}, true],
   ["mondnacht","Mondnacht","Boss-Beute: Silber und Indigo", {acc:"#B8C8FF", violet:"#7C6BD6", cyan:"#9FE7FF", pink:"#C9B8FF", ink2:"#101836", bg:"#0B0D1C", panel:"#141729", panel2:"#1B1F36", glow:"#28305A", deep:"#0e1022", deep2:"#111426"}, true],
 ];
 const THEME = {base: null, cur: "nacht"};
@@ -1369,7 +1422,7 @@ async function loadCloud(force){
       const m = meta[norm(e.key)]; return !(m && m.updated && Date.parse(m.updated) >= e.ts) && Date.now()-e.ts < 30*86400e3; }));
   }
   const snap = S.snap, meta = {...(snap.meta||{})};
-  let goals = snap.goals || {}; const kvs = {year_overrides: snap.year_overrides || {}, wrapped: snap.wrapped_archive || {}, notpc: snap.notpc || {}, snotes: snap.snotes || {}, covers: snap.covers || {}, paid: snap.paid || {}, notify: snap.notify || null, critic: snap.critic || {}};
+  let goals = snap.goals || {}; const kvs = {year_overrides: snap.year_overrides || {}, wrapped: snap.wrapped_archive || {}, notpc: snap.notpc || {}, snotes: snap.snotes || {}, covers: snap.covers || {}, paid: snap.paid || {}, notify: snap.notify || null, critic: snap.critic || {}, plans: snap.plans || [], plan_resp: snap.plan_resp || {}};
   for (const e of edits()){
     if (e.kind === "kv"){ if (e.key === "goals") goals = e.value; else kvs[e.key] = e.value; continue; }
     const k = norm(e.key); meta[k] = {...(meta[k]||{}), ...pick(e,["status","rating","note","tier","hide"]), updated:new Date(e.ts).toISOString()};
@@ -1381,6 +1434,7 @@ async function loadCloud(force){
     values: snap.values || {}, values_at: snap.values_at, xcovers: snap.xcovers || {}, partner_url: snap.partner_url || null, partner: snap.partner || null, me_name: snap.me_name || "", me_duo: snap.me_duo || null, greets: snap.greets || [], push_topic: snap.push_topic || null, ui: snap.ui || {}, ghist: snap.ghist || null, pet: snap.pet || null, pet_raw: snap.pet_raw || {}, pet_imgs: snap.pet_imgs || [],
     tracking_since: snap.tracking_since, health: snap.health || [], new_games: snap.new_games || {},
     trophies: snap.trophies || [], free_games: snap.free_games || [],
+    pc: snap.pc || {}, ago: snap.ago || null, countdowns: snap.countdowns || [], plans: kvs.plans, plan_resp: kvs.plan_resp,
     playing:[], can_edit:false, period: p ? p.info : {period:"all"}, period_minutes: p ? p.pm : null};
   S.pcache = {}; S.yearPM = undefined; S.yearInfo = undefined; syncTheme();
   applyEstimate(); buildGroups(); header(); route(); flushEdits(); setTimeout(saveYearArchive, 1500);
@@ -1600,10 +1654,18 @@ function header(){
 
 /* ================= Router ================= */
 function cur(){ let h = location.hash.replace("#/","").split("/")[0]; if (h === "aktivitaet") h = "statistik"; return ROUTES.some(r=>r[0]===h) ? h : "uebersicht"; }
+const curRoute = () => cur();   // für Stellen, an denen eine lokale Variable „cur“ den Namen überdeckt
+// Fünf Bereiche – Unterseiten (Bibliothek/Backlog, Statistik/Wrapped) oben als Umschalter
+const NAV = [["uebersicht","Start","home",["uebersicht"]],["spiele","Spiele","lib",["spiele","backlog"]],["begleiter","Begleiter","pet",["begleiter"]],
+  ["freunde","Wir zwei","friends",["freunde"]],["statistik","Rückblick","act",["statistik","wrapped"]]];
+// Unterseiten stecken im jeweiligen Umschalter: Backlog in „Spiele“, Wrapped in „Rückblick“
+const subNav = () => "";
 function nav(){
-  const c = cur();
-  $("#tabbar").innerHTML = ROUTES.filter(r=>r[0]!=="begleiter").map(([k,l,i])=>`<a href="#/${k}" class="${c===k?"on":""}">${ICONS[i]}${l}</a>`).join("");
-  $("#deskNav").innerHTML = ROUTES.map(([k,l])=>`<a href="#/${k}" class="${c===k?"on":""}">${l}</a>`).join("");
+  const c = cur(), P = (S.data||{}).pet, p = P && (P.pets||[]).length ? petActive() : null;
+  const petIcon = p ? `<span class="tpet"><img src="${petSrc(p.sp, p.stage)}" alt=""></span>` : ICONS.pet;
+  const dot = k => k === "begleiter" && S.petNews ? `<i class="tdot"></i>` : "";
+  $("#tabbar").innerHTML = NAV.map(([k,l,i,g])=>`<a href="#/${k}" class="${g.includes(c)?"on":""} ${k==="begleiter"?"tmid":""}">${k==="begleiter"?petIcon:ICONS[i]}<span>${l}</span>${dot(k)}</a>`).join("");
+  $("#deskNav").innerHTML = NAV.map(([k,l,i,g])=>`<a href="#/${k}" class="${g.includes(c)?"on":""}">${k==="begleiter"&&p?`<span class="dpet"><img src="${petSrc(p.sp, p.stage)}" alt=""></span>`:ICONS[i]}<span>${l}</span>${dot(k)}</a>`).join("");
 }
 function route(){
   nav();
@@ -1619,6 +1681,7 @@ function route(){
    Zahlen zählen vom alten zum neuen Wert, Balken wachsen/schrumpfen, neue Teile blenden weich ein. */
 const MORPH = {counts:[], bars:[]};
 function setView(h){
+  h = subNav() + h;
   const v = $("#view");
   if (S.rendered !== cur() || !v.firstElementChild || matchMedia("(prefers-reduced-motion: reduce)").matches){ v.innerHTML = h; return; }
   const b = document.createElement("main"); b.innerHTML = h;
@@ -1668,6 +1731,7 @@ function quietRoute(){
   const y = scrollY; S.quiet = true; route(); S.quiet = false; scrollTo(0, y);
 }
 function afterRender(){
+  document.querySelectorAll("#view .seg").forEach(sg=>{ const b = sg.querySelector("button.on"); if (b && sg.scrollWidth > sg.clientWidth) sg.scrollLeft = b.offsetLeft - (sg.clientWidth - b.offsetWidth) / 2; });
   if (S.quiet){
     document.querySelectorAll(".reveal").forEach(el=>{ el.style.transition = "none"; el.classList.add("in");
       el.querySelectorAll("[data-count]").forEach(c=>c.textContent = (c.dataset.pre||"") + num(Number(c.dataset.count), Number(c.dataset.dec||0)));
@@ -1897,11 +1961,155 @@ function seasonCard(){
     <div class="sstrip">${[...cov,...cov].map(g=>`<div class="poster">${img(g.covers,g.title)}</div>`).join("")}</div>
     <div class="stxt"><small>🎬 Wrapped ${yr}</small><b>Dein Gaming-Jahr ${yr}</b><span>${sub}</span></div><em>▶</em></button>`;
 }
+/* ================= Start: „Heute“ ================= */
+const relTime = ms => { const m = Math.round((Date.now() - ms) / 6e4); return m < 1 ? "gerade eben" : m < 60 ? `vor ${m} Min` : m < 1440 ? `vor ${Math.round(m/60)} Std` : m < 2880 ? "gestern" : `vor ${Math.round(m/1440)} Tagen`; };
+const DAYS = ["So","Mo","Di","Mi","Do","Fr","Sa"];
+function todayHead(){
+  const h = new Date().getHours(), me = S.data.me_name || "", P = S.data.pet || {}, p = (P.pets||[]).length ? petActive() : null;
+  const hi = h < 5 ? "Noch wach" : h < 11 ? "Guten Morgen" : h < 17 ? "Hallo" : h < 22 ? "Guten Abend" : "Na, noch wach";
+  const d = new Date().toLocaleDateString("de-DE",{weekday:"long", day:"numeric", month:"long"});
+  return `<div class="khead today reveal"><div><div class="eyebrow">${esc(d)}</div><div class="h1">${hi}${me?`, ${esc(me)}`:""}!</div>
+    <p>${p ? esc(petBubble(p)) : "Schön, dass du da bist."}</p>
+    <div class="inl" style="gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn limeb" onclick="openPicker()">🎲 Was spiele ich heute?</button>
+      ${S.data.partner ? `<button class="btn ghost" onclick="planNew()">🎮 Zockabend vorschlagen</button>` : ""}</div></div>
+    ${p ? `<button class="thpet" onclick="location.hash='#/begleiter'" title="Zum Begleiter">${petFig(p, {scale:.95})}<small>${esc(petName(p))} · ${p.stage?`Lvl ${p.lvl}`:"Ei"}</small></button>` : ""}</div>`;
+}
+// Neuigkeiten: was seit gestern passiert ist
+function feedCard(){
+  const pa = S.data.partner, P = S.data.pet || {}, it = [];
+  if (pa){ const lv = duoLive(pa)[0]; if (lv) it.push([Date.now(), "💞", `<b>${esc(pa.name)}</b> spielt gerade <b>${esc(lv.t)}</b>`, "#/freunde"]);
+    (pa.news||[]).slice(0,4).forEach(e=>{ const ic = NEWS_ICON[e[0]]; if (ic) it.push([Date.parse(e[3]), ic[0], `<b>${esc(pa.name)}</b> ${esc(ic[1].replace("%t", e[2]))}`, "#/freunde"]); });
+    const pl = (pa.sess||[]).filter(x=>Date.now()/1000 - x[1] < 2*86400).sort((a,b)=>b[1]-a[1])[0];
+    if (pl) it.push([pl[1]*1000, "🎮", `<b>${esc(pa.name)}</b> hat ${hrs(pl[2]/60)} <b>${esc(titleOf(pl[0])||pl[0])}</b> gespielt`, "#/freunde"]); }
+  const wb = (P.current||{}).week; if (wb) it.push([Date.now() - 6e4, wb.won ? "🏆" : "⚔️", wb.won ? `<b>${esc(wb.name)}</b> ist besiegt 🎉` : `<b>${esc(wb.name)}</b>: noch ${num(Math.max(0, wb.hp - wb.dmg))} Leben`, "#/begleiter"]);
+  (P.memories||[]).slice(0,3).forEach(m=>{ const t = Date.parse(m.d + "T12:00"); if (Date.now() - t < 3*864e5) it.push([t, m.i, esc(m.t), "#/begleiter"]); });
+  (S.data.free_games||[]).filter(f=>f.kind==="now").slice(0,2).forEach(f=>it.push([Date.now() - 3e5, "🎁", `<b>${esc(f.title)}</b> ist gerade gratis bei Epic`, f.url||"#/spiele"]));
+  const sale = ((S.data.steam||{}).wishlist||[]).filter(w=>w.discount>0).sort((a,b)=>b.discount-a.discount)[0];
+  if (sale) it.push([Date.now() - 4e5, "🏷️", `<b>${esc(sale.name)}</b> von deiner Wunschliste: −${sale.discount} %`, "#/spiele"]);
+  if (!it.length) return "";
+  it.sort((a,b)=>b[0]-a[0]);
+  return `<section class="card x6 reveal"><h3>📰 Neuigkeiten</h3><div class="feed">${it.slice(0,7).map(([t,i,txt,href])=>`<a class="fi" href="${esc(href)}" ${href.startsWith("http")?'target="_blank" rel="noopener"':""}><span>${i}</span><div>${txt}<small>${t > Date.now() - 6e5 ? "jetzt" : relTime(t)}</small></div></a>`).join("")}</div></section>`;
+}
+// Countdowns: Spiele von der Wunschliste, die bald erscheinen
+function countdownCard(){
+  const cd = S.data.countdowns || []; if (!cd.length) return "";
+  return `<section class="card x6 reveal"><h3>⏳ Bald erhältlich</h3><div class="cdl">${cd.slice(0,4).map(c=>{ const d = Math.ceil((c.at*1000 - Date.now())/864e5);
+    return `<a class="cdi" href="https://store.steampowered.com/app/${esc(c.appid)}" target="_blank" rel="noopener"><b>${d <= 0 ? "heute" : d}</b><small>${d <= 0 ? "" : d === 1 ? "Tag" : "Tage"}</small><span>${esc(c.name)}</span><em>${new Date(c.at*1000).toLocaleDateString("de-DE",{day:"numeric",month:"short"})}</em></a>`; }).join("")}</div></section>`;
+}
+// Heute vor einem Jahr
+function agoCard(){
+  const a = S.data.ago; if (!a) return "";
+  const parts = [...(a.games||[]).map(([t,m])=>`<b>${esc(t)}</b> (${hrs(m)})`)];
+  return `<section class="card x6 reveal agoc"><h3>🕰️ Heute vor einem Jahr</h3><p>Am ${new Date(a.date+"T12:00").toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long",year:"numeric"})} hast du ${parts.length ? parts.join(", ") + " gespielt" : "gezockt"}.${(a.done||[]).length ? ` Und du hast <b>${(a.done||[]).map(esc).join(", ")}</b> durchgespielt 🏁` : ""}</p></section>`;
+}
+/* ---------- Zockabend-Planer ---------- */
+function planAll(){
+  const pa = S.data.partner || {}, mine = (S.data.plans||[]).map(p=>({...p, own:true, resp:(pa.plan_resp||{})[p.id]})),
+        theirs = (pa.plans||[]).map(p=>({...p, own:false, resp:(S.data.plan_resp||{})[p.id]}));
+  const now = new Date(Date.now() - 3*3600e3).toISOString().slice(0,16);
+  return [...mine, ...theirs].filter(p=>!p.cancel && p.at >= now).sort((a,b)=>a.at.localeCompare(b.at));
+}
+const planWhen = at => { const t = new Date(at); const d = Math.round((new Date(at.slice(0,10)) - new Date(new Date().toISOString().slice(0,10)))/864e5);
+  return `${d === 0 ? "Heute" : d === 1 ? "Morgen" : DAYS[t.getDay()] + " " + t.toLocaleDateString("de-DE",{day:"numeric",month:"numeric"})}, ${at.slice(11,16)} Uhr`; };
+function planCard(){
+  const pa = S.data.partner; if (!pa) return "";
+  const L = planAll(), me = S.data.me_name || "Ich";
+  const RS = {yes:["👍","dabei"], maybe:["🤔","vielleicht"], no:["👎","kann nicht"]};
+  return `<section class="card x6 reveal"><h3>🎮 Zockabende</h3>${L.length ? `<div class="plans">${L.map(p=>`<div class="plan ${p.resp==="yes"?"ok":""}">
+      <div class="pwhen"><b>${esc(planWhen(p.at))}</b><small>${p.own ? "dein Vorschlag" : `von ${esc(pa.name)}`}${p.game ? " · " + esc(p.game) : ""}${p.note ? " · " + esc(p.note) : ""}</small></div>
+      ${p.own ? `<span class="pst">${p.resp ? RS[p.resp][0] + " " + esc(pa.name) + " " + RS[p.resp][1] : "⏳ wartet auf " + esc(pa.name)}</span><button class="chip" onclick="planCancel('${p.id}')">Absagen</button>`
+        : `<div class="pbtns">${Object.entries(RS).map(([k,[e,l]])=>`<button class="chip ${p.resp===k?"on":""}" onclick="planAnswer('${p.id}','${k}')" title="${l}">${e}</button>`).join("")}</div>`}</div>`).join("")}</div>`
+    : `<p class="help" style="margin-top:0">Noch nichts geplant. Schlag ${esc(pa.name)} einen Abend vor – ihr bekommt beide eine Erinnerung eine Stunde vorher.</p>`}
+    <button class="btn ghost small" style="margin-top:10px" onclick="planNew()">＋ Zockabend vorschlagen</button></section>`;
+}
+function coopGames(){
+  const pa = S.data.partner || {}, theirs = new Map((pa.games||[]).filter(r=>r[5]).map(r=>[r[0], !!r[7]]));
+  return S.groups.filter(g=>theirs.has(g.key) && (theirs.get(g.key) || (g.features||[]).some(f=>/co-?op|multi/i.test(f))))
+    .sort((a,b)=>(b.last||0)-(a.last||0)).map(g=>g.title).slice(0,40);
+}
+window.planNew = () => {
+  const pa = S.data.partner; if (!pa) return;
+  const d = new Date(); d.setHours(20,0,0,0); if (d < new Date()) d.setDate(d.getDate()+1);
+  const iso = new Date(d - d.getTimezoneOffset()*6e4).toISOString().slice(0,16), cg = coopGames();
+  $("#infoBody").innerHTML = `<button class="ibtn dclose" onclick="$('#info').close()">✕</button>
+    <div class="eyebrow">Zockabend</div><div class="h1" style="font-size:clamp(26px,6vw,36px);margin:6px 0 12px">Mit ${esc(pa.name)} zocken?</div>
+    <label>Wann?</label><input type="datetime-local" id="plAt" value="${iso}">
+    <label>Was? <span class="help">(optional)</span></label><input type="text" id="plGame" list="plList" placeholder="${cg[0] ? esc(cg[0]) : "z. B. It Takes Two"}" maxlength="80">
+    <datalist id="plList">${cg.map(t=>`<option value="${esc(t)}">`).join("")}</datalist>
+    ${cg.length ? `<p class="help" style="margin:6px 0 0">Habt ihr beide, mit Koop: ${cg.slice(0,4).map(esc).join(", ")}</p>` : ""}
+    <label>Notiz <span class="help">(optional)</span></label><input type="text" id="plNote" placeholder="z. B. Pizza bestellen?" maxlength="140">
+    <button class="btn limeb" style="margin-top:16px" onclick="planSave()">Vorschlagen 💌</button>`;
+  if (!$("#info").open) $("#info").showModal();
+};
+async function pushPartner(title, msg){
+  const p = S.data.partner; if (!p || !p.topic) return false;
+  try { const r = await fetch("https://ntfy.sh/", {method:"POST", body: JSON.stringify({topic:p.topic, title, message:msg, tags:["gr-plan"],
+    click: S.data.partner_url ? S.data.partner_url.replace(/\/?$/, "/#/uebersicht") : undefined})}); return r.ok; } catch(e){ return false; }
+}
+window.planSave = async () => {
+  const at = $("#plAt").value; if (!at) return;
+  const p = {id: Math.random().toString(36).slice(2,10), at: at.slice(0,16), game: $("#plGame").value.trim(), note: $("#plNote").value.trim(), created: Math.floor(Date.now()/1000)};
+  await saveKv("plans", [...(S.data.plans||[]), p].slice(-40));
+  $("#info").close(); quietRoute();
+  const ok = await pushPartner(`🎮 ${S.data.me_name || "Dein Player 2"} schlägt einen Zockabend vor`, planWhen(p.at) + (p.game ? " · " + p.game : "") + (p.note ? " – " + p.note : ""));
+  toast(ok ? `Vorschlag an ${S.data.partner.name} geschickt 💌` : "Vorschlag gespeichert");
+};
+window.planCancel = async id => {
+  if (!confirm("Zockabend absagen?")) return;
+  const p = (S.data.plans||[]).find(x=>x.id===id);
+  await saveKv("plans", (S.data.plans||[]).map(x=>x.id===id ? {...x, cancel:true} : x)); quietRoute();
+  if (p) pushPartner(`😢 ${S.data.me_name || "Dein Player 2"} muss absagen`, planWhen(p.at) + " fällt leider aus.");
+};
+window.planAnswer = async (id, r) => {
+  await saveKv("plan_resp", {...(S.data.plan_resp||{}), [id]: r}); quietRoute();
+  const p = ((S.data.partner||{}).plans||[]).find(x=>x.id===id), me = S.data.me_name || "Dein Player 2";
+  if (p) pushPartner({yes:`🎉 ${me} ist dabei!`, maybe:`🤔 ${me} weiß noch nicht`, no:`😢 ${me} kann leider nicht`}[r], planWhen(p.at) + (p.game ? " · " + p.game : ""));
+  toast(r === "yes" ? "Zugesagt 🎉" : "Gespeichert");
+};
+/* ---------- Fernbedienung ---------- */
+function remoteCard(){
+  const pc = S.data.pc || {}; if (!pc.at) return "";
+  const t = pc.timer, age = (Date.now() - Date.parse(pc.at)) / 6e4, online = CLOUD ? age < 12 : true;
+  const dls = pc.downloads || [];
+  const tmr = t ? (t.mode === "after_session" ? "🌙 Fährt nach dieser Session herunter" : `🌙 Fährt um ${t.when.slice(11,16)} Uhr herunter`) : "";
+  return `<section class="card x6 reveal"><h3>🖥️ Dein PC <span class="h3s">${online ? (CLOUD ? `Stand ${relTime(Date.parse(pc.at))}` : "läuft") : "wahrscheinlich aus"}</span></h3>
+    ${dls.length ? dls.map(d=>`<div class="dlr"><span>⬇️ ${esc(d.name)}</span><div class="qbar"><i style="width:${d.pct}%"></i></div><small>${d.pct} % von ${num(d.gb,1)} GB</small></div>`).join("") : `<p class="help" style="margin-top:0">${online ? "Keine Downloads." : "Wenn der PC an ist, siehst du hier Downloads und kannst ihn steuern."}</p>`}
+    ${tmr ? `<div class="tmr">${tmr}<button class="chip" onclick="remoteCmd('cancel')">Stoppen</button></div>` : ""}
+    <div class="inl rbtns"><button class="chip" onclick="remoteCmd('after_session')">🌙 Nach dieser Session aus</button>
+      <button class="chip" onclick="remoteAt()">⏰ Um … aus</button><button class="chip" onclick="if(confirm('PC jetzt in den Ruhezustand schicken?'))remoteCmd('sleep')">💤 Ruhezustand</button>
+      ${pc.can_wake ? `<button class="chip" onclick="remoteCmd('wake_partner')">☀️ PC von ${esc((S.data.partner||{}).name||"Partner")} wecken</button>` : ""}</div>
+    ${CLOUD ? `<p class="help" style="margin:8px 0 0">Befehle kommen in etwa einer Minute am PC an.</p>` : ""}</section>`;
+}
+window.remoteAt = () => { const v = prompt("Um wie viel Uhr soll der PC herunterfahren? (HH:MM)", "23:30"); if (v && /^\d{1,2}:\d{2}$/.test(v.trim())) remoteCmd("at_time", v.trim().padStart(5,"0")); };
+window.remoteCmd = async (cmd, arg) => {
+  const msg = {after_session:"Nach dieser Session fährt der PC herunter 🌙", at_time:`PC fährt um ${arg} Uhr herunter`, cancel:"Timer gestoppt", sleep:"PC geht in den Ruhezustand 💤", wake_partner:"Weckruf geschickt ☀️"}[cmd];
+  if (LOCAL){ try { const r = await post("/api/remote", {cmd, arg}); S.data.pc = r.pc; toast(msg); quietRoute(); } catch(e){ toast(e.message); } return; }
+  await saveKv("remote", {id: Math.random().toString(36).slice(2,10), cmd, arg: arg||"", ts: Date.now()});
+  const pc = S.data.pc || {}; if (cmd === "after_session") pc.timer = {mode:"after_session"}; if (cmd === "at_time") pc.timer = {mode:"at_time", when:"0000-00-00T" + arg}; if (cmd === "cancel") pc.timer = null;
+  toast(msg + " – kommt gleich am PC an"); quietRoute();
+};
+/* ---------- Platz schaffen ---------- */
+function spaceCard(onlyLow){
+  const pc = S.data.pc || {}, disks = pc.disks || [], sp = pc.space || [];
+  const low = disks.filter(d=>d.total && d.free / d.total < .15);
+  if (onlyLow && !low.length) return "";
+  if (!disks.length && !sp.length) return "";
+  const tot = sp.reduce((s,x)=>s+x.gb,0);
+  return `<section class="card ${onlyLow?"x6":"s12"} reveal"><h3>💾 Platz schaffen ${low.length ? `<span class="h3s" style="color:var(--pink)">${low.map(d=>esc(d.d)).join(", ")} fast voll</span>` : ""}</h3>
+    <div class="disks">${disks.map(d=>`<div class="disk"><b>${esc(d.d)}</b><div class="qbar ${d.free/d.total<.15?"warn":""}"><i style="width:${(1 - d.free/d.total)*100}%"></i></div><small>${num(d.free)} GB frei von ${num(d.total)} GB</small></div>`).join("")}</div>
+    ${sp.length ? `<p class="help">Installiert, aber durchgespielt oder seit Monaten nicht angefasst – zusammen <b>${num(tot)} GB</b>:</p>
+    ${sp.slice(0, onlyLow ? 4 : 10).map(x=>`<div class="spr"><div><b>${esc(x.t)}</b><small>${x.done ? "durchgespielt" : x.idle != null ? `zuletzt vor ${x.idle >= 365 ? Math.floor(x.idle/365) + " J." : Math.round(x.idle/30) + " Mon."}` : ""}${x.drive ? " · " + esc(x.drive) : ""}</small></div><em>${num(x.gb,1)} GB</em>
+      ${LOCAL && x.appid ? `<a class="chip" href="steam://uninstall/${esc(x.appid)}">Deinstallieren</a>` : ""}</div>`).join("")}` : ""}</section>`;
+}
 function renderOverviewInner(){
   const c = ovCtx();
-  let h = playingBanner() + periodChips() + periodNotice();
+  let h = todayHead() + playingBanner();
   if (!c.played.length){ setView(h + emptyState()); return; }
-  h += seasonCard() + `<div class="bento">` + heroCard(c) + funSpot(c) + petMini() + saleBanner()
+  const tc = [feedCard(), planCard(), remoteCard(), countdownCard(), agoCard(), spaceCard(true)].filter(Boolean);
+  if (tc.length % 2) tc[tc.length-1] = tc[tc.length-1].replace('class="card x6', 'class="card x12');   // keine Lücke im Raster
+  if (tc.length) h += `<div class="bento">${tc.join("")}</div>`;
+  h += `<div class="secthead"><div class="h2">Deine Zahlen</div>${periodChips()}</div>` + periodNotice();
+  h += seasonCard() + `<div class="bento">` + heroCard(c) + funSpot(c) + saleBanner()
     + recentRail() + topCard(c) + platCard(c) + backlogMini() + `</div>`;
   setView(h);
   setTimeout(startSpot, 50);
@@ -1910,7 +2118,8 @@ function renderOverviewInner(){
 /* ================= Statistik ================= */
 S.stat = S.stat || "act";
 function statSeg(){
-  return `<div class="seg">${[["act","Aktivität"],["ach","Erfolge"],["facts","Fun Facts"]].map(([k,l])=>`<button class="${S.stat===k?"on":""}" onclick="S.stat='${k}';route()">${l}</button>`).join("")}</div>`;
+  const w = cur() === "wrapped";
+  return `<div class="seg">${[["act","Aktivität"],["ach","Erfolge"],["facts","Fun Facts"]].map(([k,l])=>`<button class="${!w && S.stat===k?"on":""}" onclick="S.stat='${k}';${w?"location.hash='#/statistik'":"route()"}">${l}</button>`).join("")}<button class="${w?"on":""}" onclick="location.hash='#/wrapped'">🎬 Wrapped</button></div>`;
 }
 function statHead(){
   const st = sessionStats(0), days = st.days.filter(d=>d>=dayKey(new Date(Date.now()-365*864e5))).length;
@@ -2358,8 +2567,10 @@ const TIERS = [["S","#FF6B8B"],["A","#FFB547"],["B","#33C3FF"],["C","#14F0C8"],[
 function libSeg(){
   const wl = ((S.data.steam||{}).wishlist||[]).length;
   const fg = (S.data.free_games||[]).filter(f=>f.kind==="now").length;
-  return `<div class="seg">${[["grid","Bibliothek"],["tier","Tier-Liste"],["wish",`Wunschliste${wl?` (${wl})`:""}`],["free",`Gratis${fg?` (${fg})`:""}`],["rel","Releases"]]
-    .map(([k,l])=>`<button class="${(S.lib.view||"grid")===k?"on":""}" onclick="S.lib.view='${k}';route()">${l}</button>`).join("")}</div>`;
+  const bl = cur() === "backlog";
+  return `<div class="seg">${[["grid","Bibliothek"],["backlog","Backlog"],["tier","Tier-Liste"],["wish",`Wunschliste${wl?` (${wl})`:""}`],["free",`Gratis${fg?` (${fg})`:""}`],["rel","Releases"]]
+    .map(([k,l])=>k === "backlog" ? `<button class="${bl?"on":""}" onclick="location.hash='#/backlog'">${l}</button>`
+      : `<button class="${!bl && (S.lib.view||"grid")===k?"on":""}" onclick="S.lib.view='${k}';${bl?"location.hash='#/spiele'":"route()"}">${l}</button>`).join("")}</div>`;
 }
 function renderLib(){
   if (S.lib.view === "tier") return renderTier();
@@ -2427,7 +2638,7 @@ function renderBacklog(){
   const counts = {}; all.forEach(g=>counts[g.status]=(counts[g.status]||0)+1);
   const filters = [["open","Alles offen",st.open],["done","Geschafft",st.done], ...STATUS.map(s=>[s.k,`${s.e} ${s.l}`,counts[s.k]||0]).filter(x=>x[2])];
   setView(`${blurHead("PC-Backlog", `${st.open} offen`, `${st.done} durchgespielt · ${num(st.pct)} % geschafft`, blGames().find(g=>g.status==="als_naechstes") || blGames().filter(g=>g.status==="angefangen").sort((a,b)=>(b.last||0)-(a.last||0))[0] || blGames().filter(g=>SMAP[g.status].g==="open").sort((a,b)=>(b.critic||0)-(a.critic||0))[0])}
-  <div class="bl-layout"><aside class="bl-aside">
+  ${libSeg()}<div class="bl-layout"><aside class="bl-aside">
     <section class="card violetc reveal"><div class="bhero">
       <div class="ring" style="--p:${st.pct}"><div><div><b>${num(st.pct)}%</b><br><span>geschafft</span></div></div></div>
       <div class="bhero nums"><div><b>${st.done}</b><span>durch</span></div><div><b>${st.unplayed}</b><span>nie gestartet</span></div>
@@ -2441,7 +2652,7 @@ function renderBacklog(){
       .map(([k,l])=>`<option value="${k}" ${B.sort===k?"selected":""}>${l}</option>`).join("")}</select>
       <span class="help" style="margin:0">Gestrichelt = automatisch erkannt</span></div>
     <div class="bhead"><span></span><span>Spiel</span><span>Status</span><span>Gespielt</span><span>Dauer</span><span>Im Regal</span></div>
-    <div id="blist"></div><div style="margin-top:18px">${historyCard()}</div></div></div>`);
+    <div id="blist"></div><div style="margin-top:18px">${historyCard()}</div><div style="margin-top:18px">${LOCAL ? spaceCard(false) : ""}</div></div></div>`);
   $("#bsort").onchange = e => { B.sort = e.target.value; blist(); };
   blist();
 }
@@ -2932,12 +3143,22 @@ const PET_INFO = {
   crysto:{name:"Crysto", el:"Kristall", fav:"Strategie", stages:["Splitter","Facett","Prismarch"], teaser:"Klug und standhaft – denkt drei Züge voraus.", c:"#A97BFF"},
   nocti:{name:"Nocti", el:"Mond", fav:"Horror & Mystery", stages:["Flausch","Dämmer","Velunara"], teaser:"Ein Nachtschwärmer mit großem Herz.", c:"#7C6BD6"},
   koppla:{name:"Koppla", el:"Licht", fav:"Koop & Mehrspieler", stages:["Piko & Pika","Echo & Edda","Harmonia"], teaser:"Zwei, die nur zusammen ganz sind.", c:"#FF8FB8"},
-  frostel:{name:"Frostel", el:"Eis", fav:"Abenteuer & Erkundung", stages:["Flocki","Frostel","Glaziara"], teaser:"Taucht nur im Winter auf – kühl, aber kuschelig.", c:"#7FC8FF", season:"Winter"},
-  bluma:{name:"Bluma", el:"Blüte", fav:"Gemütlich & Kreativ", stages:["Knospi","Blumhopp","Florabella"], teaser:"Ein Frühlingskind, das überall Blumen hinterlässt.", c:"#FF9EC4", season:"Frühling"},
+  frostel:{name:"Frostel", el:"Eis", fav:"Survival & Erkundung", stages:["Flocki","Frostel","Glaziara"], teaser:"Taucht nur im Winter auf – kühl, aber kuschelig.", c:"#7FC8FF", season:"Winter"},
+  bluma:{name:"Bluma", el:"Blüte", fav:"Gemütlich & Kreativ", stages:["Blümchen","Blumhopp","Florabella"], teaser:"Ein Frühlingskind, das überall Blumen hinterlässt.", c:"#FF9EC4", season:"Frühling"},
   sola:{name:"Sola", el:"Sonne", fav:"Rennen & Sport", stages:["Funkfeder","Solaris","Sonnara"], teaser:"Sehr selten – nur im Sommer zu finden.", c:"#FFB547", season:"Sommer"},
   herzi:{name:"Herzi", el:"Liebe", fav:"Indie & Party", stages:["Herzchen","Schnurrlieb","Amorina"], teaser:"Sehr selten – schlüpft nur rund um Valentinstag.", c:"#FF7AB6", season:"Februar"},
+  tavik:{name:"Tavik", el:"Technik", fav:"Technik & Aufbau", stages:["Klick","Takt","Chronox"], teaser:"Tüftelt an allem, was Zahnräder hat.", c:"#E0A63A"},
+  kairo:{name:"Kairo", el:"Sand", fav:"Abenteuer & Open World", stages:["Dune","Siro","Zephar"], teaser:"Will immer hinter den nächsten Hügel schauen.", c:"#F2C46D"},
+  vexa:{name:"Vexa", el:"Tinte", fav:"Puzzle & Knobeln", stages:["Klecks","Schmier","Inkyra"], teaser:"Acht Arme, acht Ideen – liebt knifflige Rätsel.", c:"#8C5BFF"},
+  aeru:{name:"Aeru", el:"Wind", fav:"Tempo & Plattformer", stages:["Wölkchen","Böe","Tempestral"], teaser:"Schneller als der Wind, leichter als eine Wolke.", c:"#6FA8FF"},
+  moru:{name:"Moru", el:"Traum", fav:"Story & Atmosphäre", stages:["Schlummer","Somnia","Oneira"], teaser:"Sehr selten – träumt sich in jede Geschichte.", c:"#C08CFF"},
+  grumbo:{name:"Grumbo", el:"Erde", fav:"Survival & Crafting", stages:["Krümel","Brocken","Monolith"], teaser:"Ein Fels in der Brandung. Und ein bisschen Moos.", c:"#8FAF5A"},
+  blossom:{name:"Blossom", el:"Blüte", fav:"Gemütlich & Natur", stages:["Knospi","Blütenlauf","Floralis"], teaser:"Sehr selten – nur im Frühling.", c:"#FFA8C8", season:"Frühling"},
+  solero:{name:"Solero", el:"Sonne", fav:"Party & Sport", stages:["Krabbi","Korallo","Solmara"], teaser:"Sehr selten – nur im Sommer am Strand.", c:"#FF8A4C", season:"Sommer"},
+  autumo:{name:"Autumo", el:"Herbst", fav:"Abenteuer & Rätsel", stages:["Stups","Laubbert","Aurorix"], teaser:"Raschelt durchs Laub – nur im Herbst.", c:"#E8792E", season:"Herbst"},
+  frostius:{name:"Frostius", el:"Frost", fav:"Strategie & Taktik", stages:["Flocke","Kristall","Borealis"], teaser:"Sehr selten – nur im Winter.", c:"#9CC8FF", season:"Winter"},
 };
-const PET_RARE = {crysto:2, nocti:2, frostel:2, bluma:2, koppla:3, sola:3, herzi:3};
+const PET_RARE = {crysto:2, nocti:2, tavik:2, aeru:2, vexa:2, bluma:2, sola:2, autumo:2, frostel:2, moru:3, koppla:3, blossom:3, solero:3, frostius:3, herzi:3};
 const PET_ACC = {schleife:["Schleife","🎀"], headset:["Gaming-Headset","🎧"], brille:["Sonnenbrille","🕶️"], krone:["Krone","👑"], zauberhut:["Zauberhut","🎩"],
   blumen:["Blumenkranz","🌸"], herz:["Herz-Anhänger","💞"], muetze:["Bommelmütze","🧶"], pirat:["Piratenhut","🏴‍☠️"], weihnacht:["Weihnachtsmütze","🎅"],
   kuerbis:["Kürbis-Hütchen","🎃"], wikinger:["Wikingerhelm","🪖"], party:["Partyhütchen","🎉"], halo:["Heiligenschein","💫"], diadem:["Kristall-Diadem","💎"], kapitaen:["Kapitänsmütze","⚓"],
@@ -2949,9 +3170,14 @@ const PET_HEAD = {"brasu":[[35,32,57,55],[28,43,60,37],[20,50,68,30]],"neruma":[
   "moselle":[[30,40,58,55],[25,48,63,40],[25,74,81,24]],"crysto":[[27,38,66,50],[30,54,72,35],[22,64,77,30]],
   "nocti":[[38,46,66,40],[44,62,71,24],[48,63,68,22]],"koppla":[[22,57,72,32],[25,58,72,30],[38,70,77,22]],
   "frostel":[[25,48,66,40],[27,46,62,35],[19,57,66,22]],"bluma":[[32,47,70,45],[20,52,68,30],[20,66,73,18]],
-  "sola":[[30,32,46,50],[22,44,55,28],[17,66,71,17]],"herzi":[[26,40,57,45],[20,46,60,32],[19,67,73,20]]};
+  "sola":[[30,32,46,50],[22,44,55,28],[17,66,71,17]],"herzi":[[26,40,57,45],[20,46,60,32],[19,67,73,20]],
+  "tavik":[[30,24,45,50],[33,38,55,28],[32,50,58,18]],"kairo":[[27,44,63,40],[22,45,57,30],[22,38,50,26]],
+  "vexa":[[42,28,55,50],[42,40,53,30],[44,46,52,20]],"aeru":[[30,45,61,35],[22,40,50,32],[18,38,46,26]],
+  "moru":[[42,26,58,60],[42,33,46,36],[48,40,48,20]],"grumbo":[[44,30,60,48],[44,40,55,30],[42,32,45,24]],
+  "blossom":[[25,25,43,34],[20,30,50,28],[25,38,48,20]],"solero":[[52,25,40,50],[48,25,38,40],[50,25,37,36]],
+  "autumo":[[27,38,55,34],[32,40,55,34],[30,35,48,28]],"frostius":[[35,12,32,48],[35,18,35,36],[40,25,37,28]]};
 // sichtbare Figur je Bild (Breite, Höhe als Anteil) – damit spätere Stufen nicht kleiner wirken, nur weil sie breiter sind
-const PET_BOX = {"brasu_1":[0.917,0.779],"brasu_2":[0.918,0.667],"brasu_3":[0.92,0.554],"neruma_1":[0.921,0.537],"neruma_2":[0.92,0.545],"neruma_3":[0.925,0.442],"moselle_1":[0.925,0.883],"moselle_2":[0.921,0.779],"moselle_3":[0.922,0.462],"crysto_1":[0.917,0.796],"crysto_2":[0.921,0.61],"crysto_3":[0.921,0.543],"nocti_1":[0.925,0.654],"nocti_2":[0.922,0.504],"nocti_3":[0.92,0.526],"koppla_1":[0.917,0.5],"koppla_2":[0.92,0.515],"koppla_3":[0.922,0.419],"frostel_1":[0.925,0.604],"frostel_2":[0.92,0.616],"frostel_3":[0.922,0.508],"bluma_1":[0.8,0.929],"bluma_2":[0.92,0.708],"bluma_3":[0.922,0.461],"sola_1":[0.921,0.925],"sola_2":[0.921,0.662],"sola_3":[0.922,0.394],"herzi_1":[0.921,0.779],"herzi_2":[0.923,0.664],"herzi_3":[0.925,0.433]};
+const PET_BOX = {"brasu_1":[0.917,0.779],"brasu_2":[0.918,0.667],"brasu_3":[0.92,0.554],"neruma_1":[0.921,0.537],"neruma_2":[0.92,0.545],"neruma_3":[0.925,0.442],"moselle_1":[0.925,0.883],"moselle_2":[0.921,0.779],"moselle_3":[0.922,0.462],"crysto_1":[0.917,0.796],"crysto_2":[0.921,0.61],"crysto_3":[0.921,0.543],"nocti_1":[0.925,0.654],"nocti_2":[0.922,0.504],"nocti_3":[0.92,0.526],"koppla_1":[0.917,0.5],"koppla_2":[0.92,0.515],"koppla_3":[0.922,0.419],"frostel_1":[0.925,0.604],"frostel_2":[0.92,0.616],"frostel_3":[0.922,0.508],"bluma_1":[0.8,0.929],"bluma_2":[0.92,0.708],"bluma_3":[0.922,0.461],"sola_1":[0.921,0.925],"sola_2":[0.921,0.662],"sola_3":[0.922,0.394],"herzi_1":[0.921,0.779],"herzi_2":[0.923,0.664],"herzi_3":[0.925,0.433],"tavik_1":[0.825,0.929],"tavik_2":[0.933,0.896],"tavik_3":[0.925,0.687],"kairo_1":[0.912,0.925],"kairo_2":[0.925,0.778],"kairo_3":[0.922,0.833],"vexa_1":[0.921,0.692],"vexa_2":[0.925,0.642],"vexa_3":[0.926,0.705],"aeru_1":[0.917,0.617],"aeru_2":[0.929,0.883],"aeru_3":[0.922,0.833],"moru_1":[0.925,0.779],"moru_2":[0.921,0.892],"moru_3":[0.924,0.772],"grumbo_1":[0.925,0.708],"grumbo_2":[0.929,0.671],"grumbo_3":[0.921,0.744],"blossom_1":[0.708,0.929],"blossom_2":[0.929,0.817],"blossom_3":[0.662,0.825],"solero_1":[0.9,0.938],"solero_2":[0.85,0.779],"solero_3":[0.792,0.912],"autumo_1":[0.767,0.933],"autumo_2":[0.817,0.833],"autumo_3":[0.688,0.733],"frostius_1":[0.792,0.921],"frostius_2":[0.708,0.925],"frostius_3":[0.85,0.933]}
 const petNorm = p => { const b = p && p.stage && PET_BOX[`${p.sp}_${p.stage}`]; if (!b) return 1;
   return Math.max(.85, Math.min(1.25, .75 / (Math.pow(b[1], .6) * Math.pow(b[0], .4)))); };
 const petSrc = (sp, stage) => `pets/${sp}_${stage ? stage : "ei"}.webp`;
@@ -3119,7 +3345,7 @@ window.petHelp = (fresh) => {
     ${row("🌱","Stufen","Ei → Baby (Stufe 1) → Stufe 2 ab Level 10 → Endform (Stufe 3) ab Level 25. Danach gibt es Sterne bei Level 30, 35 und 40 und die Endform glitzert.")}
     ${row("⚔️","Bosse","Jede Woche und jeden Monat einer. Sie richten sich nach deiner üblichen Spielzeit – meist fallen sie gegen Ende der Woche. Ein Sieg bleibt ein Sieg.")}
     ${row("🎁","Beute","Accessoires, Lebensräume, Farbwelten. Eier gibt es zufällig nach Siegen – spätestens nach 8 Siegen kommt eins.")}
-    ${row("💎","Seltenheit","Selten: Crysto, Nocti, Frostel, Bluma (leuchten blau). Sehr selten: Koppla, Sola, Herzi (leuchten gold). Saison-Tiere gibt es nur in ihrer Jahreszeit; alle vier zusammen schalten eine Farbwelt frei.")}
+    ${row("💎","Seltenheit","20 Arten. Selten (leuchten blau): Crysto, Nocti, Tavik, Aeru, Vexa. Sehr selten (leuchten gold): Moru, Koppla. Saison-Tiere gibt es nur in ihrer Jahreszeit – je eins selten und eins sehr selten: Frühling Bluma/Blossom, Sommer Sola/Solero, Herbst Autumo, Winter Frostel/Frostius, Februar Herzi. Ein Tier aus jeder Jahreszeit schaltet eine Farbwelt frei.")}
     ${row("🎀","Accessoires","Zwei Plätze: Kopf (Hut, Krone, Ohren …) und Gesicht/Hals (Brille, Anhänger).")}
     ${row("💞","Zu zweit","Gemeinsame Abende, eine Wochenaufgabe zu zweit (+120), Staffelstab (+40), Raid-Boss und Geschenke.")}
     ${row("📋","Aufgaben","Drei kleine Aufgaben pro Woche (+60), aus rund 20 verschiedenen. Kein Muss.")}
@@ -3183,8 +3409,12 @@ function petGainsSeen(){
 }
 function petFab(){
   const fab = $("#petFab"); if (!fab) return;
-  const p = S.data && S.data.pet && petActive(), on = cur() === "begleiter" || !S.data || !S.data.pet;
+  const p = S.data && S.data.pet && petActive(), on = true;   // Begleiter sitzt jetzt in der Navigation
   fab.hidden = on;
+  { const P0 = (S.data && S.data.pet) || {}, nk = [p ? p.id : "", p ? p.stage : "", p ? p.lvl : "", (P0.eggs_ready||[]).join(","), (P0.loot||[]).length, P0.wins||0, P0.raid_wins||0, todayIso()].join("|");
+    if (cur() === "begleiter" && S.data && S.data.pet) store.set("gr_petseen", nk);
+    const was = S.petNews; S.petNews = cur() !== "begleiter" && store.get("gr_petseen", "") !== nk && ((P0.eggs_ready||[]).length || (P0.loot||[]).length || (p && p.stage));
+    if (was !== S.petNews) nav(); }
   const P = (S.data && S.data.pet) || {}, g = p ? petGains(p) : {xp:0};
   // Hinweis nur für Neues seit dem letzten Besuch der Begleiter-Seite
   const nkey = [p ? p.id : "", p ? p.stage : "", p ? p.lvl : "", (P.eggs_ready||[]).join(","), (P.loot||[]).length, P.wins||0, P.raid_wins||0, todayIso()].join("|");
@@ -3302,7 +3532,7 @@ function renderPet(){
   const hist = [...(P.history||[])].reverse().slice(0,8);
   if (hist.length) h += `<section class="card s12 x6 reveal"><h3>📜 Letzte Kämpfe</h3>${hist.map(b=>`<div class="xrow" style="cursor:default"><div class="bicon sm ${hasImg(`boss_${b.id}.webp`)?"img":""}">${bossIcon(b)}</div><div><b>${esc(b.name)}</b><span>${fdate(new Date(b.to+"T12:00"))} · ${b.won?"besiegt":"entkommen"} · ${num(b.dmg)} / ${num(b.hp)}</span></div><em title="${b.won?"Besiegt":"Entkommen"}">${b.won?"🏆":"💨"}</em></div>`).join("")}</section>`;
   setView(h + `</div>`);
-  clearInterval(S._pti); S._pti = setInterval(()=>{ const b = document.querySelector(".pethero .pbub"); if (!b || cur() !== "begleiter"){ clearInterval(S._pti); return; } S._pl = (S._pl||0) + 1; b.textContent = petBubble(p); b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop"); }, 9000);
+  clearInterval(S._pti); S._pti = setInterval(()=>{ const b = document.querySelector(".pethero .pbub"); if (!b || curRoute() !== "begleiter"){ clearInterval(S._pti); return; } S._pl = (S._pl||0) + 1; b.textContent = petBubble(p); b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop"); }, 9000);
   setTimeout(()=>{ const evo = petEvolutionCheck() || petLastHit();
     if (!evo && g.boss.week){ const f = document.querySelector(".pethero .pwrap"); if (f){ f.classList.add("lunge"); setTimeout(()=>f.classList.remove("lunge"), 900); }
       const bi = document.querySelector(".battle .bicon"); if (bi){ setTimeout(()=>{ bi.classList.add("hit"); setTimeout(()=>bi.classList.remove("hit"), 700); }, 380); } }
@@ -3320,10 +3550,10 @@ function duoMeet(p){
 }
 
 /* ================= Wir zwei ================= */
-S.fr = S.fr || "steam";
+S.fr = S.fr || (store.get("gr_fr", null) || "duo");
 function friendSeg(){
   const p = (S.data||{}).partner;
-  return `<div class="seg">${[["steam","Steam-Freunde"],["duo", p ? `💞 ${esc(p.name||"Wir zwei")}` : "💞 Wir zwei"]].map(([k,l])=>`<button class="${S.fr===k?"on":""}" onclick="S.fr='${k}';route()">${l}</button>`).join("")}</div>`;
+  return `<div class="seg">${[["duo", p ? `💞 ${esc(p.name||"Wir zwei")}` : "💞 Wir zwei"],["steam","Steam-Freunde"]].map(([k,l])=>`<button class="${S.fr===k?"on":""}" onclick="S.fr='${k}';store.set('gr_fr','${k}');route()">${l}</button>`).join("")}</div>`;
 }
 function myDuoRows(){
   // eigene Spiele in derselben Form wie die Partner-Daten
@@ -3472,7 +3702,7 @@ function renderDuo(head){
       ${S.data.can_edit?`<button class="btn limeb" onclick="S.setTab='duo';openSettings()">Einstellungen öffnen</button>`:`<p class="help">Das Einrichten geht am PC.</p>`}</div>`);
     return;
   }
-  if (!S.yearPM && !S._duoYear){ S._duoYear = 1; ensurePeriod("year").then(()=>{ if (S.fr === "duo" && cur() === "freunde") quietRoute(); }).catch(()=>{}); }
+  if (!S.yearPM && !S._duoYear){ S._duoYear = 1; ensurePeriod("year").then(()=>{ if (S.fr === "duo" && curRoute() === "freunde") quietRoute(); }).catch(()=>{}); }
   const D = duoData(), {me, meName, mine, theirs, weeks, tot, both, match, streak} = D;
   const sc = S.duoScope || "week", [a, b] = tot[sc], sum = a + b;
   const share = sum ? a / sum * 100 : 50, diff = Math.abs(a - b);
@@ -3776,7 +4006,7 @@ function renderWrapped(){
   const deep = decodeURIComponent(location.hash.split("/")[2] || "");   // aus der Push-Nachricht: direkt ein Monat
   if (deep){ history.replaceState(null, "", "#/wrapped"); if (wrapModes().some(m=>m[0]===deep)){ W.mode = deep; setTimeout(()=>startWrapped(), 400); } }
   if (!wrapModes().some(m=>m[0]===W.mode)) W.mode = "year";
-  setView(`<section class="card hero reveal in" style="min-height:58vh;justify-content:center;text-align:center;align-items:center">
+  setView(statSeg() + `<section class="card hero reveal in" style="min-height:58vh;justify-content:center;text-align:center;align-items:center">
     <div class="eyebrow">Dein Gaming Recap</div><div class="num" style="font-size:clamp(70px,20vw,170px);line-height:1;padding-bottom:.12em">Wrapped</div>
     <div class="sub" style="margin:10px auto 18px">Deine Story: Stunden, Top-Spiele, dein Gamer-Typ und Rekorde. Am Ende gibt's dein Poster als Bild zum Teilen.</div>
     <div class="chips" id="wrapChips" style="justify-content:center;flex-wrap:wrap">${wrapModes().filter(m=>!m[2]).map(([k,l])=>`<button class="chip ${W.mode===k?"on":""}" data-k="${esc(k)}" onclick="setWrapMode('${k}')">${esc(l)}</button>`).join("")}${(()=>{ const old = wrapModes().filter(m=>m[2]); return old.length ? `<select class="chip" style="width:auto" onchange="if(this.value){setWrapMode(this.value)}"><option value="">Ältere Jahre ▾</option>${old.map(([k,l])=>`<option value="${esc(k)}" ${W.mode===k?"selected":""}>${esc(l)}</option>`).join("")}</select>` : ""; })()}</div>
@@ -4497,21 +4727,39 @@ function roll(){
 /* ================= Handy-Menü (Cloud) ================= */
 function cloudMenu(){
   const q = edits(), waiting = q.filter(e=>!e.sent).length, sent = q.length - waiting;
+  const H = S.data.health || [], bad = H.filter(h=>h.level==="error").length, warn = H.filter(h=>h.level==="warn").length;
+  const pushed = (S.snap||{}).pushed, age = pushed ? (Date.now() - new Date(pushed)) / 36e5 : 99;
+  const N = S.data.notify || {}, non = Object.values(N.cats || {}).filter(v=>v !== false).length;
+  const pa = S.data.partner;
+  const tile = (k, i, l, sub, cls) => `<button type="button" class="stile" onclick="setTab('${k}')"><span class="sti">${i}</span><b>${l}</b><small class="sts ${cls}">${sub}</small></button>`;
+  const off = (i, l) => `<div class="stile dis"><span class="sti">${i}</span><b>${l}</b><small class="sts off">Nur am PC</small></div>`;
   $("#settingsBody").innerHTML = `<button class="ibtn dclose" onclick="$('#settings').close()">✕</button>
-    <div class="h1" style="font-size:32px">Handy-App</div>
-    <div class="kv"><div><small>Vom PC hochgeladen</small><b>${(S.snap||{}).pushed?new Date(S.snap.pushed).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"}):"–"}</b></div>
-      <div><small>Letzter Abgleich am PC</small><b>${S.data.last_sync?new Date(S.data.last_sync).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"}):"–"}</b></div>
-      <div><small>Deine Änderungen</small><b>${!q.length ? "✓ alle beim PC angekommen" : `${waiting ? waiting + " noch nicht gesendet · " : ""}${sent ? sent + " beim PC ausstehend" : ""}`}</b></div></div>
-    <p class="help">Deine Änderungen gehen sofort verschlüsselt an GitHub. Ist dein PC an, holt er sie innerhalb von 2 Minuten ab und lädt den neuen Stand hoch. Bis dahin siehst du sie hier schon. Ist der PC aus, warten sie dort sicher.</p>
-    <div class="secttl" style="margin-top:14px">🎨 Farbwelt</div>${themePicker()}
-    <div class="secttl" style="margin-top:14px">🔔 Benachrichtigungen</div><div id="notifyBox">${notifyBlock()}</div>
-    <div class="secttl" style="margin-top:14px">Systemcheck am PC</div>${healthBlock()}
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
-      <button class="btn limeb" onclick="S.snap=null;$('#settings').close();loadCloud(true)">Neu laden</button>
-      <button class="btn ghost" onclick="sendNow()">⇪ Jetzt senden</button>
-      <button class="btn ghost" onclick="if(confirm('Abmelden? Das Passwort wird von diesem Gerät gelöscht.')){store.del('gr_pass');store.del('gr_blob');location.reload()}">Abmelden</button></div>`;
+    <div class="h1" style="font-size:32px">Einstellungen</div>
+    <div class="stiles">
+      ${tile("sync","🔄","Abgleich", !q.length ? (pushed ? `Stand ${relTime(new Date(pushed).getTime())}` : "Noch kein Stand") : `${q.length} Änderung${q.length>1?"en":""} unterwegs`, age < 12 && !waiting ? "ok" : "warn")}
+      ${tile("look","🎨","Farbwelt", esc((THEMES.find(t=>t[0]===THEME.cur)||[0,"Standard"])[1]), "ok")}
+      ${tile("notify","🔔","Benachrichtigungen", S.data.notify ? `${non} an` : "Standard", "ok")}
+      ${tile("health","🩺","Systemcheck am PC", bad ? `${bad} Problem${bad>1?"e":""}` : warn ? `${warn} Hinweis${warn>1?"e":""}` : "Alles in Ordnung", bad ? "err" : warn ? "warn" : "ok")}
+    </div>
+    <div class="secttl" style="margin:18px 0 8px">Am PC einstellen</div>
+    <div class="stiles small">${off("🎮","Spiele-Quellen")}${off("🔑","Keys & Dienste")}${off("💞", pa ? `Wir zwei · ${esc(pa.name)}` : "Wir zwei")}${off("🖥️","System & Updates")}</div>
+    <div class="stback" hidden><button type="button" class="btn ghost small" onclick="setTab(null)">‹ Alle Einstellungen</button><b id="stTitle"></b></div>
+    <fieldset data-tab="sync"><legend>🔄 Abgleich</legend>
+      <div class="kv"><div><small>Vom PC hochgeladen</small><b>${pushed?new Date(pushed).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"}):"–"}</b></div>
+        <div><small>Letzter Abgleich am PC</small><b>${S.data.last_sync?new Date(S.data.last_sync).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"}):"–"}</b></div>
+        <div><small>Deine Änderungen</small><b>${!q.length ? "✓ alle beim PC angekommen" : `${waiting ? waiting + " noch nicht gesendet · " : ""}${sent ? sent + " beim PC ausstehend" : ""}`}</b></div></div>
+      <p class="help">Deine Änderungen gehen sofort verschlüsselt an GitHub. Ist dein PC an, holt er sie innerhalb von 2 Minuten ab und lädt den neuen Stand hoch. Bis dahin siehst du sie hier schon. Ist der PC aus, warten sie dort, bis er wieder läuft.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+        <button class="btn limeb" type="button" onclick="S.snap=null;$('#settings').close();loadCloud(true)">Neu laden</button>
+        <button class="btn ghost" type="button" onclick="sendNow()">⇪ Jetzt senden</button>
+        <button class="btn ghost" type="button" onclick="if(confirm('Abmelden? Das Passwort wird von diesem Gerät gelöscht.')){store.del('gr_pass');store.del('gr_blob');location.reload()}">Abmelden</button></div></fieldset>
+    <fieldset data-tab="look"><legend>🎨 Farbwelt</legend>${themePicker()}</fieldset>
+    <fieldset data-tab="notify"><legend>🔔 Benachrichtigungen</legend><div id="notifyBox">${notifyBlock()}</div></fieldset>
+    <fieldset data-tab="health"><legend>🩺 Systemcheck am PC</legend>${healthBlock() || `<p class="help">Noch keine Daten vom PC.</p>`}</fieldset>`;
+  setTab(null);
   if (!$("#settings").open) $("#settings").showModal();
 }
+const CLOUD_TABS = [["sync","🔄","Abgleich"],["look","🎨","Farbwelt"],["notify","🔔","Benachrichtigungen"],["health","🩺","Systemcheck am PC"]];
 
 /* ================= Einrichtungs-Assistent (erster Start am PC) ================= */
 const WZ = {step:0, c:null};
@@ -4657,7 +4905,7 @@ window.openSettings = async () => {
   $("#settingsBody").innerHTML = `<button class="ibtn dclose" onclick="$('#settings').close()">✕</button>
     <div class="h1" style="font-size:32px">Einstellungen</div>
     <p class="help" style="margin-top:-8px">Alles bleibt auf diesem PC (Ordner <code>daten</code>). Die Handy-App bekommt nur eine verschlüsselte Kopie.</p>
-    <div class="seg stabs">${SET_TABS.map(([k,l])=>`<button type="button" data-k="${k}" onclick="setTab('${k}')">${l}</button>`).join("")}</div>
+    ${setTiles(c)}<div class="stback" hidden><button type="button" class="btn ghost small" onclick="setTab(null)">‹ Alle Einstellungen</button><b id="stTitle"></b></div>
     <fieldset data-tab="allg"><legend>🎨 Farbwelt</legend>${themePicker()}</fieldset>
     <fieldset data-tab="allg"><legend>👤 Profil</legend>
       <label>Dein Name (für „Wir zwei“ und das Wrapped)</label><input type="text" id="user_name" value="${esc(c.user_name||"")}" placeholder="Dein Vorname" maxlength="40"></fieldset>
@@ -4679,6 +4927,8 @@ window.openSettings = async () => {
       <div class="inl"><input type="password" id="partner_code" placeholder="${ph2(c.partner_code_set)}" autocomplete="off" style="flex:1">
         <button class="btn ghost small" type="button" onclick="const v='wz-'+crypto.getRandomValues(new Uint32Array(3)).join('').slice(0,18);$('#partner_code').type='text';$('#partner_code').value=v">Erzeugen</button></div>
       <p class="help">Einer erzeugt den Code und schickt ihn dem anderen. Die geteilten Daten (Spiele und Spielzeiten) sind damit verschlüsselt.</p>
+      <label class="check" style="margin-top:10px"><input type="checkbox" id="allow_wake" ${c.allow_wake?"checked":""}> ${esc((S.data.partner||{}).name || "Mein Partner")} darf meinen PC per Handy aufwecken</label>
+      <p class="help">Klappt nur im selben Heimnetz und wenn „Wake-on-LAN“ im BIOS/Netzwerkadapter an ist. Aus Ruhezustand geht es fast immer.</p>
     </fieldset>
     <fieldset data-tab="sys"><legend>⬇️ Hintergrund-Downloads</legend><div id="dlBox"><p class="help">Lade Status …</p></div></fieldset>
     <fieldset data-tab="sys"><legend>🩺 Systemcheck</legend>${healthBlock() || `<p class="help">Wird beim nächsten Abgleich erstellt.</p>`}</fieldset>
@@ -4784,7 +5034,7 @@ window.openSettings = async () => {
     </fieldset>
     <div class="savebar"><button class="btn ghost" type="button" onclick="$('#settings').close()">Abbrechen</button>
       <button class="btn limeb" type="button" id="saveBtn">Speichern</button></div>`;
-  setTab(S.setTab || "allg");
+  setTab(S.setTab || null);
   $("#instBtn").onclick = async () => {
     try { const r = await post("/api/playnite/install",{}); alert("Installiert nach:\n" + r.path + "\n\nStarte Playnite jetzt neu."); openSettings(); }
     catch(e){ alert(e.message); }
@@ -4805,7 +5055,7 @@ window.openSettings = async () => {
         ...($("#auto_update")?{auto_update:ch("auto_update")}:{}), ...($("#publish_updates")?{publish_updates:ch("publish_updates")}:{}), gh_token:v("gh_token"), cloud_pass:v("cloud_pass"),
         cloud_enabled:ch("cloud_enabled"), tracker:ch("tracker"), hltb:ch("hltb"), lan:ch("lan"), sync_hours:Number(v("sync_hours"))||6,
         backlog_stores:[...document.querySelectorAll(".blstore:checked")].map(e=>e.value),
-        steam_extras:ch("steam_extras"), push_topic:v("push_topic"),
+        steam_extras:ch("steam_extras"), push_topic:v("push_topic"), allow_wake:ch("allow_wake"),
         watts:Number(v("watts"))||350, kwh_price:Number(v("kwh_price"))||0.35});
       $("#settings").close(); toast("Gespeichert"); setTimeout(load,400);
     } catch(e){ alert("Speichern fehlgeschlagen: " + e.message); $("#saveBtn").disabled = false; }
@@ -4813,11 +5063,30 @@ window.openSettings = async () => {
   if (!$("#settings").open) $("#settings").showModal();
   pollDownloads(); loadUpdBox();
 };
-const SET_TABS = [["allg","Allgemein"],["quellen","Quellen"],["dienste","Keys"],["handy","Handy"],["duo","💞 Wir zwei"],["sys","System"]];
+// Übersicht aus Kacheln: Status auf einen Blick, Seltenes unter „Erweitert“
+const SET_TABS = [["allg","🎨","Allgemein"],["quellen","🎮","Spiele-Quellen"],["handy","📱","Handy & Push"],["duo","💞","Wir zwei"],["dienste","🔑","Keys & Dienste"],["sys","🖥️","System & Updates"]];
+function setTiles(c){
+  const src = Object.values(S.data.sources||{}), ok = src.filter(x=>x && x.ok !== false && !x.error).length;
+  const keys = ["steam_api_key_set","igdb_client_secret_set","itad_key_set","sgdb_key_set","rawg_key_set","xbox_api_key_set"].filter(k=>c[k]).length;
+  const H = S.data.health || [], bad = H.filter(h=>h.level==="error").length, warn = H.filter(h=>h.level==="warn").length;
+  const pa = S.data.partner;
+  const st = {allg:[`${esc(c.user_name || "Kein Name")} · ${esc((THEMES.find(t=>t[0]===THEME.cur)||[0,"Standard"])[1])}`, c.user_name ? "ok" : "warn"],
+    quellen:[src.length ? `${ok} von ${src.length} verbunden` : "Noch nichts verbunden", src.length && ok === src.length ? "ok" : "warn"],
+    handy:[c.cloud_enabled ? (c.push_topic ? "Handy-App + Push aktiv" : "Handy-App aktiv · Push aus") : "Aus", c.cloud_enabled ? "ok" : "off"],
+    duo:[pa ? `Verbunden mit ${esc(pa.name)}` : c.partner_url ? "Wartet auf Partner" : "Nicht verbunden", pa ? "ok" : "off"],
+    dienste:[`${keys} Keys hinterlegt`, keys ? "ok" : "off"],
+    sys:[bad ? `${bad} Problem${bad>1?"e":""}` : warn ? `${warn} Hinweis${warn>1?"e":""}` : "Alles in Ordnung", bad ? "err" : warn ? "warn" : "ok"]};
+  const tile = ([k,i,l]) => `<button type="button" class="stile" onclick="setTab('${k}')"><span class="sti">${i}</span><b>${l}</b><small class="sts ${st[k][1]}">${st[k][0]}</small></button>`;
+  return `<div class="stiles">${SET_TABS.slice(0,4).map(tile).join("")}</div><div class="secttl" style="margin:18px 0 8px">Erweitert</div><div class="stiles small">${SET_TABS.slice(4).map(tile).join("")}</div>`;
+}
+if ($("#settings")) $("#settings").addEventListener("close", () => { S.setTab = null; });
 window.setTab = k => {
   S.setTab = k;
   document.querySelectorAll("#settingsBody fieldset[data-tab]").forEach(f=>f.hidden = f.dataset.tab !== k);
-  document.querySelectorAll("#settingsBody .stabs button").forEach(b=>b.classList.toggle("on", b.dataset.k === k));
+  document.querySelectorAll("#settingsBody .stiles, #settingsBody .secttl").forEach(e=>e.hidden = !!k);
+  const bk = $("#settingsBody .stback"); if (bk){ bk.hidden = !k; const t = [...SET_TABS, ...CLOUD_TABS].find(x=>x[0]===k); $("#stTitle").textContent = ""; }
+  const sv = $("#settingsBody .savebar"); if (sv) sv.hidden = !k;
+  const d = $("#settings"); if (d) d.scrollTop = 0;
 };
 async function loadUpdBox(){
   const box = $("#updBox"); if (!box) return;
