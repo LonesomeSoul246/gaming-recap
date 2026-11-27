@@ -82,7 +82,7 @@ code{background:#ffffff12;padding:1px 6px;border-radius:6px;font-size:.92em}
 .wnew{background:linear-gradient(120deg,color-mix(in srgb,var(--acc) 18%,var(--panel)),var(--panel))}.wnew ul{margin:0;padding-left:20px;line-height:1.7}.wnew .dclose{top:14px;right:14px}
 .moment{display:flex;gap:10px;align-items:center;margin:8px 0 0;padding:10px 12px;border-radius:14px;background:var(--glass);color:inherit;text-decoration:none;font-size:15px;line-height:1.4;max-width:560px}
 .moment .mi0{font-size:22px;flex:none;width:30px;height:30px;display:grid;place-items:center}.moment .mi0 .fx{width:30px;height:30px}
-.thpet{position:relative}.pmood{position:absolute;right:-4px;top:-8px;width:46px;height:46px;z-index:3;animation:bob 3s ease-in-out infinite}
+.thpet{position:relative}.pmood{cursor:pointer;position:absolute;right:-4px;top:-8px;width:46px;height:46px;z-index:3;animation:bob 3s ease-in-out infinite}
 .pethero .pmood{right:16px;top:14px;width:64px;height:64px}
 .pletter{position:absolute;left:-2px;bottom:28px;width:40px;height:40px;z-index:3;animation:bob 2.4s ease-in-out infinite reverse}
 @keyframes bob{50%{transform:translateY(-6px)}}
@@ -2273,7 +2273,10 @@ function petMood(p){
   if (S.data.plans && planAll().some(x=>x.at.slice(0,10) === isoDay(nowD()))) return "emo_idee";
   return ["emo_musik", null, null, "emo_frage", null][hashN(isoDay(nowD()) + p.id) % 5];
 }
-const moodBubble = p => { const m = petMood(p); return m ? `<span class="pmood">${fxImg(m)}</span>` : ""; };
+const MOOD_TIP = {emo_schlaf:"ist müde", emo_herz:"freut sich über einen Gruß", emo_spiel:"fiebert bei deinem Spiel mit", emo_kakao:"hat Lust auf Kakao", emo_stern:"weiß, dass ein Ei auf dich wartet",
+  emo_idee:"freut sich auf den Zockabend heute", emo_musik:"summt ein Lied", emo_frage:"überlegt, was ihr als Nächstes spielt"};
+const moodBubble = p => { const m = petMood(p); if (!m) return ""; const t = `${petName(p)} ${MOOD_TIP[m] || ""}`;
+  return `<span class="pmood" title="${esc(t)}" onclick="event.stopPropagation();toast('${esc(t).replace(/'/g,"")} – ${esc((MOOD_LINES[m]||[""])[0]).replace(/'/g,"")}')">${fxImg(m)}</span>`; };
 
 /* ---------- Moment des Tages ---------- */
 const SEASON_LINES = {0:["Neues Jahr, neue Abenteuer – was steht auf eurer Liste? ✨"],1:["Draußen grau, drinnen gemütlich. Perfektes Zockwetter."],
