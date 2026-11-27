@@ -2582,7 +2582,8 @@ def pet_state(cfg, force=False):
     egg_luck = {"since": 0}
     def roll_egg(kind, bid, day):
         """Zufälliges Ei nach einem Boss-Sieg (fest ausgewürfelt, ändert sich beim Neuberechnen nicht)."""
-        owned = set(sp_of.values()) | set(got["egg"])
+        # nur, was an DIESEM Tag schon da war – sonst würfelt jedes neu ausgebrütete Ei alle alten Siege neu aus
+        owned = {p["sp"] for p in pets if p["start"] < day} | set(got["egg"])
         mon = int(day[5:7])
         pool = [sp for sp in PET_SPECIES if sp not in owned and (sp != "koppla" or pa)
                 and (not PET_SPECIES[sp].get("season") or mon in PET_SPECIES[sp]["season"])]
