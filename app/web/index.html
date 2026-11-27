@@ -2839,6 +2839,14 @@ function giftForMe(){
   return null;
 }
 window.giftSeen = id => { store.set("gr_gift_seen", [...store.get("gr_gift_seen", []), id].slice(-60)); quietRoute(); };
+function accGiftCard(){
+  const pa = S.data.partner; if (!pa) return ""; const seen = store.get("gr_gift_seen", []);
+  const g = (((pa.pet||{}).gifts)||[]).filter(x=>PET_ACC[x.acc] && (Date.now() - Date.parse(String(x.at).slice(0,10) + "T12:00")) < 3*864e5 && !seen.includes("acc" + x.acc + x.at)).slice(-1)[0];
+  if (!g) return ""; const id = "acc" + g.acc + g.at;
+  return `<section class="card reveal giftc"><button class="ibtn dclose" onclick="giftSeen('${id}')" aria-label="Schließen">✕</button><div class="gfig">${accIcon(g.acc)}</div>
+    <div><div class="eyebrow">Geschenk</div><h3 style="margin:4px 0">${esc(pa.name)} hat dir ${esc(PET_ACC[g.acc][0])} geschenkt</h3>
+    <p class="help" style="margin:4px 0 0">Du findest es beim Begleiter unter Sammlung – zieh es gleich an 💛</p></div></section>`;
+}
 function giftCard(){
   const g = giftForMe(), pa = S.data.partner; if (!g || g.seen) return "";
   const pn = pa.pet ? (pa.pet.nick || pa.pet.stage_name) : pa.name;
@@ -3271,7 +3279,7 @@ function renderOverviewInner(){
   const c = ovCtx();
   let h = todayHead() + playingBanner();
   if (!c.played.length){ setView(h + emptyState()); return; }
-  h += giftCard() + whatsNewCard() + adventCard() + monthWrapCard() + capsuleCard(false) + momentPrompt();
+  h += accGiftCard() + giftCard() + whatsNewCard() + adventCard() + monthWrapCard() + capsuleCard(false) + momentPrompt();
   const tc = [planCard(), feedCard(), countdownCard(), agoCard(), spaceCard(true)].filter(Boolean);
   if (tc.length) h += `<div class="mcols">${tc.join("")}</div>`;   // zwei Spalten, jede Karte nur so hoch wie ihr Inhalt
   h += `<div class="secthead"><div class="h2">Deine Zahlen</div>${periodChips()}</div>` + periodNotice();
@@ -4503,11 +4511,14 @@ window.accPreview = k => { const box = $("#accPrev"), p = petActive(); if (!box 
 window.setPetHab = hab => savePet(r=>{ r.hab = hab; });
 window.renamePet = id => { const p = (S.data.pet.pets||[]).find(x=>x.id===id); const n = prompt("Wie soll dein Begleiter heißen?", petName(p)); if (n === null) return; savePet(r=>{ const x = r.pets.find(y=>y.id===id); if (x) x.nick = n.trim().slice(0,24); }); };
 window.sendGift = () => {
-  const P = S.data.pet, pa = S.data.partner, own = ((P.unlocked||{}).acc||[]).filter(a=>a!=="herz");
+  const P = S.data.pet, pa = S.data.partner, has = new Set(((pa.pet||{}).acc_have)||[]), known = !!(pa.pet||{}).acc_have,
+    own = ((P.unlocked||{}).acc||[]).filter(a=>a!=="herz").sort((a,b)=>has.has(a) - has.has(b));
   if (!own.length){ toast("Du hast noch keine Accessoires zum Verschenken"); return; }
   $("#infoBody").innerHTML = `<button class="ibtn dclose" onclick="$('#info').close()">✕</button><div class="eyebrow">Geschenk</div><div class="h1" style="font-size:28px;margin:6px 0 4px">Was bekommt ${esc(pa.name)}?</div>
     <p class="help">Du behältst es selbst auch. Einmal pro Woche kannst du etwas verschenken – ${esc(pa.name)} bekommt eine Push-Nachricht.</p>
-    <div class="coll">${own.map(a=>`<button class="ci" onclick="giftPick('${a}')"><span class="${hasImg(`acc_${a}.webp`)?"img":""}">${accIcon(a)}</span><small>${esc(PET_ACC[a][0])}</small></button>`).join("")}</div>`;
+    ${known ? "" : `<p class="help">Was ${esc(pa.name)} schon hat, sehe ich erst, wenn ihre App auf dem neuesten Stand ist.</p>`}
+    <div class="coll">${own.map(a=>has.has(a) ? `<button class="ci lock" disabled title="Hat ${esc(pa.name)} schon"><span class="${hasImg(`acc_${a}.webp`)?"img":""}">${accIcon(a)}</span><small>${esc(PET_ACC[a][0])} · hat sie schon</small></button>`
+      : `<button class="ci" onclick="giftPick('${a}')"><span class="${hasImg(`acc_${a}.webp`)?"img":""}">${accIcon(a)}</span><small>${esc(PET_ACC[a][0])}</small></button>`).join("")}</div>`;
   $("#info").showModal();
 };
 window.giftPick = a => { $('#info').close(); savePet(r=>{ r.gifts = [...(r.gifts||[]), {acc:a, at:todayIso()}]; }, `${PET_ACC[a][0]} ist unterwegs zu ${S.data.partner.name} 🎁`); };

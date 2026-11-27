@@ -2990,7 +2990,9 @@ def pet_state(cfg, force=False):
         if age < 86400:
             party = {"title": titles.get(k, k), "full": st == "komplett"}
     gifts = [g for g in raw.get("gifts") or [] if isinstance(g, dict)]
-    last_gift = max([str(g.get("at") or "") for g in gifts] or [""])
+    pa_have = set((((pa or {}).get("pet") or {}).get("acc_have")) or [])
+    # Geschenke, die der Partner schon hatte, zählen nicht fürs Wochenlimit (sie bringen ihm ja nichts Neues)
+    last_gift = max([str(g.get("at") or "") for g in gifts if g.get("acc") not in pa_have] or [""])
     res = {"pets": out, "active": active_on(T), "hab": raw.get("hab") if raw.get("hab") in got["hab"] else "lichtung",
            "unlocked": got, "loot": loot[-40:], "wins": wins, "raid_wins": raid_wins, "current": current,
            "history": history[-12:], "today": {"xp": td.get("xp", 0) + sum(x for _, x in rew_by.get(T, [])), "min": td.get("min", 0),
@@ -3023,6 +3025,7 @@ def pet_public(cfg):
         raw = kv_get("pet", {}) or {}
         out = {k: p.get(k) for k in ("sp", "stage", "stage_name", "lvl", "nick", "shiny", "acc", "acc2", "species", "aura", "stars")} if p else {}
         out["gifts"] = [g for g in raw.get("gifts") or [] if isinstance(g, dict)][-20:]
+        out["acc_have"] = sorted((st.get("unlocked") or {}).get("acc") or [])   # damit der Partner nichts Doppeltes verschenkt
         return out if (p or out["gifts"]) else None
     except Exception:
         return None
