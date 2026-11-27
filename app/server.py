@@ -1455,6 +1455,33 @@ def pet_today_minutes():
     return m
 
 
+def repair_phantom_eggs():
+    """Einmalig: Begleiter entfernen, die nur durch den alten Ausbrüt-Fehler ins Nest kamen
+    (Art nie als Ei verdient, noch ohne Erfahrung). Echte Fortschritte werden nie angefasst."""
+    if kv_get("eggfix_v1"):
+        return []
+    raw = kv_get("pet", {}) or {}
+    pets = raw.get("pets") or []
+    removed = []
+    if len(pets) > 1:
+        st = pet_state(load_config(), force=True)
+        earned = {l["val"] for l in st.get("loot") or [] if l.get("kind") == "egg"}
+        xp = {p["id"]: p.get("xp", 0) for p in st.get("pets") or []}
+        drop = {p["id"] for p in pets[1:] if p["sp"] not in earned and not xp.get(p["id"])}
+        if drop:
+            removed = [p["sp"] for p in pets if p["id"] in drop]
+            raw = dict(raw, pets=[p for p in pets if p["id"] not in drop],
+                       act=[a for a in raw.get("act") or [] if a[1] not in drop],
+                       acc={k: v for k, v in (raw.get("acc") or {}).items() if k not in drop},
+                       acc2={k: v for k, v in (raw.get("acc2") or {}).items() if k not in drop})
+            kv_set("pet", raw)
+            _pet_cache["v"] = None
+            cloud_state["pending"] = True
+            print("  Begleiter: Fehler-Eier entfernt:", ", ".join(removed))
+    kv_set("eggfix_v1", {"at": now_iso(), "removed": removed})
+    return removed
+
+
 def merge_pet(new, now_minutes=None):
     """Begleiter-Änderung von PC oder Handy einarbeiten, statt alles zu überschreiben:
     keine doppelten Eier, Wechsel werden gesammelt (mit Teilungsstelle), Neustart-Epoche bleibt."""
@@ -4989,6 +5016,10 @@ def main():
     if not os.path.exists(CONFIG_PATH):
         write_json(CONFIG_PATH, DEFAULT_CONFIG)
     cfg = load_config()
+    try:
+        repair_phantom_eggs()
+    except Exception as e:
+        print("  Begleiter-Reparatur:", err_text(e))
     if (cfg.get("psn_npsso") or "").strip() and not cfg.get("psn_set_at"):
         cfg["psn_set_at"] = int(time.time())  # Ablauf-Erinnerung: ab jetzt mitzählen
         write_json(CONFIG_PATH, cfg)
